@@ -1,0 +1,71 @@
+\documentclass{article}
+\usepackage{tikz}
+\usetikzlibrary{lindenmayersystems.penrose}
+
+\begin{document}
+\begin{tikzpicture}
+\foreach \ax/\xs in {
+  T/0,t/2,G/4,g/6
+} {
+  \draw[xshift=\xs cm] [lindenmayer system={Penrose Rhombus,axiom=\ax,step=1cm,order=0},red] lindenmayer system;
+  \draw[xshift=\xs cm] [lindenmayer system={Penrose Rhombus,axiom=\ax,step=1cm,order=1},ultra thin] lindenmayer system;
+}
+\end{tikzpicture}
+
+\begin{tikzpicture}
+\foreach \ax/\xs in {
+  T/0,t/2,G/4,g/6
+} {
+  \draw[xshift=\xs cm] [lindenmayer system={Penrose Rhombus,axiom=\ax,step=1cm,order=0},red] lindenmayer system;
+  \draw[xshift=\xs cm] [lindenmayer system={Penrose Rhombus,axiom=\ax,step=1cm,order=2},ultra thin] lindenmayer system;
+}
+\end{tikzpicture}
+
+\begin{tikzpicture}
+\foreach[evaluate=\k as \mk using {\k+Mod(\k,2)},evaluate=\k as \ax using {Mod(\k,2) == 0 ? "T" : "t"}] \k in {0,...,9} {
+  \begin{scope}[rotate=\mk*36]
+\draw [lindenmayer system={Penrose Rhombus,axiom=\ax,step=1cm,order=2},red] lindenmayer system;
+  \end{scope}
+}
+\begin{scope}[xshift=2cm]
+\foreach[evaluate=\k as \mk using {\k+Mod(\k,2)},evaluate=\k as \ax using {Mod(\k,2) == 0 ? "T" : "t"}] \k in {0,...,9} {
+  \begin{scope}[rotate=\mk*36]
+\draw [lindenmayer system={Penrose Rhombus,axiom=\ax,step=1cm,order=2,Penrose/tiles},red] lindenmayer system;
+  \end{scope}
+}
+\end{scope}
+\end{tikzpicture}
+
+\begin{tikzpicture}
+\foreach \ax/\xs in {
+  T/0,t/2,G/4,g/6
+} {
+  \draw[xshift=\xs cm] [lindenmayer system={Penrose Kite,axiom=\ax,step=1cm,order=0},red] lindenmayer system;
+  \draw[xshift=\xs cm] [lindenmayer system={Penrose Kite,axiom=\ax,step=1cm,order=1},ultra thin] lindenmayer system;
+}
+\end{tikzpicture}
+
+\begin{tikzpicture}
+\foreach \ax/\xs in {
+  T/0,t/2,G/4,g/6
+} {
+  \draw[xshift=\xs cm] [lindenmayer system={Penrose Kite,axiom=\ax,step=1cm,order=0},red] lindenmayer system;
+  \draw[xshift=\xs cm] [lindenmayer system={Penrose Kite,axiom=\ax,step=1cm,order=2},ultra thin] lindenmayer system;
+}
+\end{tikzpicture}
+
+\begin{tikzpicture}
+\foreach[evaluate=\k as \mk using {\k+Mod(\k,2)},evaluate=\k as \ax using {Mod(\k,2) == 0 ? "T" : "t"}] \k in {0,...,9} {
+  \begin{scope}[rotate=\mk*36]
+\draw [lindenmayer system={Penrose Kite,axiom=\ax,step=1cm,order=2},red] lindenmayer system;
+  \end{scope}
+}
+\begin{scope}[xshift=2cm]
+\foreach[evaluate=\k as \mk using {\k+Mod(\k,2)},evaluate=\k as \ax using {Mod(\k,2) == 0 ? "T" : "t"}] \k in {0,...,9} {
+  \begin{scope}[rotate=\mk*36]
+\draw [lindenmayer system={Penrose Kite,axiom=\ax,step=1cm,order=4,Penrose/tiles},red] lindenmayer system;
+  \end{scope}
+}
+\end{scope}
+\end{tikzpicture}
+\end{document}

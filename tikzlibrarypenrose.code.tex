@@ -1,0 +1,240 @@
+\pgfmathsetmacro\pr@chphi{cos(18)}
+\pgfmathsetmacro\pr@shphi{sin(18)}
+\pgfmathsetmacro\pr@cphi{cos(36)}
+\pgfmathsetmacro\pr@sphi{sin(36)}
+\pgfmathsetmacro\pr@invphi{2/(sqrt(5)+1)}
+\pgfmathsetmacro\pr@invphisq{\pr@invphi*\pr@invphi}
+\pgfmathsetmacro\pr@ominvphisq{\pr@invphi - \pr@invphisq}
+\pgfmathsetmacro\pr@ominvphi{1 - \pr@invphi}
+
+\tikzset{
+  thin rhombus/.pic={
+    \begin{scope}
+    \pgfkeysgetvalue{/tikz/Penrose/alignment location}{\prloc}
+    \ifx\prloc\pgfutil@empty
+    \else
+    \begingroup
+    \tikzset{name prefix ..}%
+    \tikz@scan@one@point\pgfutil@firstofone(\prloc-edge \pgfkeysvalueof{/tikz/Penrose/alignment edge} start)%
+    \global\pgf@xa=\pgf@x
+    \global\pgf@ya=\pgf@y
+    \tikz@scan@one@point\pgfutil@firstofone(\prloc-edge \pgfkeysvalueof{/tikz/Penrose/alignment edge} end)%
+    \global\pgf@xb=\pgf@x
+    \global\pgf@yb=\pgf@y
+    \endgroup
+    \advance\pgf@xb by -\pgf@xa
+    \advance\pgf@yb by -\pgf@ya
+    \pgftransformshift{\pgfpoint{\pgf@xa}{\pgf@ya}}%
+    \pgfpointnormalised{\pgfpoint{\pgf@xb}{\pgf@yb}}
+    \pgf@xb=\pgf@x
+    \pgf@yb=\pgf@y
+\pgftransformtriangle{\pgfpoint{0pt}{0pt}}{\pgfpoint{\pgf@xb}{\pgf@yb}}{\pgfpoint{-\pgf@yb}{\pgf@xb}}
+    \if\pgfkeysvalueof{/tikz/Penrose/alignment edge}b\relax
+    \pgftransformrotate{-162}%
+    \pgftransformshift{\pgfpoint{-2*\pr@chphi cm}{0 cm}}%
+    \else
+    \if\pgfkeysvalueof{/tikz/Penrose/alignment edge}B\relax
+    \pgftransformrotate{-18}%
+    \else
+    \if\pgfkeysvalueof{/tikz/Penrose/alignment edge}a\relax
+    \pgftransformrotate{162}%
+    \pgftransformshift{\pgfpoint{-2*\pr@chphi cm}{0 cm}}%
+    \else
+    \if\pgfkeysvalueof{/tikz/Penrose/alignment edge}A\relax
+    \pgftransformrotate{18}%
+    \fi\fi\fi\fi
+    \fi
+    \clip (0,0) -- (18:1) -- ++(-18:1) -- ++(-162:1) -- cycle;
+    \path[every rhombus/.try, every thin rhombus/.try, pic actions] (0,0) -- (18:1) -- ++(-18:1) -- ++(-162:1) -- cycle;
+\path[every circle arc/.try] (18:1) ++(-18:1/4) arc[start angle=-18,delta angle=-144,radius=1/4];
+\path[every long arc/.try] (-18:1) ++(18:1/4) arc[start angle=18,delta angle=144,radius=1/4];
+\coordinate (-edge a start) at (0,0);
+\coordinate (-edge b start) at (0,0);
+\coordinate (-edge b end) at (18:1);
+\coordinate (-edge B end) at (18:1);
+\coordinate (-edge A start) at (2*\pr@chphi,0);
+\coordinate (-edge B start) at (2*\pr@chphi,0);
+\coordinate (-edge a end) at (-18:1);
+\coordinate (-edge A end) at (-18:1);
+    \end{scope}
+  },
+  thin rhombus/.style={
+    every Penrose tile/.try,
+    pic type=thin rhombus,
+  },
+  thick rhombus/.pic={
+    \begin{scope}
+    \pgfkeysgetvalue{/tikz/Penrose/alignment location}{\prloc}
+    \ifx\prloc\pgfutil@empty
+    \else
+    \begingroup
+    \tikzset{name prefix ..}%
+    \tikz@scan@one@point\pgfutil@firstofone(\prloc-edge \pgfkeysvalueof{/tikz/Penrose/alignment edge} start)%
+    \global\pgf@xa=\pgf@x
+    \global\pgf@ya=\pgf@y
+    \tikz@scan@one@point\pgfutil@firstofone(\prloc-edge \pgfkeysvalueof{/tikz/Penrose/alignment edge} end)%
+    \global\pgf@xb=\pgf@x
+    \global\pgf@yb=\pgf@y
+    \endgroup
+    \advance\pgf@xb by -\pgf@xa
+    \advance\pgf@yb by -\pgf@ya
+    \pgftransformshift{\pgfpoint{\pgf@xa}{\pgf@ya}}%
+    \pgfpointnormalised{\pgfpoint{\pgf@xb}{\pgf@yb}}
+    \pgf@xb=\pgf@x
+    \pgf@yb=\pgf@y
+\pgftransformtriangle{\pgfpoint{0pt}{0pt}}{\pgfpoint{\pgf@xb}{\pgf@yb}}{\pgfpoint{-\pgf@yb}{\pgf@xb}}
+    \if\pgfkeysvalueof{/tikz/Penrose/alignment edge}b\relax
+    \pgftransformrotate{144}%
+    \pgftransformshift{\pgfpoint{-\pr@cphi cm}{-\pr@sphi cm}}%
+    \else
+    \if\pgfkeysvalueof{/tikz/Penrose/alignment edge}B\relax
+    \pgftransformrotate{216}%
+    \pgftransformshift{\pgfpoint{-\pr@cphi cm}{\pr@sphi cm}}%
+    \else
+    \if\pgfkeysvalueof{/tikz/Penrose/alignment edge}a\relax
+    \pgftransformrotate{144}%
+    \pgftransformshift{\pgfpoint{-2*\pr@cphi cm}{0 cm}}%
+    \else
+    \if\pgfkeysvalueof{/tikz/Penrose/alignment edge}A\relax
+    \pgftransformrotate{216}%
+    \pgftransformshift{\pgfpoint{-2*\pr@cphi cm}{0 cm}}%
+    \fi\fi\fi\fi
+    \fi
+\clip (0,0) -- (36:1) -- ++(-36:1) -- ++(-144:1) -- cycle;
+\path[every rhombus/.try, every thick rhombus/.try, pic actions] (0,0) -- (36:1) -- ++(-36:1) -- ++(-144:1) -- cycle;
+\path[every circle arc/.try] (0,0) ++(36:1/4) arc[start angle=36,delta angle=-72,radius=1/4];
+\path[every long arc/.try] (2*\pr@cphi,0) ++(144:3/4) arc[start angle=144,delta angle=72,radius=3/4];
+\coordinate (-edge b end) at (0,0);
+\coordinate (-edge B end) at (0,0);
+\coordinate (-edge a end) at (36:1);
+\coordinate (-edge B start) at (36:1);
+\coordinate (-edge a start) at (2*\pr@cphi,0);
+\coordinate (-edge A start) at (2*\pr@cphi,0);
+\coordinate (-edge A end) at (-36:1);
+\coordinate (-edge b start) at (-36:1);
+    \end{scope}
+  },
+  thick rhombus/.style={
+    every Penrose tile/.try,
+    pic type=thick rhombus,
+  },
+  align with/.code args={#1 along #2}{%
+    \tikzset{
+      Penrose/alignment location=#1,
+      Penrose/alignment edge=#2,
+    }%
+  },
+  Penrose/alignment location/.initial={},
+  Penrose/alignment edge/.initial=a,
+  kite/.pic={
+    \begin{scope}
+    \pgfkeysgetvalue{/tikz/Penrose/alignment location}{\prloc}
+    \ifx\prloc\pgfutil@empty
+    \else
+    \begingroup
+    \tikzset{name prefix ..}%
+    \tikz@scan@one@point\pgfutil@firstofone(\prloc-edge \pgfkeysvalueof{/tikz/Penrose/alignment edge} start)%
+    \global\pgf@xa=\pgf@x
+    \global\pgf@ya=\pgf@y
+    \tikz@scan@one@point\pgfutil@firstofone(\prloc-edge \pgfkeysvalueof{/tikz/Penrose/alignment edge} end)%
+    \global\pgf@xb=\pgf@x
+    \global\pgf@yb=\pgf@y
+    \endgroup
+    \advance\pgf@xb by -\pgf@xa
+    \advance\pgf@yb by -\pgf@ya
+    \pgftransformshift{\pgfpoint{\pgf@xa}{\pgf@ya}}%
+    \pgfpointnormalised{\pgfpoint{\pgf@xb}{\pgf@yb}}
+    \pgf@xb=\pgf@x
+    \pgf@yb=\pgf@y
+\pgftransformtriangle{\pgfpoint{0pt}{0pt}}{\pgfpoint{\pgf@xb}{\pgf@yb}}{\pgfpoint{-\pgf@yb}{\pgf@xb}}
+    \if\pgfkeysvalueof{/tikz/Penrose/alignment edge}b\relax
+    \pgftransformrotate{108}%
+    \pgftransformshift{\pgfpoint{-1 cm}{0 cm}}%
+    \else
+    \if\pgfkeysvalueof{/tikz/Penrose/alignment edge}B\relax
+    \pgftransformrotate{-108}%
+    \pgftransformshift{\pgfpoint{-1 cm}{0 cm}}%
+    \else
+    \if\pgfkeysvalueof{/tikz/Penrose/alignment edge}a\relax
+    \pgftransformrotate{36}%
+    \else
+    \if\pgfkeysvalueof{/tikz/Penrose/alignment edge}A\relax
+    \pgftransformrotate{-36}%
+    \fi\fi\fi\fi
+    \fi
+    \clip (0,0) -- +(36:1) -- +(1,0) -- +(-36:1) -- cycle;
+    \path[every kite/.try, pic actions] (0,0) -- +(36:1) -- +(1,0) -- +(-36:1) -- cycle;
+\path[every circle arc/.try] (36:\pr@invphi) arc[start angle=36,delta angle=-72,radius=\pr@invphi];
+\path[every long arc/.try] (1,0) ++(108:\pr@invphisq) arc[start angle=108,delta angle=144,radius=\pr@invphisq];
+\coordinate (-edge a start) at (0,0);
+\coordinate (-edge A start) at (0,0);
+\coordinate (-edge a end) at (36:1);
+\coordinate (-edge b end) at (36:1);
+\coordinate (-edge b start) at (1,0);
+\coordinate (-edge B start) at (1,0);
+\coordinate (-edge A end) at (-36:1);
+\coordinate (-edge B end) at (-36:1);
+    \end{scope}
+  },
+  dart/.pic={
+    \begin{scope}
+    \pgfkeysgetvalue{/tikz/Penrose/alignment location}{\prloc}
+    \ifx\prloc\pgfutil@empty
+    \else
+    \begingroup
+    \tikzset{name prefix ..}%
+    \tikz@scan@one@point\pgfutil@firstofone(\prloc-edge \pgfkeysvalueof{/tikz/Penrose/alignment edge} start)%
+    \global\pgf@xa=\pgf@x
+    \global\pgf@ya=\pgf@y
+    \tikz@scan@one@point\pgfutil@firstofone(\prloc-edge \pgfkeysvalueof{/tikz/Penrose/alignment edge} end)%
+    \global\pgf@xb=\pgf@x
+    \global\pgf@yb=\pgf@y
+    \endgroup
+    \advance\pgf@xb by -\pgf@xa
+    \advance\pgf@yb by -\pgf@ya
+    \pgftransformshift{\pgfpoint{\pgf@xa}{\pgf@ya}}%
+    \pgfpointnormalised{\pgfpoint{\pgf@xb}{\pgf@yb}}
+    \pgf@xb=\pgf@x
+    \pgf@yb=\pgf@y
+\pgftransformtriangle{\pgfpoint{0pt}{0pt}}{\pgfpoint{\pgf@xb}{\pgf@yb}}{\pgfpoint{-\pgf@yb}{\pgf@xb}}
+    \if\pgfkeysvalueof{/tikz/Penrose/alignment edge}b\relax
+    \pgftransformrotate{-72}%
+    \pgftransformshift{\pgfpoint{\pr@invphi*\pr@shphi cm}{\pr@invphi*\pr@chphi cm}}%
+    \else
+    \if\pgfkeysvalueof{/tikz/Penrose/alignment edge}B\relax
+    \pgftransformrotate{72}%
+    \pgftransformshift{\pgfpoint{\pr@invphi*\pr@shphi cm}{-\pr@invphi*\pr@chphi cm}}%
+    \else
+    \if\pgfkeysvalueof{/tikz/Penrose/alignment edge}a\relax
+    \pgftransformrotate{-36}%
+    \pgftransformshift{\pgfpoint{\pr@invphi*\pr@shphi cm}{\pr@invphi*\pr@chphi cm}}%
+    \else
+    \if\pgfkeysvalueof{/tikz/Penrose/alignment edge}A\relax
+    \pgftransformrotate{36}%
+    \pgftransformshift{\pgfpoint{\pr@invphi*\pr@shphi cm}{-\pr@invphi*\pr@chphi cm}}%
+    \fi\fi\fi\fi
+    \fi
+    \clip (0,0) -- +(108:\pr@invphi) -- +(\pr@invphi,0) -- +(-108:\pr@invphi) -- cycle;
+    \path[every dart/.try, pic actions] (0,0) -- +(108:\pr@invphi) -- +(\pr@invphi,0) -- +(-108:\pr@invphi) -- cycle;
+\path[every circle arc/.try] (\pr@invphi,0) ++(144:\pr@ominvphi) arc[start angle=144,delta angle=72,radius=\pr@ominvphi];
+\path[every long arc/.try] (108:\pr@ominvphisq) arc[start angle=108,delta angle=-216,radius=\pr@ominvphisq];
+\coordinate (-edge b end) at (0,0);
+\coordinate (-edge B end) at (0,0);
+\coordinate (-edge a start) at (108:\pr@invphi);
+\coordinate (-edge b start) at (108:\pr@invphi);
+\coordinate (-edge a end) at (\pr@invphi,0);
+\coordinate (-edge A end) at (\pr@invphi,0);
+\coordinate (-edge A start) at (-108:\pr@invphi);
+\coordinate (-edge B start) at (-108:\pr@invphi);
+    \end{scope}
+  },
+  kite/.style={
+    every Penrose tile/.try,
+    pic type=kite,
+  },
+  dart/.style={
+    every Penrose tile/.try,
+    pic type=dart,
+  },
+}
+

@@ -1,0 +1,165 @@
+\usetikzlibrary{lindenmayersystems}
+
+\pgfkeys{
+  /pgf/lindenmayer system/Penrose/tiles/.is choice,
+  /pgf/lindenmayer system/Penrose/tiles/.default=true,
+  /pgf/lindenmayer system/Penrose/tiles/true/.code={
+    \let\pr@maybedraw=\pgflsystemmoveforward
+  },
+  /pgf/lindenmayer system/Penrose/tiles/false/.code={
+    \let\pr@maybedraw=\pgflsystemdrawforward
+  }
+}
+\let\pr@maybedraw=\pgflsystemdrawforward
+
+\pgfdeclarelindenmayersystem{Penrose Rhombus}{%
+  % Triangle, clockwise
+  \symbol{T}{
+    \pgflsystemdrawforward
+    \def\pgflsystemleftangle{108}
+    \pgflsystemturnleft
+    {
+      \pgfmathsetlength\pgflsystemstep{2*sin(18)*\pgflsystemstep}
+      \pr@maybedraw
+    }
+    \def\pgflsystemleftangle{72}
+    \pgflsystemturnleft
+    \pgflsystemdrawforward
+  }
+  % Triangle, anticlockwise
+  \symbol{t}{
+    \pgflsystemdrawforward
+    \def\pgflsystemleftangle{-108}
+    \pgflsystemturnleft
+    {
+      \pgfmathsetlength\pgflsystemstep{2*sin(18)*\pgflsystemstep}
+      \pr@maybedraw
+    }
+    \def\pgflsystemleftangle{-72}
+    \pgflsystemturnleft
+    \pgflsystemdrawforward
+  }
+  % Gnomon, clockwise
+  \symbol{G}{
+    \pr@maybedraw
+    \def\pgflsystemleftangle{144}
+    \pgflsystemturnleft
+    {
+      \pgfmathsetlength\pgflsystemstep{\pgflsystemstep/(2*cos(36))}
+      \pgflsystemdrawforward
+      \def\pgflsystemleftangle{72}
+      \pgflsystemturnleft
+      \pgflsystemdrawforward
+    }
+  }
+  % Gnomon, anticlockwise
+  \symbol{g}{
+    \pr@maybedraw
+    \def\pgflsystemleftangle{-144}
+    \pgflsystemturnleft
+    {
+      \pgfmathsetlength\pgflsystemstep{\pgflsystemstep/(2*cos(36))}
+      \pgflsystemdrawforward
+      \def\pgflsystemleftangle{-72}
+      \pgflsystemturnleft
+      \pgflsystemdrawforward
+    }
+  }
+  \symbol{s}{
+    \pgfmathsetlength\pgflsystemstep{2*sin(18)*\pgflsystemstep}
+  }
+  \symbol{+}{
+    \def\pgflsystemleftangle{144}
+    \pgflsystemturnleft
+  }
+  \symbol{*}{
+    \def\pgflsystemleftangle{108}
+    \pgflsystemturnleft
+  }
+  \symbol{-}{
+    \def\pgflsystemrightangle{144}
+    \pgflsystemturnright
+  }
+  \symbol{_}{
+    \def\pgflsystemrightangle{108}
+    \pgflsystemturnright
+  }
+  \symbol{>}{
+    \def\pgflsystemrightangle{180}
+    \pgflsystemturnright
+  }
+  \rule{T -> [f*sT][f>g]}
+  \rule{t -> [f_st][f>G]}
+  \rule{G -> [f+sG][sf>g][sf*sT]}
+  \rule{g -> [f-sg][sf>G][sf_st]}
+}
+
+\pgfdeclarelindenmayersystem{Penrose Kite}{%
+  % Triangle, clockwise
+  \symbol{T}{
+    \pgflsystemdrawforward
+    \def\pgflsystemleftangle{108}
+    \pgflsystemturnleft
+    {
+      \pgfmathsetlength\pgflsystemstep{2*sin(18)*\pgflsystemstep}
+      \pgflsystemdrawforward
+    }
+    \def\pgflsystemleftangle{72}
+    \pgflsystemturnleft
+    \pr@maybedraw
+  }
+  % Triangle, anticlockwise
+  \symbol{t}{
+    \pgflsystemdrawforward
+    \def\pgflsystemleftangle{-108}
+    \pgflsystemturnleft
+    {
+      \pgfmathsetlength\pgflsystemstep{2*sin(18)*\pgflsystemstep}
+      \pgflsystemdrawforward
+    }
+    \def\pgflsystemleftangle{-72}
+    \pgflsystemturnleft
+    \pr@maybedraw
+  }
+  % Gnomon, clockwise
+  \symbol{G}{
+    \pgflsystemdrawforward
+    \def\pgflsystemleftangle{144}
+    \pgflsystemturnleft
+    {
+      \pgfmathsetlength\pgflsystemstep{\pgflsystemstep/(2*cos(36))}
+      \pgflsystemdrawforward
+      \def\pgflsystemleftangle{72}
+      \pgflsystemturnleft
+    \pr@maybedraw
+    }
+  }
+  % Gnomon, anticlockwise
+  \symbol{g}{
+    \pgflsystemdrawforward
+    \def\pgflsystemleftangle{-144}
+    \pgflsystemturnleft
+    {
+      \pgfmathsetlength\pgflsystemstep{\pgflsystemstep/(2*cos(36))}
+     \pgflsystemdrawforward
+      \def\pgflsystemleftangle{-72}
+      \pgflsystemturnleft
+     \pr@maybedraw
+    }
+  }
+  \symbol{s}{
+    \pgfmathsetlength\pgflsystemstep{2*sin(18)*\pgflsystemstep}
+  }
+  \symbol{+}{
+    \def\pgflsystemleftangle{36}
+    \pgflsystemturnleft
+  }
+  \symbol{-}{
+    \def\pgflsystemrightangle{36}
+    \pgflsystemturnright
+  }
+  \rule{T -> [f+++sT][f+++++st][+sg]}
+  \rule{t -> [f---st][f-----sT][-sG]}
+  \rule{G -> [f++++sG][sT]}
+  \rule{g -> [f----sg][st]}
+}
