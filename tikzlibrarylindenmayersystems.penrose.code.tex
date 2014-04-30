@@ -1,69 +1,97 @@
 \usetikzlibrary{lindenmayersystems}
 
+\newif\ifpenrose@tiles
+\newdimen\pr@origstep
+
 \pgfkeys{
-  /pgf/lindenmayer system/Penrose/tiles/.is choice,
-  /pgf/lindenmayer system/Penrose/tiles/.default=true,
-  /pgf/lindenmayer system/Penrose/tiles/true/.code={
-    \let\pr@maybedraw=\pgflsystemmoveforward
-  },
-  /pgf/lindenmayer system/Penrose/tiles/false/.code={
-    \let\pr@maybedraw=\pgflsystemdrawforward
-  }
+  /pgf/lindenmayer system/Penrose/tiles/.is if=penrose@tiles,
 }
-\let\pr@maybedraw=\pgflsystemdrawforward
+\def\pr@maybedraw{%
+  \ifpenrose@tiles
+  \expandafter\pgflsystemmoveforward
+  \else
+  \expandafter\pgflsystemdrawforward
+  \fi
+}
 
 \pgfdeclarelindenmayersystem{Penrose Rhombus}{%
   % Triangle, clockwise
   \symbol{T}{
+    \pgfpathmoveto{\pgfpointorigin}
     \pgflsystemdrawforward
-    \def\pgflsystemleftangle{108}
-    \pgflsystemturnleft
-    {
+    \ifpenrose@tiles
+      \def\pgflsystemleftangle{36}
+      \pgflsystemturnleft
+      \pgflsystemdrawforward
+      \def\pgflsystemleftangle{144}
+      \pgflsystemturnleft
+      \pgflsystemdrawforward
+      \def\pgflsystemleftangle{36}
+    \else
+      \def\pgflsystemleftangle{108}
+      \pgflsystemturnleft
+      \pr@origstep=\pgflsystemstep
       \pgfmathsetlength\pgflsystemstep{2*sin(18)*\pgflsystemstep}
-      \pr@maybedraw
-    }
-    \def\pgflsystemleftangle{72}
+      \pgflsystemdrawforward
+      \pgflsystemstep=\pr@origstep
+      \def\pgflsystemleftangle{108}
+    \fi
     \pgflsystemturnleft
     \pgflsystemdrawforward
   }
   % Triangle, anticlockwise
   \symbol{t}{
-    \pgflsystemdrawforward
+    \pr@maybedraw
     \def\pgflsystemleftangle{-108}
     \pgflsystemturnleft
-    {
-      \pgfmathsetlength\pgflsystemstep{2*sin(18)*\pgflsystemstep}
-      \pr@maybedraw
-    }
-    \def\pgflsystemleftangle{-72}
+    \pr@origstep=\pgflsystemstep
+    \pgfmathsetlength\pgflsystemstep{2*sin(18)*\pgflsystemstep}
+    \pr@maybedraw
+    \pgflsystemstep=\pr@origstep
+    \def\pgflsystemleftangle{-108}
     \pgflsystemturnleft
-    \pgflsystemdrawforward
+    \pr@maybedraw
   }
   % Gnomon, clockwise
   \symbol{G}{
-    \pr@maybedraw
-    \def\pgflsystemleftangle{144}
-    \pgflsystemturnleft
-    {
+    \pgfpathmoveto{\pgfpointorigin}
+    \ifpenrose@tiles
+      \def\pgflsystemleftangle{-36}
+      \pgflsystemturnleft
+      \pr@origstep=\pgflsystemstep
       \pgfmathsetlength\pgflsystemstep{\pgflsystemstep/(2*cos(36))}
       \pgflsystemdrawforward
       \def\pgflsystemleftangle{72}
       \pgflsystemturnleft
       \pgflsystemdrawforward
-    }
+      \pgflsystemstep=\pr@origstep
+      \def\pgflsystemleftangle{108}
+    \else
+      \pgflsystemdrawforward
+      \def\pgflsystemleftangle{144}
+    \fi
+    \pgflsystemturnleft
+    \pr@origstep=\pgflsystemstep
+    \pgfmathsetlength\pgflsystemstep{\pgflsystemstep/(2*cos(36))}
+    \pgflsystemdrawforward
+    \def\pgflsystemleftangle{72}
+    \pgflsystemturnleft
+    \pgflsystemdrawforward
+    \pgflsystemstep=\pr@origstep
+    \pgfpathclose{\pgfpointorigin}
   }
   % Gnomon, anticlockwise
   \symbol{g}{
     \pr@maybedraw
     \def\pgflsystemleftangle{-144}
     \pgflsystemturnleft
-    {
-      \pgfmathsetlength\pgflsystemstep{\pgflsystemstep/(2*cos(36))}
-      \pgflsystemdrawforward
-      \def\pgflsystemleftangle{-72}
-      \pgflsystemturnleft
-      \pgflsystemdrawforward
-    }
+    \pr@origstep=\pgflsystemstep
+    \pgfmathsetlength\pgflsystemstep{\pgflsystemstep/(2*cos(36))}
+    \pr@maybedraw
+    \def\pgflsystemleftangle{-72}
+    \pgflsystemturnleft
+    \pr@maybedraw
+    \pgflsystemstep=\pr@origstep
   }
   \symbol{s}{
     \pgfmathsetlength\pgflsystemstep{2*sin(18)*\pgflsystemstep}
@@ -97,55 +125,81 @@
 \pgfdeclarelindenmayersystem{Penrose Kite}{%
   % Triangle, clockwise
   \symbol{T}{
+    \pgfpathmoveto{\pgfpointorigin}
     \pgflsystemdrawforward
     \def\pgflsystemleftangle{108}
     \pgflsystemturnleft
-    {
+    \pr@origstep=\pgflsystemstep
+    \pgfmathsetlength\pgflsystemstep{2*sin(18)*\pgflsystemstep}
+    \pgflsystemdrawforward
+    \pgflsystemstep=\pr@origstep
+    \ifpenrose@tiles
+      \def\pgflsystemleftangle{36}
+      \pgflsystemturnleft
+      \pr@origstep=\pgflsystemstep
       \pgfmathsetlength\pgflsystemstep{2*sin(18)*\pgflsystemstep}
       \pgflsystemdrawforward
-    }
-    \def\pgflsystemleftangle{72}
-    \pgflsystemturnleft
-    \pr@maybedraw
+      \pgflsystemstep=\pr@origstep
+      \def\pgflsystemleftangle{108}
+      \pgflsystemturnleft
+      \pgflsystemdrawforward
+      \pgfclosepath{\pgfpointorigin}
+    \else
+      \def\pgflsystemleftangle{108}
+      \pgflsystemturnleft
+      \pgflsystemdrawforward
+    \fi
   }
   % Triangle, anticlockwise
   \symbol{t}{
-    \pgflsystemdrawforward
+    \pr@maybedraw
     \def\pgflsystemleftangle{-108}
     \pgflsystemturnleft
-    {
-      \pgfmathsetlength\pgflsystemstep{2*sin(18)*\pgflsystemstep}
-      \pgflsystemdrawforward
-    }
-    \def\pgflsystemleftangle{-72}
+    \pr@origstep=\pgflsystemstep
+    \pgfmathsetlength\pgflsystemstep{2*sin(18)*\pgflsystemstep}
+    \pr@maybedraw
+    \pgflsystemstep=\pr@origstep
+    \def\pgflsystemleftangle{-108}
     \pgflsystemturnleft
     \pr@maybedraw
   }
   % Gnomon, clockwise
   \symbol{G}{
+    \pgfpathmoveto{\pgfpointorigin}
     \pgflsystemdrawforward
     \def\pgflsystemleftangle{144}
     \pgflsystemturnleft
-    {
-      \pgfmathsetlength\pgflsystemstep{\pgflsystemstep/(2*cos(36))}
+    \pr@origstep=\pgflsystemstep
+    \pgfmathsetlength\pgflsystemstep{\pgflsystemstep/(2*cos(36))}
+    \pgflsystemdrawforward
+    \ifpenrose@tiles
+      \def\pgflsystemleftangle{-36}
+      \pgflsystemturnleft
       \pgflsystemdrawforward
+      \pgflsystemstep=\pr@origstep
+      \def\pgflsystemleftangle{-216}
+      \pgflsystemturnleft
+      \pgflsystemdrawforward
+      \pgfclosepath{\pgfpointorigin}
+    \else
       \def\pgflsystemleftangle{72}
       \pgflsystemturnleft
-    \pr@maybedraw
-    }
+      \pr@maybedraw
+      \pgflsystemstep=\pr@origstep
+    \fi
   }
   % Gnomon, anticlockwise
   \symbol{g}{
-    \pgflsystemdrawforward
+    \pr@maybedraw
     \def\pgflsystemleftangle{-144}
     \pgflsystemturnleft
-    {
-      \pgfmathsetlength\pgflsystemstep{\pgflsystemstep/(2*cos(36))}
-     \pgflsystemdrawforward
-      \def\pgflsystemleftangle{-72}
-      \pgflsystemturnleft
-     \pr@maybedraw
-    }
+    \pr@origstep=\pgflsystemstep
+    \pgfmathsetlength\pgflsystemstep{\pgflsystemstep/(2*cos(36))}
+    \pr@maybedraw
+    \def\pgflsystemleftangle{-72}
+    \pgflsystemturnleft
+    \pr@maybedraw
+    \pgflsystemstep=\pr@origstep
   }
   \symbol{s}{
     \pgfmathsetlength\pgflsystemstep{2*sin(18)*\pgflsystemstep}
