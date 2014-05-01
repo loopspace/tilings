@@ -1,3 +1,5 @@
+\RequirePackage{spath3}
+
 \pgfmathsetmacro\pr@chphi{cos(18)}
 \pgfmathsetmacro\pr@shphi{sin(18)}
 \pgfmathsetmacro\pr@cphi{cos(36)}
@@ -6,6 +8,40 @@
 \pgfmathsetmacro\pr@invphisq{\pr@invphi*\pr@invphi}
 \pgfmathsetmacro\pr@ominvphisq{\pr@invphi - \pr@invphisq}
 \pgfmathsetmacro\pr@ominvphi{1 - \pr@invphi}
+
+\def\pr@temp{\pgfsyssoftpath@movetotoken{0pt}{10pt}\pgfsyssoftpath@linetotoken{0pt}{110pt}}
+\MakeSPath{Penrose path a}{\pr@temp}
+\MakeSPath{Penrose path b}{\pr@temp}
+
+\ExplSyntaxOn
+\tl_new:N \l__penrose_tmpa_tl
+\fp_new:N \l__penrose_tmpa_fp
+\cs_new_nopar:Npn \penrose_normalise_path:n #1
+{
+  \spath_get:nnN {#1} {initial point} \l_tmpa_tl
+  \fp_set:Nn \l_tmpa_fp {(-1) * \tl_head:N \l_tmpa_tl}
+  \fp_set:Nn \l_tmpb_fp {(-1) * \tl_tail:N \l_tmpa_tl}
+  \tl_set:Nx \l_tmpa_tl {{\fp_to_dim:N \l_tmpa_fp} {\fp_to_dim:N \l_tmpb_fp}}
+  \spath_translate:nV {#1} \l_tmpa_tl
+  \spath_get:nnN {#1} {final point} \l_tmpa_tl
+  \fp_set:Nn \l_tmpa_fp {\tl_head:N \l_tmpa_tl}
+  \tl_set:Nx \l_tmpa_tl {\tl_tail:N \l_tmpa_tl}
+  \fp_set:Nn \l_tmpb_fp {\tl_head:N \l_tmpa_tl}
+  \fp_set:Nn \l__penrose_tmpa_fp {sqrt(\l_tmpa_fp^2 + \l_tmpb_fp^2)}
+  \fp_set:Nn \l_tmpa_fp {\l_tmpa_fp/\l__penrose_tmpa_fp}
+  \fp_set:Nn \l_tmpb_fp {\l_tmpb_fp/\l__penrose_tmpa_fp}
+  \fp_set:Nn \l__penrose_tmpa_fp {-\l_tmpb_fp}
+  \spath_apply_matrix:nxxxx {#1} {\fp_use:N \l_tmpa_fp} {\fp_use:N \l_tmpb_fp} {\fp_use:N \l__penrose_tmpa_fp} {\fp_use:N \l_tmpa_fp}
+  \spath_get:nnN {#1} {final point} \l_tmpa_tl
+  \fp_set:Nn \l_tmpa_fp {28.45274/(\tl_head:N \l_tmpa_tl)}
+  \fp_show:N \l_tmpa_fp
+  \spath_scale:nxx {#1} {2} {2} % {\fp_use:N \l_tmpa_fp} {\fp_use:N \l_tmpa_fp}
+}
+%%%% Scaling needs reimplementation to take non-integer values
+\spath_show:n {Penrose~ path~ a}
+\penrose_normalise_path:n {Penrose~ path~ a}
+\spath_show:n {Penrose~ path~ a}
+\ExplSyntaxOff
 
 \tikzset{
   thin rhombus/.pic={
@@ -235,6 +271,17 @@
   dart/.style={
     every Penrose tile/.try,
     pic type=dart,
+  },
+  Penrose/.is family,
+  Penrose/.cd,
+  Penrose/set path/.code={
+    \pgf@relevantforpicturesizefalse
+    \tikz@addmode{
+      \pgfsyssoftpath@getcurrentpath\pr@temp
+      \MakeSPath{Penrose path #1}{\pr@temp}%
+      \SPathPrepare{Penrose path #1}%
+      \pgfusepath{discard}%
+    },
   },
 }
 
