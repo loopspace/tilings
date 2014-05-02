@@ -9,38 +9,96 @@
 \pgfmathsetmacro\pr@ominvphisq{\pr@invphi - \pr@invphisq}
 \pgfmathsetmacro\pr@ominvphi{1 - \pr@invphi}
 
+\ExplSyntaxOn
+
 \def\pr@temp{\pgfsyssoftpath@movetotoken{0pt}{10pt}\pgfsyssoftpath@linetotoken{0pt}{110pt}}
 \MakeSPath{Penrose path a}{\pr@temp}
 \MakeSPath{Penrose path b}{\pr@temp}
 
-\ExplSyntaxOn
-\tl_new:N \l__penrose_tmpa_tl
 \fp_new:N \l__penrose_tmpa_fp
+\tl_new:N \l__penrose_tmpa_tl
+
 \cs_new_nopar:Npn \penrose_normalise_path:n #1
 {
   \spath_get:nnN {#1} {initial point} \l_tmpa_tl
-  \fp_set:Nn \l_tmpa_fp {(-1) * \tl_head:N \l_tmpa_tl}
-  \fp_set:Nn \l_tmpb_fp {(-1) * \tl_tail:N \l_tmpa_tl}
-  \tl_set:Nx \l_tmpa_tl {{\fp_to_dim:N \l_tmpa_fp} {\fp_to_dim:N \l_tmpb_fp}}
-  \spath_translate:nV {#1} \l_tmpa_tl
-  \spath_get:nnN {#1} {final point} \l_tmpa_tl
   \fp_set:Nn \l_tmpa_fp {\tl_head:N \l_tmpa_tl}
   \tl_set:Nx \l_tmpa_tl {\tl_tail:N \l_tmpa_tl}
   \fp_set:Nn \l_tmpb_fp {\tl_head:N \l_tmpa_tl}
-  \fp_set:Nn \l__penrose_tmpa_fp {sqrt(\l_tmpa_fp^2 + \l_tmpb_fp^2)}
+  \spath_get:nnN {#1} {final point} \l_tmpa_tl
+  \fp_set:Nn \l_tmpa_fp {\tl_head:N \l_tmpa_tl - \l_tmpa_fp}
+  \tl_set:Nx \l_tmpa_tl {\tl_tail:N \l_tmpa_tl}
+  \fp_set:Nn \l_tmpb_fp {\tl_head:N \l_tmpa_tl - \l_tmpb_fp}
+  \fp_set:Nn \l__penrose_tmpa_fp {\l_tmpa_fp^2 + \l_tmpb_fp^2}
   \fp_set:Nn \l_tmpa_fp {\l_tmpa_fp/\l__penrose_tmpa_fp}
   \fp_set:Nn \l_tmpb_fp {\l_tmpb_fp/\l__penrose_tmpa_fp}
   \fp_set:Nn \l__penrose_tmpa_fp {-\l_tmpb_fp}
-  \spath_apply_matrix:nxxxx {#1} {\fp_use:N \l_tmpa_fp} {\fp_use:N \l_tmpb_fp} {\fp_use:N \l__penrose_tmpa_fp} {\fp_use:N \l_tmpa_fp}
-  \spath_get:nnN {#1} {final point} \l_tmpa_tl
-  \fp_set:Nn \l_tmpa_fp {28.45274/(\tl_head:N \l_tmpa_tl)}
-  \fp_show:N \l_tmpa_fp
-  \spath_scale:nxx {#1} {2} {2} % {\fp_use:N \l_tmpa_fp} {\fp_use:N \l_tmpa_fp}
+  \tl_set:Nx \l_tmpb_tl { {\fp_use:N \l_tmpa_fp} {\fp_use:N \l_tmpb_fp} {\fp_use:N \l__penrose_tmpa_fp} {\fp_use:N \l_tmpa_fp}}
+  \spath_get:nnN {#1} {initial point} \l_tmpa_tl
+  \fp_set:Nn \l__penrose_tmpa_fp {(-1) * \l_tmpa_fp * \tl_head:N \l_tmpa_tl + (-1) * \l_tmpb_fp * \tl_tail:N \l_tmpa_tl}
+  \fp_set:Nn \l_tmpb_fp {(-1) * \l_tmpa_fp * \tl_tail:N \l_tmpa_tl +  \l_tmpb_fp * \tl_head:N \l_tmpa_tl}
+  \tl_put_right:Nx \l_tmpb_tl {{\fp_to_dim:N \l__penrose_tmpa_fp} {\fp_to_dim:N \l_tmpb_fp}}
+  \spath_transform:nV {#1} \l_tmpb_tl
 }
-%%%% Scaling needs reimplementation to take non-integer values
-\spath_show:n {Penrose~ path~ a}
-\penrose_normalise_path:n {Penrose~ path~ a}
-\spath_show:n {Penrose~ path~ a}
+\penrose_normalise_path:n {Penrose path a}
+\penrose_normalise_path:n {Penrose path b}
+
+\NewDocumentCommand \SetPenrosePath { m }
+{
+  \pgfsyssoftpath@getcurrentpath\l_tmpa_tl
+  \spath_clear_new:n {Penrose path #1}
+  \spath_put:nnV {Penrose path #1} {path} \l_tmpa_tl
+  \penrose_normalise_path:n {Penrose path a}
+}
+
+\cs_new_nopar:Npn \tikz_scan_point:n #1
+{
+  \tikz@scan@one@point\pgfutil@firstofone#1\relax
+}
+
+\cs_generate_variant:Nn \tikz_scan_point:n {V}
+
+\NewDocumentCommand \MakePenroseTile { m m m }
+{
+  \spath_clone:nn {Penrose path a} {Penrose path A}
+  \spath_clone:nn {Penrose path b} {Penrose path B}
+  \spath_reverse:n {Penrose path A}
+  \spath_reverse:n {Penrose path B}
+  \spath_transform:nnnnnnn {Penrose path A} {-1} {0} {0} {-1} {1} {0}
+  \spath_transform:nnnnnnn {Penrose path B} {-1} {0} {0} {-1} {1} {0}
+  \tl_set:Nn \l_tmpa_tl {#3}
+  \tl_set:Nx \l_tmpb_tl {\tl_head:N \l_tmpa_tl}
+  \tl_set:Nn \l_tmpa_tl {\pgfsyssoftpath@movetotoken}
+  \tikz_scan_point:V \l_tmpb_tl
+  \tl_put_right:Nx \l_tmpa_tl {{\dim_use:N \pgf@x}{\dim_use:N \pgf@y}}
+  \spath_clear_new:n {Penrose path tile}
+  \spath_put:nnV {Penrose path tile #1} {path} \l_tmpa_tl
+  \tl_set:Nn \l__penrose_tmpa_tl {#3}
+  \tl_put_right:Nx \l__penrose_tmpa_tl {{\tl_head:N \l__penrose_tmpa_tl}}
+  \tl_map_inline:nn {#2} {
+    \spath_clone:nn {Penrose path ##1} {Penrose path tmpa}
+    \tl_set:Nx \l_tmpb_tl {\tl_head:N \l__penrose_tmpa_tl}
+    \tl_set:Nx \l__penrose_tmpa_tl {\tl_tail:N \l__penrose_tmpa_tl}
+    \tikz_scan_point:V \l_tmpb_tl
+    \fp_set:Nn \l_tmpa_fp { \pgf@x }
+    \fp_set:Nn \l_tmpb_fp { \pgf@y }
+    \tl_set:Nx \l_tmpb_tl {\tl_head:N \l__penrose_tmpa_tl}
+    \tikz_scan_point:V \l_tmpb_tl
+    \fp_set:Nn \l_tmpa_fp {\pgf@x - \l_tmpa_fp}
+    \fp_set:Nn \l_tmpb_fp {\pgf@y - \l_tmpb_fp}
+    \fp_set:Nn \l__penrose_tmpa_fp {-\l_tmpb_fp}
+    \tl_set:Nx \l_tmpb_tl {{\fp_use:N \l_tmpa_fp} {\fp_use:N \l__penrose_tmpa_fp} {\fp_use:N \l_tmpb_fp} {\fp_use:N \l_tmpa_fp} {0} {0}}
+    \spath_transform:nV {Penrose path tmpa} \l_tmpb_tl
+    \spath_weld:nn {Penrose path tile #1} {Penrose path tmpa}
+  }
+  \spath_show:n {Penrose path tile #1}
+}
+
+\NewDocumentCommand \UsePenroseTile {m} 
+{
+}
+
+\MakePenroseTile {dart} {a A B b} {{(1,0)} {(2,2)} {(3,0)} {(2,-1)}}
+
 \ExplSyntaxOff
 
 \tikzset{
