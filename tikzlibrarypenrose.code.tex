@@ -11,9 +11,8 @@
 
 \ExplSyntaxOn
 
-\def\pr@temp{\pgfsyssoftpath@movetotoken{0pt}{10pt}\pgfsyssoftpath@linetotoken{0pt}{110pt}}
-\MakeSPath{Penrose path a}{\pr@temp}
-\MakeSPath{Penrose path b}{\pr@temp}
+\MakeSPath{Penrose path a} {\pgfsyssoftpath@movetotoken{0pt}{0pt}\pgfsyssoftpath@linetotoken{1pt}{0pt}}
+\MakeSPath{Penrose path b} {\pgfsyssoftpath@movetotoken{0pt}{0pt}\pgfsyssoftpath@linetotoken{1pt}{0pt}}
 
 \fp_new:N \l__penrose_tmpa_fp
 \tl_new:N \l__penrose_tmpa_tl
@@ -57,7 +56,7 @@
 
 \cs_generate_variant:Nn \tikz_scan_point:n {V}
 
-\NewDocumentCommand \MakePenroseTile { m m m }
+\cs_new_nopar:Npn \penrose_make_tile:nnn #1#2#3
 {
   \spath_clone:nn {Penrose path a} {Penrose path A}
   \spath_clone:nn {Penrose path b} {Penrose path B}
@@ -90,14 +89,100 @@
     \spath_transform:nV {Penrose path tmpa} \l_tmpb_tl
     \spath_weld:nn {Penrose path tile #1} {Penrose path tmpa}
   }
-  \spath_show:n {Penrose path tile #1}
 }
 
-\NewDocumentCommand \UsePenroseTile {m} 
+\cs_new_nopar:Npn \penrose_make_tile:nn #1#2
 {
+  \penrose_make_tile:nnn {#1} #2
 }
 
-\MakePenroseTile {dart} {a A B b} {{(1,0)} {(2,2)} {(3,0)} {(2,-1)}}
+\cs_generate_variant:Nn \penrose_make_tile:nn {nV}
+
+\prop_new:N \g__penrose_tiles_prop
+
+\fp_set:Nn \l_tmpa_fp {cosd(18)}
+\fp_set:Nn \l_tmpb_fp {sind(18)}
+
+\cs_new_nopar:Npn \tl_add_coordinate:Nnn #1#2#3 {
+  \fp_set:Nn \l_tmpa_fp{#2}
+  \fp_set:Nn \l_tmpb_fp{#3}
+  \tl_put_right:Nx #1 {{(\fp_use:N \l_tmpa_fp, \fp_use:N \l_tmpb_fp)}}
+}
+
+\tl_clear:N \l_tmpa_tl
+\tl_add_coordinate:Nnn \l_tmpa_tl {0}{0}
+\tl_add_coordinate:Nnn \l_tmpa_tl {cosd(18)}{sind(18)}
+\tl_add_coordinate:Nnn \l_tmpa_tl {2*cosd(18)}{0}
+\tl_add_coordinate:Nnn \l_tmpa_tl {cosd(18)}{-sind(18)}
+
+\prop_gput:Nnx \g__penrose_tiles_prop {thin~ rhombus}  {{a A B b} {\tl_use:N \l_tmpa_tl}}
+
+\tl_clear:N \l_tmpa_tl
+\tl_add_coordinate:Nnn \l_tmpa_tl {0}{0}
+\tl_add_coordinate:Nnn \l_tmpa_tl {cosd(36)}{sind(36)}
+\tl_add_coordinate:Nnn \l_tmpa_tl {2*cosd(36)}{0}
+\tl_add_coordinate:Nnn \l_tmpa_tl {cosd(36)}{-sind(36)}
+
+\prop_gput:Nnx \g__penrose_tiles_prop {thick~ rhombus}  {{A b B a} {\tl_use:N \l_tmpa_tl}}
+
+\tl_clear:N \l_tmpa_tl
+\tl_add_coordinate:Nnn \l_tmpa_tl {0}{0}
+\tl_add_coordinate:Nnn \l_tmpa_tl {2*sind(18)*cosd(108)}{2*sind(18)*sind(108)}
+\tl_add_coordinate:Nnn \l_tmpa_tl {2*sind(18)}{0}
+\tl_add_coordinate:Nnn \l_tmpa_tl {2*sind(18)*cosd(108)}{-2*sind(18)*sind(108)}
+
+\prop_gput:Nnx \g__penrose_tiles_prop {dart}  {{B a A b} {\tl_use:N \l_tmpa_tl}}
+
+\tl_clear:N \l_tmpa_tl
+\tl_add_coordinate:Nnn \l_tmpa_tl {0}{0}
+\tl_add_coordinate:Nnn \l_tmpa_tl {cosd(36)}{sind(36)}
+\tl_add_coordinate:Nnn \l_tmpa_tl {1}{0}
+\tl_add_coordinate:Nnn \l_tmpa_tl {cosd(36)}{-sind(36)}
+
+\prop_gput:Nnx \g__penrose_tiles_prop {kite}  {{a B b A} {\tl_use:N \l_tmpa_tl}}
+
+
+
+\NewDocumentCommand \MakePenroseTile {m}
+{
+  \prop_get:NnN \g__penrose_tiles_prop {#1} \l_tmpa_tl
+  \penrose_make_tile:nV {#1} \l_tmpa_tl
+}
+
+\NewDocumentCommand \UsePenroseTile {O{} m} 
+{
+  \spath_clone:nn {Penrose path tile #2} {Penrose path tmpa}
+  \pgfgettransform \l_tmpa_tl
+  \tl_clear:N \l_tmpb_tl
+  \tl_set:Nx \l_tmpb_tl {{\tl_head:N \l_tmpa_tl}}
+  \tl_set:Nx \l_tmpa_tl {\tl_tail:N \l_tmpa_tl}
+  \tl_put_right:Nx \l_tmpb_tl {{\tl_item:Nn \l_tmpa_tl {2}}}
+  \tl_put_right:Nx \l_tmpb_tl {{\tl_item:Nn \l_tmpa_tl {1}}}
+  \tl_set:Nx \l_tmpa_tl {\tl_tail:N \l_tmpa_tl}
+  \tl_set:Nx \l_tmpa_tl {\tl_tail:N \l_tmpa_tl}
+  \tl_put_right:NV \l_tmpb_tl \l_tmpa_tl
+  \spath_transform:nV {Penrose path tmpa} \l_tmpb_tl
+  \spath_protocol_path:n {Penrose path tmpa}
+  \spath_tikz_path:nn {#1}{Penrose path tmpa}
+}
+
+\tikzset{
+  save~ Penrose~ path/.code={
+    \tikz@addmode{
+      \pgfsyssoftpath@getcurrentpath\l_tmpa_tl
+      \spath_clear_new:n {Penrose path #1}
+      \spath_put:nnV {Penrose path #1} {path} \l_tmpa_tl
+      \penrose_normalise_path:n {Penrose path #1}
+    }
+  }
+}
+
+
+\MakePenroseTile {thin~ rhombus}
+\MakePenroseTile {thick~ rhombus} 
+\MakePenroseTile {dart}
+\MakePenroseTile {kite}
+
 
 \ExplSyntaxOff
 
@@ -138,10 +223,10 @@
     \pgftransformrotate{18}%
     \fi\fi\fi\fi
     \fi
-    \clip (0,0) -- (18:1) -- ++(-18:1) -- ++(-162:1) -- cycle;
-    \path[every rhombus/.try, every thin rhombus/.try, pic actions] (0,0) -- (18:1) -- ++(-18:1) -- ++(-162:1) -- cycle;
-\path[every circle arc/.try] (18:1) ++(-18:1/4) arc[start angle=-18,delta angle=-144,radius=1/4];
-\path[every long arc/.try] (-18:1) ++(18:1/4) arc[start angle=18,delta angle=144,radius=1/4];
+    \UsePenroseTile[clip]{thin rhombus}
+    \UsePenroseTile[every rhombus/.try, every thin rhombus/.try, pic actions]{thin rhombus}
+\path[every circle arc/.try] (18:1) circle[radius=1/4];
+\path[every long arc/.try] (-18:1) circle[radius=1/4];
 \coordinate (-edge a start) at (0,0);
 \coordinate (-edge b start) at (0,0);
 \coordinate (-edge b end) at (18:1);
@@ -194,10 +279,10 @@
     \pgftransformshift{\pgfpoint{-2*\pr@cphi cm}{0 cm}}%
     \fi\fi\fi\fi
     \fi
-\clip (0,0) -- (36:1) -- ++(-36:1) -- ++(-144:1) -- cycle;
-\path[every rhombus/.try, every thick rhombus/.try, pic actions] (0,0) -- (36:1) -- ++(-36:1) -- ++(-144:1) -- cycle;
-\path[every circle arc/.try] (0,0) ++(36:1/4) arc[start angle=36,delta angle=-72,radius=1/4];
-\path[every long arc/.try] (2*\pr@cphi,0) ++(144:3/4) arc[start angle=144,delta angle=72,radius=3/4];
+    \UsePenroseTile[clip]{thick rhombus}
+    \UsePenroseTile[every rhombus/.try, every thick rhombus/.try, pic actions]{thick rhombus}
+\path[every circle arc/.try] (0,0) circle[radius=1/4];
+\path[every long arc/.try] (2*\pr@cphi,0) circle[radius=3/4];
 \coordinate (-edge b end) at (0,0);
 \coordinate (-edge B end) at (0,0);
 \coordinate (-edge a end) at (36:1);
@@ -256,10 +341,10 @@
     \pgftransformrotate{-36}%
     \fi\fi\fi\fi
     \fi
-    \clip (0,0) -- +(36:1) -- +(1,0) -- +(-36:1) -- cycle;
-    \path[every kite/.try, pic actions] (0,0) -- +(36:1) -- +(1,0) -- +(-36:1) -- cycle;
-\path[every circle arc/.try] (36:\pr@invphi) arc[start angle=36,delta angle=-72,radius=\pr@invphi];
-\path[every long arc/.try] (1,0) ++(108:\pr@invphisq) arc[start angle=108,delta angle=144,radius=\pr@invphisq];
+    \UsePenroseTile[clip]{kite}
+    \UsePenroseTile[every kite/.try, pic actions]{kite}
+\path[every circle arc/.try] (0,0) circle[radius=\pr@invphi];
+\path[every long arc/.try] (1,0) circle[radius=\pr@invphisq];
 \coordinate (-edge a start) at (0,0);
 \coordinate (-edge A start) at (0,0);
 \coordinate (-edge a end) at (36:1);
@@ -308,10 +393,10 @@
     \pgftransformshift{\pgfpoint{\pr@invphi*\pr@shphi cm}{-\pr@invphi*\pr@chphi cm}}%
     \fi\fi\fi\fi
     \fi
-    \clip (0,0) -- +(108:\pr@invphi) -- +(\pr@invphi,0) -- +(-108:\pr@invphi) -- cycle;
-    \path[every dart/.try, pic actions] (0,0) -- +(108:\pr@invphi) -- +(\pr@invphi,0) -- +(-108:\pr@invphi) -- cycle;
-\path[every circle arc/.try] (\pr@invphi,0) ++(144:\pr@ominvphi) arc[start angle=144,delta angle=72,radius=\pr@ominvphi];
-\path[every long arc/.try] (108:\pr@ominvphisq) arc[start angle=108,delta angle=-216,radius=\pr@ominvphisq];
+    \UsePenroseTile[clip]{dart}
+    \UsePenroseTile[every dart/.try, pic actions]{dart}
+\path[every circle arc/.try] (\pr@invphi,0) circle[radius=\pr@ominvphi];
+\path[every long arc/.try] (0,0) circle[radius=\pr@ominvphisq];
 \coordinate (-edge b end) at (0,0);
 \coordinate (-edge B end) at (0,0);
 \coordinate (-edge a start) at (108:\pr@invphi);

@@ -21,7 +21,57 @@
 \colorlet{dart}{Fuchsia}
 
 \begin{document}
-\end{document}
+
+\begin{tikzpicture}
+\path[save Penrose path=a] (0,0) to[looseness=.5,bend left] (1,0);
+\path[save Penrose path=b] (0,0) to[looseness=.5,bend right] (1,0);
+\MakePenroseTile{thin rhombus}
+\MakePenroseTile{thick rhombus}
+\MakePenroseTile{kite}
+\MakePenroseTile{dart}
+\end{tikzpicture}
+
+\begin{tikzpicture}[
+  scale=3,
+  every Penrose tile/.style={
+    transform shape,
+    draw=black,
+    ultra thick,
+  },
+  every kite/.style={
+    fill=kite,
+  },
+  every dart/.style={
+    fill=dart,
+  },
+  every thin rhombus/.style={
+    fill=thinRhombus
+  },
+  every thick rhombus/.style={
+    fill=thickRhombus
+  },
+  every circle arc/.style={
+    line width=1mm,
+    draw=circleArc
+  },
+  every long arc/.style={
+    line width=2mm,
+    draw=longArc
+  }
+]
+\pic[thin rhombus];
+\begin{scope}[xshift=3cm]
+\pic[thick rhombus];
+\end{scope}
+\begin{scope}[yshift=-2cm]
+\pic[rotate=45,kite];
+\begin{scope}[xshift=3cm]
+\pic[rotate=45,dart];
+\end{scope}
+\end{scope}
+\end{tikzpicture}
+
+
 \begin{tikzpicture}[
   scale=3,
   every Penrose tile/.style={
