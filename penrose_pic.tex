@@ -21,15 +21,57 @@
 \colorlet{dart}{Fuchsia}
 
 \begin{document}
-
 \begin{tikzpicture}
 \path[save Penrose path=a] (0,0) to[looseness=.5,bend left] (1,0);
 \path[save Penrose path=b] (0,0) to[looseness=.5,bend right] (1,0);
 \MakePenroseTile{thin rhombus}
 \MakePenroseTile{thick rhombus}
+\path[save Penrose path=b] (0,0) to[looseness=.5,bend left] (1,0);
 \MakePenroseTile{kite}
 \MakePenroseTile{dart}
 \end{tikzpicture}
+
+\begin{tikzpicture}[
+  every thin rhombus/.style={draw},
+  every thick rhombus/.style={draw},
+]
+\PenroseDecomposition{rhombus}{0}{T}
+\end{tikzpicture}
+
+\begin{tikzpicture}[
+  every thin rhombus/.style={draw},
+  every thick rhombus/.style={draw},
+]
+\PenroseDecomposition{rhombus}{0}{G}
+\end{tikzpicture}
+
+\begin{tikzpicture}[
+  every thin rhombus/.style={draw},
+  every thick rhombus/.style={draw},
+]
+\PenroseDecomposition{rhombus}{2}{T}
+\end{tikzpicture}
+
+\begin{tikzpicture}[
+  every thin rhombus/.style={draw},
+  every thick rhombus/.style={draw},
+]
+\PenroseDecomposition{rhombus}{3}{T}
+\end{tikzpicture}
+
+\begin{tikzpicture}[
+  every thin rhombus/.style={draw},
+  every thick rhombus/.style={draw},
+]
+\foreach[evaluate=\k as \mk using {\k+Mod(\k,2)},evaluate=\k as \ax using {Mod(\k,2) == 0 ? "T" : "t"}] \k in {0,...,9} {
+  \begin{scope}[rotate=\mk*36]
+  \PenroseDecomposition{rhombus}{3}{\ax}
+  \end{scope}
+}
+\end{tikzpicture}
+
+\end{document}
+
 
 \begin{tikzpicture}[
   scale=3,

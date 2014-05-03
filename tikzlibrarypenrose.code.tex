@@ -16,6 +16,7 @@
 
 \fp_new:N \l__penrose_tmpa_fp
 \tl_new:N \l__penrose_tmpa_tl
+\tl_new:N \l__penrose_tmpb_tl
 
 \cs_new_nopar:Npn \penrose_normalise_path:n #1
 {
@@ -183,6 +184,114 @@
 \MakePenroseTile {dart}
 \MakePenroseTile {kite}
 
+% Now let's try emulating the Lindenmayer system
+
+\prop_new:N \g__penrose_rhombus_lms_rule_prop
+\prop_put:Nnn \g__penrose_rhombus_lms_rule_prop {T} {[f*sT][f>g]}
+\prop_put:Nnn \g__penrose_rhombus_lms_rule_prop {t} {[f_st][f>G]}
+\prop_put:Nnn \g__penrose_rhombus_lms_rule_prop {G} {[f+sG][sf>g][sf*sT]}
+\prop_put:Nnn \g__penrose_rhombus_lms_rule_prop {g} {[f-sg][sf>G][sf_st]}
+
+\prop_new:N \g__penrose_default_lms_action_prop
+\prop_new:N \g__penrose_rhombus_lms_action_prop
+\dim_new:N \l__penrose_step_dim
+\fp_new:N \l__penrose_scale_fp
+\dim_set:Nn \l__penrose_step_dim {1cm}
+\fp_set:Nn \l__penrose_scale_fp {1}
+
+\prop_put:Nnn \g__penrose_default_lms_action_prop {[} {\group_begin:}
+\prop_put:Nnn \g__penrose_default_lms_action_prop {]} {\group_end:}
+\prop_put:Nnn \g__penrose_default_lms_action_prop {f} {\pgftransformxshift{\l__penrose_step_dim}}
+\prop_put:Nnn \g__penrose_default_lms_action_prop {s} {\pgftransformscale{\fp_use:N \l__penrose_scale_fp}}
+
+\prop_put:Nnn \g__penrose_rhombus_lms_action_prop {+} {\pgftransformrotate{144}}
+\prop_put:Nnn \g__penrose_rhombus_lms_action_prop {*} {\pgftransformrotate{108}}
+\prop_put:Nnn \g__penrose_rhombus_lms_action_prop {-} {\pgftransformrotate{216}}
+\prop_put:Nnn \g__penrose_rhombus_lms_action_prop {_} {\pgftransformrotate{252}}
+\prop_put:Nnn \g__penrose_rhombus_lms_action_prop {>} {\pgftransformrotate{180}}
+
+
+\prop_put:Nnn \g__penrose_rhombus_lms_action_prop {s} {
+  \fp_set:Nn \l_tmpa_fp { 2 * sind(18) * \l__penrose_step_dim }
+  \dim_set:Nn \l__penrose_step_dim {\fp_to_dim:N \l_tmpa_fp}
+}
+
+\prop_put:Nnn \g__penrose_rhombus_lms_action_prop {T} {
+  \group_begin:
+  \pgftransformrotate{18}
+  \fp_set:Nn \l_tmpa_fp {\l__penrose_step_dim/1cm}
+  \pgftransformscale{\fp_use:N \l_tmpa_fp}
+  \UsePenroseTile[every~ thin~ rhombus/.try]{thin~rhombus}
+  \group_end:
+}
+\prop_put:Nnn \g__penrose_rhombus_lms_action_prop {G} {
+  \group_begin:
+  \pgftransformrotate{180}
+  \pgftransformxshift{-\l__penrose_step_dim}
+  \fp_set:Nn \l_tmpa_fp {\l__penrose_step_dim/1cm/(2*cosd(36))}
+  \pgftransformscale{\fp_use:N \l_tmpa_fp}
+  \UsePenroseTile[every~ thick~ rhombus/.try]{thick~rhombus}
+  \group_end:
+}
+
+
+% #1 -> tl to store result in
+% #2 -> name
+% #3 -> number of iterations
+% #4 -> initial state
+\cs_new_nopar:Npn \penrose_make_lms:Nnnn #1#2#3#4
+{
+  \group_begin:
+  \tl_set:Nn \l__penrose_tmpb_tl {#4}
+  \prg_replicate:nn {#3} {
+    \tl_set_eq:NN \l__penrose_tmpa_tl \l__penrose_tmpb_tl
+    \tl_clear:N \l__penrose_tmpb_tl
+    \tl_map_inline:Nn \l__penrose_tmpa_tl
+    {
+      \prop_if_in:cnTF {g__penrose_#2_lms_rule_prop} {##1}
+      {
+        \tl_put_right:Nx \l__penrose_tmpb_tl {\prop_get:cn {g__penrose_#2_lms_rule_prop} {##1} }
+      }
+      {
+        \tl_put_right:Nn \l__penrose_tmpb_tl {##1}
+      }
+    }
+  }
+  \tl_set:Nn \l_tmpa_tl {
+    \group_end:
+    \tl_set:Nn #1
+  }
+  \tl_put_right:Nx \l_tmpa_tl {{\tl_use:N \l__penrose_tmpb_tl}}
+  \tl_use:N \l_tmpa_tl
+}
+
+\cs_generate_variant:Nn \penrose_make_lms:Nnnn {Nnnx}
+
+% #1 -> token list with result
+% #2 -> name 
+\cs_new_nopar:Npn \penrose_invoke_lms:Nn #1#2
+{
+  \group_begin:
+  \tl_map_inline:Nn #1 {
+    \prop_if_in:cnTF {g__penrose_#2_lms_action_prop} {##1}
+    {
+      \prop_get:cn {g__penrose_#2_lms_action_prop} {##1}
+    }
+    {
+      \prop_if_in:cnT {g__penrose_default_lms_action_prop} {##1}
+      {
+        \prop_get:cn {g__penrose_default_lms_action_prop} {##1}
+      }
+    }
+  }
+  \group_end:
+}
+
+\NewDocumentCommand \PenroseDecomposition { m m m }
+{
+  \penrose_make_lms:Nnnx \l_tmpa_tl {#1} {#2} {#3}
+  \penrose_invoke_lms:Nn \l_tmpa_tl {#1}
+}
 
 \ExplSyntaxOff
 
@@ -224,7 +333,7 @@
     \fi\fi\fi\fi
     \fi
     \UsePenroseTile[clip]{thin rhombus}
-    \UsePenroseTile[every rhombus/.try, every thin rhombus/.try, pic actions]{thin rhombus}
+    \UsePenroseTile[every thin rhombus/.try, pic actions]{thin rhombus}
 \path[every circle arc/.try] (18:1) circle[radius=1/4];
 \path[every long arc/.try] (-18:1) circle[radius=1/4];
 \coordinate (-edge a start) at (0,0);
