@@ -12,13 +12,12 @@
 \ExplSyntaxOn
 
 \MakeSPath{Penrose path a} {\pgfsyssoftpath@movetotoken{0pt}{0pt}\pgfsyssoftpath@linetotoken{1pt}{0pt}}
-\MakeSPath{Penrose path b} {\pgfsyssoftpath@movetotoken{0pt}{0pt}\pgfsyssoftpath@linetotoken{1pt}{0pt}}
-\MakeSPath{Penrose path c} {\pgfsyssoftpath@movetotoken{0pt}{0pt}\pgfsyssoftpath@linetotoken{1pt}{0pt}}
-\MakeSPath{Penrose path d} {\pgfsyssoftpath@movetotoken{0pt}{0pt}\pgfsyssoftpath@linetotoken{1pt}{0pt}}
-\MakeSPath{Penrose path A} {\pgfsyssoftpath@movetotoken{0pt}{0pt}\pgfsyssoftpath@linetotoken{1pt}{0pt}}
-\MakeSPath{Penrose path B} {\pgfsyssoftpath@movetotoken{0pt}{0pt}\pgfsyssoftpath@linetotoken{1pt}{0pt}}
-\MakeSPath{Penrose path C} {\pgfsyssoftpath@movetotoken{0pt}{0pt}\pgfsyssoftpath@linetotoken{1pt}{0pt}}
-\MakeSPath{Penrose path D} {\pgfsyssoftpath@movetotoken{0pt}{0pt}\pgfsyssoftpath@linetotoken{1pt}{0pt}}
+\SPathPrepare{Penrose path a}
+\CloneSPath {Penrose path a}{Penrose path b}
+\CloneSPath {Penrose path a}{Penrose path c}
+\CloneSPath {Penrose path a}{Penrose path A}
+\CloneSPath {Penrose path a}{Penrose path B}
+\CloneSPath {Penrose path a}{Penrose path C}
 
 \fp_new:N \l__penrose_tmpa_fp
 \tl_new:N \l__penrose_tmpa_tl
@@ -68,7 +67,7 @@
   \tl_set:Nn \l_tmpa_tl {\pgfsyssoftpath@movetotoken}
   \tikz_scan_point:V \l_tmpb_tl
   \tl_put_right:Nx \l_tmpa_tl {{\dim_use:N \pgf@x}{\dim_use:N \pgf@y}}
-  \spath_clear_new:n {Penrose path tile}
+  \spath_clear_new:n {Penrose path tile #1}
   \spath_put:nnV {Penrose path tile #1} {path} \l_tmpa_tl
   \tl_set:Nn \l__penrose_tmpa_tl {#3}
   \tl_put_right:Nx \l__penrose_tmpa_tl {{\tl_head:N \l__penrose_tmpa_tl}}
@@ -88,6 +87,7 @@
     \spath_transform:nV {Penrose path tmpa} \l_tmpb_tl
     \spath_weld:nn {Penrose path tile #1} {Penrose path tmpa}
   }
+  \spath_close_path:n {Penrose path tile #1}
 }
 
 \cs_new_nopar:Npn \penrose_make_tile:nn #1#2

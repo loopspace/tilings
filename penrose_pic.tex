@@ -27,30 +27,76 @@
 
 \begin{document}
 \begin{tikzpicture}
-%\path[save Penrose path=a] (0,0) to[out=-30,in=100] (1,0);
-%\path[save Penrose path=b] (0,0) to[out=0,in=140] (1,0);
-%\path[save Penrose path=c] (0,0) to[out=-40,in=140] (1,0);
+\path[save Penrose path=a] (0,0) to[out=-30,in=100] (1,0);
+\path[save Penrose path=b] (0,0) to[out=0,in=140] (1,0);
+\path[save Penrose path=c] (0,0) to[out=-40,in=140] (1,0);
 \MakePenroseTile{thin rhombus}
 \MakePenroseTile{thick rhombus}
 \MakePenroseTile{golden triangle}
 \MakePenroseTile{reverse golden triangle}
 \MakePenroseTile{golden gnomon}
 \MakePenroseTile{reverse golden gnomon}
-%\path[save Penrose path=b] (0,0) to[looseness=.5,bend left] (1,0);
 \MakePenroseTile{kite}
 \MakePenroseTile{dart}
 \end{tikzpicture}
 
+
 \begin{tikzpicture}[
-  every Penrose tile/.style={draw}
+  scale=3,
+  every Penrose pic/.style={
+    transform shape,
+    draw=black,
+    ultra thick,
+  },
+  every kite/.style={
+    fill=kite,
+  },
+  every dart/.style={
+    fill=dart,
+  },
+  every circle arc/.style={
+    line width=1mm,
+    draw=circleArc
+  },
+  every long arc/.style={
+    line width=2mm,
+    draw=longArc
+  }
+]
+\pic[dart,name=a0];
+\foreach[evaluate=\k as \kmo using int(\k-1)] \k in {1,...,4} {
+  \pic[dart,name=a\k,align with={a\kmo} along a];
+}
+\foreach \k in {0,...,4} {
+  \foreach \l/\e/\ee in {0/c/a,1/C/A} {
+    \pic[kite,name=b\l\k,align with={a\k} along \e];
+    \pic[dart,name=c\l\k,align with={b\l\k} along \ee];
+    \pic[kite,name=d\l\k,align with={c\l\k} along \e];
+  }
+  \pic[kite,name=e\k,align with={c0\k} along C];
+  \pic[dart,name=f\k,align with={c0\k} along a];
+  \foreach \e in {c,C} {
+    \pic[kite,name=g\k,align with={f\k} along \e];
+  }
+}
+%\pic[dart,name=b,align with=a along c];
+%\pic[kite,name=c,align with=b along c];
+\end{tikzpicture}
+
+
+\begin{tikzpicture}[
+  every Penrose tile/.style={draw},
+  every golden triangle/.style={fill=goldenTriangle},
+  every reverse golden triangle/.style={fill=reverseGoldenTriangle},
+  every golden gnomon/.style={fill=goldenGnomon},
+  every reverse golden gnomon/.style={fill=reverseGoldenGnomon},
 ]
 \foreach[evaluate=\k as \mk using {\k+Mod(\k,2)},evaluate=\k as \ax using {Mod(\k,2) == 0 ? "T" : "t"}] \k in {0,...,9} {
   \begin{scope}[rotate=\mk*36]
-  \PenroseDecomposition[Penrose step=5cm]{ktriangle}{5}{\ax}
+  \PenroseDecomposition[Penrose step=5cm]{ktriangle}{1}{\ax}
   \end{scope}
 }
 \end{tikzpicture}
-\end{document}
 
 
 \begin{tikzpicture}[
