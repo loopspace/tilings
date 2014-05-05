@@ -13,6 +13,12 @@
 
 \MakeSPath{Penrose path a} {\pgfsyssoftpath@movetotoken{0pt}{0pt}\pgfsyssoftpath@linetotoken{1pt}{0pt}}
 \MakeSPath{Penrose path b} {\pgfsyssoftpath@movetotoken{0pt}{0pt}\pgfsyssoftpath@linetotoken{1pt}{0pt}}
+\MakeSPath{Penrose path c} {\pgfsyssoftpath@movetotoken{0pt}{0pt}\pgfsyssoftpath@linetotoken{1pt}{0pt}}
+\MakeSPath{Penrose path d} {\pgfsyssoftpath@movetotoken{0pt}{0pt}\pgfsyssoftpath@linetotoken{1pt}{0pt}}
+\MakeSPath{Penrose path A} {\pgfsyssoftpath@movetotoken{0pt}{0pt}\pgfsyssoftpath@linetotoken{1pt}{0pt}}
+\MakeSPath{Penrose path B} {\pgfsyssoftpath@movetotoken{0pt}{0pt}\pgfsyssoftpath@linetotoken{1pt}{0pt}}
+\MakeSPath{Penrose path C} {\pgfsyssoftpath@movetotoken{0pt}{0pt}\pgfsyssoftpath@linetotoken{1pt}{0pt}}
+\MakeSPath{Penrose path D} {\pgfsyssoftpath@movetotoken{0pt}{0pt}\pgfsyssoftpath@linetotoken{1pt}{0pt}}
 
 \fp_new:N \l__penrose_tmpa_fp
 \tl_new:N \l__penrose_tmpa_tl
@@ -39,15 +45,13 @@
   \tl_put_right:Nx \l_tmpb_tl {{\fp_to_dim:N \l__penrose_tmpa_fp} {\fp_to_dim:N \l_tmpb_fp}}
   \spath_transform:nV {#1} \l_tmpb_tl
 }
-\penrose_normalise_path:n {Penrose path a}
-\penrose_normalise_path:n {Penrose path b}
 
 \NewDocumentCommand \SetPenrosePath { m }
 {
   \pgfsyssoftpath@getcurrentpath\l_tmpa_tl
   \spath_clear_new:n {Penrose path #1}
   \spath_put:nnV {Penrose path #1} {path} \l_tmpa_tl
-  \penrose_normalise_path:n {Penrose path a}
+  \penrose_normalise_path:n {Penrose path #1}
 }
 
 \cs_new_nopar:Npn \tikz_scan_point:n #1
@@ -59,12 +63,6 @@
 
 \cs_new_nopar:Npn \penrose_make_tile:nnn #1#2#3
 {
-  \spath_clone:nn {Penrose path a} {Penrose path A}
-  \spath_clone:nn {Penrose path b} {Penrose path B}
-  \spath_reverse:n {Penrose path A}
-  \spath_reverse:n {Penrose path B}
-  \spath_transform:nnnnnnn {Penrose path A} {-1} {0} {0} {-1} {1} {0}
-  \spath_transform:nnnnnnn {Penrose path B} {-1} {0} {0} {-1} {1} {0}
   \tl_set:Nn \l_tmpa_tl {#3}
   \tl_set:Nx \l_tmpb_tl {\tl_head:N \l_tmpa_tl}
   \tl_set:Nn \l_tmpa_tl {\pgfsyssoftpath@movetotoken}
@@ -124,7 +122,7 @@
 \tl_add_coordinate:Nnn \l_tmpa_tl {2*cosd(36)}{0}
 \tl_add_coordinate:Nnn \l_tmpa_tl {cosd(36)}{-sind(36)}
 
-\prop_gput:Nnx \g__penrose_tiles_prop {thick~ rhombus}  {{A b B a} {\tl_use:N \l_tmpa_tl}}
+\prop_gput:Nnx \g__penrose_tiles_prop {thick~ rhombus}  {{B a A b} {\tl_use:N \l_tmpa_tl}}
 
 \tl_clear:N \l_tmpa_tl
 \tl_add_coordinate:Nnn \l_tmpa_tl {0}{0}
@@ -132,7 +130,7 @@
 \tl_add_coordinate:Nnn \l_tmpa_tl {2*sind(18)}{0}
 \tl_add_coordinate:Nnn \l_tmpa_tl {2*sind(18)*cosd(108)}{-2*sind(18)*sind(108)}
 
-\prop_gput:Nnx \g__penrose_tiles_prop {dart}  {{B a A b} {\tl_use:N \l_tmpa_tl}}
+\prop_gput:Nnx \g__penrose_tiles_prop {dart}  {{c a A C} {\tl_use:N \l_tmpa_tl}}
 
 \tl_clear:N \l_tmpa_tl
 \tl_add_coordinate:Nnn \l_tmpa_tl {0}{0}
@@ -140,8 +138,34 @@
 \tl_add_coordinate:Nnn \l_tmpa_tl {1}{0}
 \tl_add_coordinate:Nnn \l_tmpa_tl {cosd(36)}{-sind(36)}
 
-\prop_gput:Nnx \g__penrose_tiles_prop {kite}  {{a B b A} {\tl_use:N \l_tmpa_tl}}
+\prop_gput:Nnx \g__penrose_tiles_prop {kite}  {{a c C A} {\tl_use:N \l_tmpa_tl}}
 
+\tl_clear:N \l_tmpa_tl
+\tl_add_coordinate:Nnn \l_tmpa_tl {0}{0}
+\tl_add_coordinate:Nnn \l_tmpa_tl {cosd(18)}{sind(18)}
+\tl_add_coordinate:Nnn \l_tmpa_tl {cosd(18)}{-sind(18)}
+
+\prop_gput:Nnx \g__penrose_tiles_prop {golden~ triangle}  {{a c b} {\tl_use:N \l_tmpa_tl}}
+
+\tl_clear:N \l_tmpa_tl
+\tl_add_coordinate:Nnn \l_tmpa_tl {0}{0}
+\tl_add_coordinate:Nnn \l_tmpa_tl {cosd(18)}{sind(18)}
+\tl_add_coordinate:Nnn \l_tmpa_tl {cosd(18)}{-sind(18)}
+
+\prop_gput:Nnx \g__penrose_tiles_prop {reverse~ golden~ triangle}  {{B C A} {\tl_use:N \l_tmpa_tl}}
+
+\tl_clear:N \l_tmpa_tl
+\tl_add_coordinate:Nnn \l_tmpa_tl {0}{0}
+\tl_add_coordinate:Nnn \l_tmpa_tl {cosd(36)}{sind(36)}
+\tl_add_coordinate:Nnn \l_tmpa_tl {2*cosd(36)}{0}
+
+\prop_gput:Nnx \g__penrose_tiles_prop {golden~ gnomon}  {{C b A} {\tl_use:N \l_tmpa_tl}}
+
+\tl_clear:N \l_tmpa_tl
+\tl_add_coordinate:Nnn \l_tmpa_tl {0}{0}
+\tl_add_coordinate:Nnn \l_tmpa_tl {2*cosd(36)}{0}
+\tl_add_coordinate:Nnn \l_tmpa_tl {cosd(36)}{-sind(36)}
+\prop_gput:Nnx \g__penrose_tiles_prop {reverse~ golden~ gnomon}  {{a B c} {\tl_use:N \l_tmpa_tl}}
 
 
 \NewDocumentCommand \MakePenroseTile {m}
@@ -174,15 +198,22 @@
       \spath_clear_new:n {Penrose path #1}
       \spath_put:nnV {Penrose path #1} {path} \l_tmpa_tl
       \penrose_normalise_path:n {Penrose path #1}
+      \tl_to_uppercase:n {\tl_set:Nx \l__penrose_tmpa_tl {#1}}
+      \spath_clone:nn {Penrose path #1} {Penrose path \tl_use:N \l__penrose_tmpa_tl }
+      \spath_reverse:n {Penrose path \tl_use:N \l__penrose_tmpa_tl}
+      \spath_transform:nnnnnnn {Penrose path \tl_use:N \l__penrose_tmpa_tl} {-1} {0} {0} {-1} {1} {0}
     }
   }
 }
-
 
 \MakePenroseTile {thin~ rhombus}
 \MakePenroseTile {thick~ rhombus} 
 \MakePenroseTile {dart}
 \MakePenroseTile {kite}
+\MakePenroseTile {golden~ triangle}
+\MakePenroseTile {reverse~ golden~ triangle}
+\MakePenroseTile {golden~ gnomon}
+\MakePenroseTile {reverse~ golden~ gnomon}
 
 % Now let's try emulating the Lindenmayer system
 
@@ -192,8 +223,21 @@
 \prop_put:Nnn \g__penrose_rhombus_lms_rule_prop {G} {[f+sG][sf>g][sf*sT]}
 \prop_put:Nnn \g__penrose_rhombus_lms_rule_prop {g} {[f-sg][sf>G][sf_st]}
 
+\prop_new:N \g__penrose_kite_lms_rule_prop
+\prop_put:Nnn \g__penrose_kite_lms_rule_prop {T} {[f*sT][f>st][+sg]}
+\prop_put:Nnn \g__penrose_kite_lms_rule_prop {t} {[f_st][f>sT][-sG]}
+\prop_put:Nnn \g__penrose_kite_lms_rule_prop {G} {[f*+sG][sT]}
+\prop_put:Nnn \g__penrose_kite_lms_rule_prop {g} {[f-_sg][st]}
+
+\prop_set_eq:NN \g__penrose_rtriangle_lms_rule_prop \g__penrose_rhombus_lms_rule_prop
+\prop_set_eq:NN \g__penrose_ktriangle_lms_rule_prop \g__penrose_kite_lms_rule_prop
+
 \prop_new:N \g__penrose_default_lms_action_prop
 \prop_new:N \g__penrose_rhombus_lms_action_prop
+\prop_new:N \g__penrose_kite_lms_action_prop
+\prop_new:N \g__penrose_rtriangle_lms_action_prop
+\prop_new:N \g__penrose_ktriangle_lms_action_prop
+
 \dim_new:N \l__penrose_step_dim
 \fp_new:N \l__penrose_scale_fp
 \dim_set:Nn \l__penrose_step_dim {1cm}
@@ -210,30 +254,151 @@
 \prop_put:Nnn \g__penrose_rhombus_lms_action_prop {_} {\pgftransformrotate{252}}
 \prop_put:Nnn \g__penrose_rhombus_lms_action_prop {>} {\pgftransformrotate{180}}
 
-
 \prop_put:Nnn \g__penrose_rhombus_lms_action_prop {s} {
   \fp_set:Nn \l_tmpa_fp { 2 * sind(18) * \l__penrose_step_dim }
   \dim_set:Nn \l__penrose_step_dim {\fp_to_dim:N \l_tmpa_fp}
 }
 
+\prop_set_eq:NN \g__penrose_rtriangle_lms_action_prop  \g__penrose_rhombus_lms_action_prop
+
 \prop_put:Nnn \g__penrose_rhombus_lms_action_prop {T} {
   \group_begin:
-  \pgftransformrotate{18}
+  \int_gincr:N \l__penrose_tile_int
+  \pgftransformrotate{198}
+  \fp_set:Nn \l_tmpa_fp {\l__penrose_step_dim*2*cosd(18)}
+  \pgftransformxshift{-\fp_to_dim:N \l_tmpa_fp}
   \fp_set:Nn \l_tmpa_fp {\l__penrose_step_dim/1cm}
   \pgftransformscale{\fp_use:N \l_tmpa_fp}
-  \UsePenroseTile[every~ thin~ rhombus/.try]{thin~rhombus}
+  \UsePenroseTile[every~ Penrose~ tile/.try, every~ thin~ rhombus/.try, Penrose~ tile~ \int_use:N \l__penrose_tile_int/.try, Penrose~ tile/.try/.expand~ once=\int_use:N \l__penrose_tile_int ]{thin~rhombus}
   \group_end:
 }
 \prop_put:Nnn \g__penrose_rhombus_lms_action_prop {G} {
   \group_begin:
+  \int_gincr:N \l__penrose_tile_int
+  \fp_set:Nn \l_tmpa_fp {\l__penrose_step_dim/1cm/(2*cosd(36))}
+  \pgftransformscale{\fp_use:N \l_tmpa_fp}
+  \UsePenroseTile[every~ Penrose~ tile/.try, every~ thick~ rhombus/.try, Penrose~ tile~ \int_use:N \l__penrose_tile_int/.try, Penrose~ tile/.try/.expand~ once=\int_use:N \l__penrose_tile_int ]{thick~rhombus}
+  \group_end:
+}
+
+\prop_put:Nnn \g__penrose_kite_lms_action_prop {+} {\pgftransformrotate{36}}
+\prop_put:Nnn \g__penrose_kite_lms_action_prop {*} {\pgftransformrotate{108}}
+\prop_put:Nnn \g__penrose_kite_lms_action_prop {-} {\pgftransformrotate{-36}}
+\prop_put:Nnn \g__penrose_kite_lms_action_prop {_} {\pgftransformrotate{-108}}
+\prop_put:Nnn \g__penrose_kite_lms_action_prop {>} {\pgftransformrotate{180}}
+
+\prop_put:Nnn \g__penrose_kite_lms_action_prop {s} {
+  \fp_set:Nn \l_tmpa_fp { 2 * sind(18) * \l__penrose_step_dim }
+  \dim_set:Nn \l__penrose_step_dim {\fp_to_dim:N \l_tmpa_fp}
+}
+
+\prop_set_eq:NN \g__penrose_ktriangle_lms_action_prop  \g__penrose_kite_lms_action_prop
+
+
+\prop_put:Nnn \g__penrose_kite_lms_action_prop {T} {
+  \group_begin:
+  \int_gincr:N \l__penrose_tile_int
+  \pgftransformrotate{36}
+  \fp_set:Nn \l_tmpa_fp {\l__penrose_step_dim/1cm}
+  \pgftransformscale{\fp_use:N \l_tmpa_fp}
+  \UsePenroseTile[every~ Penrose~ tile/.try, every~ kite/.try, Penrose~ tile~ \int_use:N \l__penrose_tile_int/.try, Penrose~ tile/.try/.expand~ once=\int_use:N \l__penrose_tile_int ]{kite}
+  \group_end:
+}
+
+\prop_put:Nnn \g__penrose_kite_lms_action_prop {g} {
+  \group_begin:
+  \int_gincr:N \l__penrose_tile_int
+  \pgftransformrotate{144}
+  \pgftransformxshift{-\l__penrose_step_dim * 2 * sin(18)}
+  \fp_set:Nn \l_tmpa_fp {\l__penrose_step_dim/1cm}
+  \pgftransformscale{\fp_use:N \l_tmpa_fp}
+  \UsePenroseTile[every~ Penrose~ tile/.try, every~ dart/.try, Penrose~ tile~ \int_use:N \l__penrose_tile_int/.try, Penrose~ tile/.try/.expand~ once=\int_use:N \l__penrose_tile_int ]{dart}
+  \group_end:
+}
+
+\prop_put:Nnn \g__penrose_rtriangle_lms_action_prop {T} {
+  \group_begin:
+  \int_gincr:N \l__penrose_tile_int
+  \pgftransformrotate{18}
+  \fp_set:Nn \l_tmpa_fp {\l__penrose_step_dim/1cm}
+  \pgftransformscale{\fp_use:N \l_tmpa_fp}
+  \UsePenroseTile[every~ Penrose~ tile/.try, every~ reverse~ golden~ triangle/.try, Penrose~ tile~ \int_use:N \l__penrose_tile_int/.try, Penrose~ tile/.try/.expand~ once=\int_use:N \l__penrose_tile_int ]{reverse~ golden~ triangle}
+  \group_end:
+}
+
+\prop_put:Nnn \g__penrose_rtriangle_lms_action_prop {t} {
+  \group_begin:
+  \int_gincr:N \l__penrose_tile_int
+  \pgftransformrotate{-18}
+  \fp_set:Nn \l_tmpa_fp {\l__penrose_step_dim/1cm}
+  \pgftransformscale{\fp_use:N \l_tmpa_fp}
+  \UsePenroseTile[every~ Penrose~ tile/.try, every~ golden~ triangle/.try, Penrose~ tile~ \int_use:N \l__penrose_tile_int/.try, Penrose~ tile/.try/.expand~ once=\int_use:N \l__penrose_tile_int ]{golden~ triangle}
+  \group_end:
+}
+
+\prop_put:Nnn \g__penrose_rtriangle_lms_action_prop {G} {
+  \group_begin:
+  \int_gincr:N \l__penrose_tile_int
   \pgftransformrotate{180}
   \pgftransformxshift{-\l__penrose_step_dim}
   \fp_set:Nn \l_tmpa_fp {\l__penrose_step_dim/1cm/(2*cosd(36))}
   \pgftransformscale{\fp_use:N \l_tmpa_fp}
-  \UsePenroseTile[every~ thick~ rhombus/.try]{thick~rhombus}
+  \UsePenroseTile[every~ Penrose~ tile/.try, every~ reverse~ golden~ gnomon/.try, Penrose~ tile~ \int_use:N \l__penrose_tile_int/.try, Penrose~ tile/.try/.expand~ once=\int_use:N \l__penrose_tile_int ]{reverse~ golden~ gnomon}
   \group_end:
 }
 
+\prop_put:Nnn \g__penrose_rtriangle_lms_action_prop {g} {
+  \group_begin:
+  \int_gincr:N \l__penrose_tile_int
+  \pgftransformrotate{180}
+  \pgftransformxshift{-\l__penrose_step_dim}
+  \fp_set:Nn \l_tmpa_fp {\l__penrose_step_dim/1cm/(2*cosd(36))}
+  \pgftransformscale{\fp_use:N \l_tmpa_fp}
+  \UsePenroseTile[every~ Penrose~ tile/.try, every~ golden~ gnomon/.try, Penrose~ tile~ \int_use:N \l__penrose_tile_int/.try, Penrose~ tile/.try/.expand~ once=\int_use:N \l__penrose_tile_int ]{golden~ gnomon}
+  \group_end:
+}
+
+\prop_put:Nnn \g__penrose_ktriangle_lms_action_prop {T} {
+  \group_begin:
+  \int_gincr:N \l__penrose_tile_int
+  \pgftransformrotate{18}
+  \fp_set:Nn \l_tmpa_fp {\l__penrose_step_dim/1cm}
+  \pgftransformscale{\fp_use:N \l_tmpa_fp}
+  \UsePenroseTile[every~ Penrose~ tile/.try, every~ reverse~ golden~ triangle/.try, Penrose~ tile~ \int_use:N \l__penrose_tile_int/.try, Penrose~ tile/.try/.expand~ once=\int_use:N \l__penrose_tile_int ]{reverse~ golden~ triangle}
+  \group_end:
+}
+
+\prop_put:Nnn \g__penrose_ktriangle_lms_action_prop {t} {
+  \group_begin:
+  \int_gincr:N \l__penrose_tile_int
+  \pgftransformrotate{-18}
+  \fp_set:Nn \l_tmpa_fp {\l__penrose_step_dim/1cm}
+  \pgftransformscale{\fp_use:N \l_tmpa_fp}
+  \UsePenroseTile[every~ Penrose~ tile/.try, every~ golden~ triangle/.try, Penrose~ tile~ \int_use:N \l__penrose_tile_int/.try, Penrose~ tile/.try/.expand~ once=\int_use:N \l__penrose_tile_int ]{golden~ triangle}
+  \group_end:
+}
+
+\prop_put:Nnn \g__penrose_ktriangle_lms_action_prop {G} {
+  \group_begin:
+  \int_gincr:N \l__penrose_tile_int
+  \pgftransformrotate{180}
+  \pgftransformxshift{-\l__penrose_step_dim}
+  \fp_set:Nn \l_tmpa_fp {\l__penrose_step_dim/1cm/(2*cosd(36))}
+  \pgftransformscale{\fp_use:N \l_tmpa_fp}
+  \UsePenroseTile[every~ Penrose~ tile/.try, every~ reverse~ golden~ gnomon/.try, Penrose~ tile~ \int_use:N \l__penrose_tile_int/.try, Penrose~ tile/.try/.expand~ once=\int_use:N \l__penrose_tile_int ]{reverse~ golden~ gnomon}
+  \group_end:
+}
+
+\prop_put:Nnn \g__penrose_ktriangle_lms_action_prop {g} {
+  \group_begin:
+  \int_gincr:N \l__penrose_tile_int
+  \pgftransformrotate{180}
+  \pgftransformxshift{-\l__penrose_step_dim}
+  \fp_set:Nn \l_tmpa_fp {\l__penrose_step_dim/1cm/(2*cosd(36))}
+  \pgftransformscale{\fp_use:N \l_tmpa_fp}
+  \UsePenroseTile[every~ Penrose~ tile/.try, every~ golden~ gnomon/.try, Penrose~ tile~ \int_use:N \l__penrose_tile_int/.try, Penrose~ tile/.try/.expand~ once=\int_use:N \l__penrose_tile_int ]{golden~ gnomon}
+  \group_end:
+}
 
 % #1 -> tl to store result in
 % #2 -> name
@@ -287,10 +452,25 @@
   \group_end:
 }
 
-\NewDocumentCommand \PenroseDecomposition { m m m }
+\int_new:N \l__penrose_tile_int
+
+\NewDocumentCommand \PenroseDecomposition { O{} m m m }
 {
-  \penrose_make_lms:Nnnx \l_tmpa_tl {#1} {#2} {#3}
-  \penrose_invoke_lms:Nn \l_tmpa_tl {#1}
+  \group_begin:
+  \int_gzero:N \l__penrose_tile_int
+  \tikzset{#1}
+  \penrose_make_lms:Nnnx \l_tmpa_tl {#2} {#3} {#4}
+  \penrose_invoke_lms:Nn \l_tmpa_tl {#2}
+  \group_end:
+}
+
+\tikzset{
+  Penrose~ step/.code={
+    \dim_set:Nn \l__penrose_step_dim {#1}
+  },
+  Penrose~ scale/.code={
+    \fp_set:Nn \l__penrose_scale_fp {#1}
+  }
 }
 
 \ExplSyntaxOff
@@ -318,36 +498,37 @@
     \pgf@yb=\pgf@y
 \pgftransformtriangle{\pgfpoint{0pt}{0pt}}{\pgfpoint{\pgf@xb}{\pgf@yb}}{\pgfpoint{-\pgf@yb}{\pgf@xb}}
     \if\pgfkeysvalueof{/tikz/Penrose/alignment edge}b\relax
-    \pgftransformrotate{-162}%
-    \pgftransformshift{\pgfpoint{-2*\pr@chphi cm}{0 cm}}%
+    \pgftransformrotate{-18}%
+    \pgftransformshift{\pgfpoint{-\pr@chphi cm}{\pr@shphi cm}}%
     \else
     \if\pgfkeysvalueof{/tikz/Penrose/alignment edge}B\relax
-    \pgftransformrotate{-18}%
+    \pgftransformrotate{18}%
     \else
     \if\pgfkeysvalueof{/tikz/Penrose/alignment edge}a\relax
-    \pgftransformrotate{162}%
+    \pgftransformrotate{198}%
     \pgftransformshift{\pgfpoint{-2*\pr@chphi cm}{0 cm}}%
     \else
     \if\pgfkeysvalueof{/tikz/Penrose/alignment edge}A\relax
-    \pgftransformrotate{18}%
+    \pgftransformrotate{162}%
+    \pgftransformshift{\pgfpoint{-\pr@chphi cm}{-\pr@shphi cm}}%
     \fi\fi\fi\fi
     \fi
     \UsePenroseTile[clip]{thin rhombus}
-    \UsePenroseTile[every thin rhombus/.try, pic actions]{thin rhombus}
+    \UsePenroseTile[every Penrose tile/.try, every thin rhombus/.try, pic actions]{thin rhombus}
 \path[every circle arc/.try] (18:1) circle[radius=1/4];
 \path[every long arc/.try] (-18:1) circle[radius=1/4];
 \coordinate (-edge a start) at (0,0);
-\coordinate (-edge b start) at (0,0);
-\coordinate (-edge b end) at (18:1);
-\coordinate (-edge B end) at (18:1);
-\coordinate (-edge A start) at (2*\pr@chphi,0);
+\coordinate (-edge a end) at (18:1);
+\coordinate (-edge A start) at (18:1);
+\coordinate (-edge A end) at (2*\pr@chphi,0);
 \coordinate (-edge B start) at (2*\pr@chphi,0);
-\coordinate (-edge a end) at (-18:1);
-\coordinate (-edge A end) at (-18:1);
+\coordinate (-edge B end) at (-18:1);
+\coordinate (-edge b start) at (-18:1);
+\coordinate (-edge b end) at (0,0);
     \end{scope}
   },
   thin rhombus/.style={
-    every Penrose tile/.try,
+    every Penrose pic/.try,
     pic type=thin rhombus,
   },
   thick rhombus/.pic={
@@ -376,12 +557,11 @@
     \pgftransformshift{\pgfpoint{-\pr@cphi cm}{-\pr@sphi cm}}%
     \else
     \if\pgfkeysvalueof{/tikz/Penrose/alignment edge}B\relax
-    \pgftransformrotate{216}%
-    \pgftransformshift{\pgfpoint{-\pr@cphi cm}{\pr@sphi cm}}%
+    \pgftransformrotate{36}%
     \else
     \if\pgfkeysvalueof{/tikz/Penrose/alignment edge}a\relax
-    \pgftransformrotate{144}%
-    \pgftransformshift{\pgfpoint{-2*\pr@cphi cm}{0 cm}}%
+    \pgftransformrotate{-36}%
+    \pgftransformshift{\pgfpoint{-\pr@cphi cm}{\pr@sphi cm}}%
     \else
     \if\pgfkeysvalueof{/tikz/Penrose/alignment edge}A\relax
     \pgftransformrotate{216}%
@@ -389,21 +569,21 @@
     \fi\fi\fi\fi
     \fi
     \UsePenroseTile[clip]{thick rhombus}
-    \UsePenroseTile[every rhombus/.try, every thick rhombus/.try, pic actions]{thick rhombus}
-\path[every circle arc/.try] (0,0) circle[radius=1/4];
-\path[every long arc/.try] (2*\pr@cphi,0) circle[radius=3/4];
-\coordinate (-edge b end) at (0,0);
-\coordinate (-edge B end) at (0,0);
-\coordinate (-edge a end) at (36:1);
-\coordinate (-edge B start) at (36:1);
-\coordinate (-edge a start) at (2*\pr@cphi,0);
+    \UsePenroseTile[every Penrose tile/.try, every thick rhombus/.try, pic actions]{thick rhombus}
+\path[every circle arc/.try] (2*\pr@cphi,0) circle[radius=1/4];
+\path[every long arc/.try] (0,0) circle[radius=3/4];
+\coordinate (-edge B start) at (0,0);
+\coordinate (-edge B end) at (36:1);
+\coordinate (-edge a start) at (36:1);
+\coordinate (-edge a end) at (2*\pr@cphi,0);
 \coordinate (-edge A start) at (2*\pr@cphi,0);
 \coordinate (-edge A end) at (-36:1);
 \coordinate (-edge b start) at (-36:1);
+\coordinate (-edge b end) at (0,0);
     \end{scope}
   },
   thick rhombus/.style={
-    every Penrose tile/.try,
+    every Penrose pic/.try,
     pic type=thick rhombus,
   },
   align with/.code args={#1 along #2}{%
@@ -435,11 +615,11 @@
     \pgf@xb=\pgf@x
     \pgf@yb=\pgf@y
 \pgftransformtriangle{\pgfpoint{0pt}{0pt}}{\pgfpoint{\pgf@xb}{\pgf@yb}}{\pgfpoint{-\pgf@yb}{\pgf@xb}}
-    \if\pgfkeysvalueof{/tikz/Penrose/alignment edge}b\relax
-    \pgftransformrotate{108}%
-    \pgftransformshift{\pgfpoint{-1 cm}{0 cm}}%
+    \if\pgfkeysvalueof{/tikz/Penrose/alignment edge}c\relax
+    \pgftransformrotate{-72}%
+    \pgftransformshift{\pgfpoint{-\pr@cphi cm}{\pr@sphi cm}}%
     \else
-    \if\pgfkeysvalueof{/tikz/Penrose/alignment edge}B\relax
+    \if\pgfkeysvalueof{/tikz/Penrose/alignment edge}C\relax
     \pgftransformrotate{-108}%
     \pgftransformshift{\pgfpoint{-1 cm}{0 cm}}%
     \else
@@ -447,21 +627,22 @@
     \pgftransformrotate{36}%
     \else
     \if\pgfkeysvalueof{/tikz/Penrose/alignment edge}A\relax
-    \pgftransformrotate{-36}%
+    \pgftransformrotate{144}%
+    \pgftransformshift{\pgfpoint{-\pr@cphi cm}{-\pr@sphi cm}}%
     \fi\fi\fi\fi
     \fi
     \UsePenroseTile[clip]{kite}
-    \UsePenroseTile[every kite/.try, pic actions]{kite}
+    \UsePenroseTile[every Penrose tile/.try, every kite/.try, pic actions]{kite}
 \path[every circle arc/.try] (0,0) circle[radius=\pr@invphi];
 \path[every long arc/.try] (1,0) circle[radius=\pr@invphisq];
 \coordinate (-edge a start) at (0,0);
-\coordinate (-edge A start) at (0,0);
 \coordinate (-edge a end) at (36:1);
-\coordinate (-edge b end) at (36:1);
-\coordinate (-edge b start) at (1,0);
-\coordinate (-edge B start) at (1,0);
-\coordinate (-edge A end) at (-36:1);
-\coordinate (-edge B end) at (-36:1);
+\coordinate (-edge c start) at (36:1);
+\coordinate (-edge c end) at (1,0);
+\coordinate (-edge C start) at (1,0);
+\coordinate (-edge C end) at (-36:1);
+\coordinate (-edge A start) at (-36:1);
+\coordinate (-edge A end) at (0,0);
     \end{scope}
   },
   dart/.pic={
@@ -485,11 +666,10 @@
     \pgf@xb=\pgf@x
     \pgf@yb=\pgf@y
 \pgftransformtriangle{\pgfpoint{0pt}{0pt}}{\pgfpoint{\pgf@xb}{\pgf@yb}}{\pgfpoint{-\pgf@yb}{\pgf@xb}}
-    \if\pgfkeysvalueof{/tikz/Penrose/alignment edge}b\relax
-    \pgftransformrotate{-72}%
-    \pgftransformshift{\pgfpoint{\pr@invphi*\pr@shphi cm}{\pr@invphi*\pr@chphi cm}}%
+    \if\pgfkeysvalueof{/tikz/Penrose/alignment edge}c\relax
+    \pgftransformrotate{108}%
     \else
-    \if\pgfkeysvalueof{/tikz/Penrose/alignment edge}B\relax
+    \if\pgfkeysvalueof{/tikz/Penrose/alignment edge}C\relax
     \pgftransformrotate{72}%
     \pgftransformshift{\pgfpoint{\pr@invphi*\pr@shphi cm}{-\pr@invphi*\pr@chphi cm}}%
     \else
@@ -498,42 +678,226 @@
     \pgftransformshift{\pgfpoint{\pr@invphi*\pr@shphi cm}{\pr@invphi*\pr@chphi cm}}%
     \else
     \if\pgfkeysvalueof{/tikz/Penrose/alignment edge}A\relax
-    \pgftransformrotate{36}%
-    \pgftransformshift{\pgfpoint{\pr@invphi*\pr@shphi cm}{-\pr@invphi*\pr@chphi cm}}%
+    \pgftransformrotate{216}%
+    \pgftransformshift{\pgfpoint{-\pr@invphi cm}{0 cm}}%
     \fi\fi\fi\fi
     \fi
     \UsePenroseTile[clip]{dart}
-    \UsePenroseTile[every dart/.try, pic actions]{dart}
+    \UsePenroseTile[every Penrose tile/.try, every dart/.try, pic actions]{dart}
 \path[every circle arc/.try] (\pr@invphi,0) circle[radius=\pr@ominvphi];
 \path[every long arc/.try] (0,0) circle[radius=\pr@ominvphisq];
-\coordinate (-edge b end) at (0,0);
-\coordinate (-edge B end) at (0,0);
+\coordinate (-edge c start) at (0,0);
+\coordinate (-edge c end) at (108:\pr@invphi);
 \coordinate (-edge a start) at (108:\pr@invphi);
-\coordinate (-edge b start) at (108:\pr@invphi);
 \coordinate (-edge a end) at (\pr@invphi,0);
-\coordinate (-edge A end) at (\pr@invphi,0);
-\coordinate (-edge A start) at (-108:\pr@invphi);
-\coordinate (-edge B start) at (-108:\pr@invphi);
+\coordinate (-edge A start) at (\pr@invphi,0);
+\coordinate (-edge A end) at (-108:\pr@invphi);
+\coordinate (-edge C start) at (-108:\pr@invphi);
+\coordinate (-edge C end) at (0,0);
     \end{scope}
   },
   kite/.style={
-    every Penrose tile/.try,
+    every Penrose pic/.try,
     pic type=kite,
   },
   dart/.style={
-    every Penrose tile/.try,
+    every Penrose pic/.try,
     pic type=dart,
   },
-  Penrose/.is family,
-  Penrose/.cd,
-  Penrose/set path/.code={
-    \pgf@relevantforpicturesizefalse
-    \tikz@addmode{
-      \pgfsyssoftpath@getcurrentpath\pr@temp
-      \MakeSPath{Penrose path #1}{\pr@temp}%
-      \SPathPrepare{Penrose path #1}%
-      \pgfusepath{discard}%
-    },
+  golden triangle/.pic={
+    \begin{scope}
+    \pgfkeysgetvalue{/tikz/Penrose/alignment location}{\prloc}
+    \ifx\prloc\pgfutil@empty
+    \else
+    \begingroup
+    \tikzset{name prefix ..}%
+    \tikz@scan@one@point\pgfutil@firstofone(\prloc-edge \pgfkeysvalueof{/tikz/Penrose/alignment edge} start)%
+    \global\pgf@xa=\pgf@x
+    \global\pgf@ya=\pgf@y
+    \tikz@scan@one@point\pgfutil@firstofone(\prloc-edge \pgfkeysvalueof{/tikz/Penrose/alignment edge} end)%
+    \global\pgf@xb=\pgf@x
+    \global\pgf@yb=\pgf@y
+    \endgroup
+    \advance\pgf@xb by -\pgf@xa
+    \advance\pgf@yb by -\pgf@ya
+    \pgftransformshift{\pgfpoint{\pgf@xa}{\pgf@ya}}%
+    \pgfpointnormalised{\pgfpoint{\pgf@xb}{\pgf@yb}}
+    \pgf@xb=\pgf@x
+    \pgf@yb=\pgf@y
+\pgftransformtriangle{\pgfpoint{0pt}{0pt}}{\pgfpoint{\pgf@xb}{\pgf@yb}}{\pgfpoint{-\pgf@yb}{\pgf@xb}}
+    \if\pgfkeysvalueof{/tikz/Penrose/alignment edge}B\relax
+    \pgftransformrotate{18}%
+    \else
+    \if\pgfkeysvalueof{/tikz/Penrose/alignment edge}C\relax
+    \pgftransformrotate{-90}%
+    \pgftransformshift{\pgfpoint{-\pr@chphi cm}{\pr@shphi cm}}%
+    \else
+    \if\pgfkeysvalueof{/tikz/Penrose/alignment edge}A\relax
+    \pgftransformrotate{162}%
+    \pgftransformshift{\pgfpoint{-\pr@chphi cm}{-\pr@shphi cm}}%
+    \fi\fi\fi
+    \fi
+    \UsePenroseTile[clip]{golden triangle}
+    \UsePenroseTile[every Penrose tile/.try, every golden triangle/.try, pic actions]{golden triangle}
+%\path[every circle arc/.try] (18:1) circle[radius=1/4];
+%\path[every long arc/.try] (-18:1) circle[radius=1/4];
+\coordinate (-edge a start) at (0,0);
+\coordinate (-edge a end) at (18:1);
+\coordinate (-edge c start) at (18:1);
+\coordinate (-edge c end) at (-18:1);
+\coordinate (-edge b start) at (-18:1);
+\coordinate (-edge b end) at (0,0);
+    \end{scope}
+  },
+  golden triangle/.style={
+    every Penrose pic/.try,
+    pic type=golden triangle,
+  },
+  reverse golden triangle/.pic={
+    \begin{scope}
+    \pgfkeysgetvalue{/tikz/Penrose/alignment location}{\prloc}
+    \ifx\prloc\pgfutil@empty
+    \else
+    \begingroup
+    \tikzset{name prefix ..}%
+    \tikz@scan@one@point\pgfutil@firstofone(\prloc-edge \pgfkeysvalueof{/tikz/Penrose/alignment edge} start)%
+    \global\pgf@xa=\pgf@x
+    \global\pgf@ya=\pgf@y
+    \tikz@scan@one@point\pgfutil@firstofone(\prloc-edge \pgfkeysvalueof{/tikz/Penrose/alignment edge} end)%
+    \global\pgf@xb=\pgf@x
+    \global\pgf@yb=\pgf@y
+    \endgroup
+    \advance\pgf@xb by -\pgf@xa
+    \advance\pgf@yb by -\pgf@ya
+    \pgftransformshift{\pgfpoint{\pgf@xa}{\pgf@ya}}%
+    \pgfpointnormalised{\pgfpoint{\pgf@xb}{\pgf@yb}}
+    \pgf@xb=\pgf@x
+    \pgf@yb=\pgf@y
+\pgftransformtriangle{\pgfpoint{0pt}{0pt}}{\pgfpoint{\pgf@xb}{\pgf@yb}}{\pgfpoint{-\pgf@yb}{\pgf@xb}}
+    \if\pgfkeysvalueof{/tikz/Penrose/alignment edge}b\relax
+    \pgftransformrotate{162}%
+    \pgftransformshift{\pgfpoint{-\pr@chphi cm}{-\pr@shphi cm}}%
+    \else
+    \if\pgfkeysvalueof{/tikz/Penrose/alignment edge}c\relax
+    \pgftransformrotate{-90}%
+    \pgftransformshift{\pgfpoint{-\pr@chphi cm}{\pr@shphi cm}}%
+    \else
+    \if\pgfkeysvalueof{/tikz/Penrose/alignment edge}a\relax
+    \pgftransformrotate{18}%
+    \fi\fi\fi
+    \fi
+    \UsePenroseTile[clip]{reverse golden triangle}
+    \UsePenroseTile[every Penrose tile/.try, every reverse golden triangle/.try, pic actions]{reverse golden triangle}
+%\path[every circle arc/.try] (18:1) circle[radius=1/4];
+%\path[every long arc/.try] (-18:1) circle[radius=1/4];
+\coordinate (-edge B start) at (0,0);
+\coordinate (-edge B end) at (18:1);
+\coordinate (-edge C start) at (18:1);
+\coordinate (-edge C end) at (-18:1);
+\coordinate (-edge A start) at (-18:1);
+\coordinate (-edge A end) at (0,0);
+    \end{scope}
+  },
+  reverse golden triangle/.style={
+    every Penrose pic/.try,
+    pic type=reverse golden triangle,
+  },
+  golden gnomon/.pic={
+    \begin{scope}
+    \pgfkeysgetvalue{/tikz/Penrose/alignment location}{\prloc}
+    \ifx\prloc\pgfutil@empty
+    \else
+    \begingroup
+    \tikzset{name prefix ..}%
+    \tikz@scan@one@point\pgfutil@firstofone(\prloc-edge \pgfkeysvalueof{/tikz/Penrose/alignment edge} start)%
+    \global\pgf@xa=\pgf@x
+    \global\pgf@ya=\pgf@y
+    \tikz@scan@one@point\pgfutil@firstofone(\prloc-edge \pgfkeysvalueof{/tikz/Penrose/alignment edge} end)%
+    \global\pgf@xb=\pgf@x
+    \global\pgf@yb=\pgf@y
+    \endgroup
+    \advance\pgf@xb by -\pgf@xa
+    \advance\pgf@yb by -\pgf@ya
+    \pgftransformshift{\pgfpoint{\pgf@xa}{\pgf@ya}}%
+    \pgfpointnormalised{\pgfpoint{\pgf@xb}{\pgf@yb}}
+    \pgf@xb=\pgf@x
+    \pgf@yb=\pgf@y
+\pgftransformtriangle{\pgfpoint{0pt}{0pt}}{\pgfpoint{\pgf@xb}{\pgf@yb}}{\pgfpoint{-\pgf@yb}{\pgf@xb}}
+    \if\pgfkeysvalueof{/tikz/Penrose/alignment edge}c\relax
+    \pgftransformrotate{144}%
+    \pgftransformshift{\pgfpoint{-\pr@cphi cm}{-\pr@sphi cm}}%
+    \else
+    \if\pgfkeysvalueof{/tikz/Penrose/alignment edge}B\relax
+    \pgftransformrotate{-144}%
+    \pgftransformshift{\pgfpoint{-2*\pr@cphi cm}{0 cm}}%
+    \else
+    \if\pgfkeysvalueof{/tikz/Penrose/alignment edge}a\relax
+    \fi\fi\fi
+    \fi
+    \UsePenroseTile[clip]{golden gnomon}
+    \UsePenroseTile[every Penrose tile/.try, every golden gnomon/.try, pic actions]{golden gnomon}
+%\path[every circle arc/.try] (18:1) circle[radius=1/4];
+%\path[every long arc/.try] (-18:1) circle[radius=1/4];
+\coordinate (-edge C start) at (0,0);
+\coordinate (-edge C end) at (36:1);
+\coordinate (-edge b start) at (36:1);
+\coordinate (-edge b end) at (2*\pr@cphi,0);
+\coordinate (-edge A start) at (2*\pr@cphi,0);
+\coordinate (-edge A end) at (0,0);
+    \end{scope}
+  },
+  golden gnomon/.style={
+    every Penrose pic/.try,
+    pic type=golden gnomon,
+  },
+  reverse golden gnomon/.pic={
+    \begin{scope}
+    \pgfkeysgetvalue{/tikz/Penrose/alignment location}{\prloc}
+    \ifx\prloc\pgfutil@empty
+    \else
+    \begingroup
+    \tikzset{name prefix ..}%
+    \tikz@scan@one@point\pgfutil@firstofone(\prloc-edge \pgfkeysvalueof{/tikz/Penrose/alignment edge} start)%
+    \global\pgf@xa=\pgf@x
+    \global\pgf@ya=\pgf@y
+    \tikz@scan@one@point\pgfutil@firstofone(\prloc-edge \pgfkeysvalueof{/tikz/Penrose/alignment edge} end)%
+    \global\pgf@xb=\pgf@x
+    \global\pgf@yb=\pgf@y
+    \endgroup
+    \advance\pgf@xb by -\pgf@xa
+    \advance\pgf@yb by -\pgf@ya
+    \pgftransformshift{\pgfpoint{\pgf@xa}{\pgf@ya}}%
+    \pgfpointnormalised{\pgfpoint{\pgf@xb}{\pgf@yb}}
+    \pgf@xb=\pgf@x
+    \pgf@yb=\pgf@y
+\pgftransformtriangle{\pgfpoint{0pt}{0pt}}{\pgfpoint{\pgf@xb}{\pgf@yb}}{\pgfpoint{-\pgf@yb}{\pgf@xb}}
+    \if\pgfkeysvalueof{/tikz/Penrose/alignment edge}C\relax
+    \pgftransformrotate{36}%
+    \else
+    \if\pgfkeysvalueof{/tikz/Penrose/alignment edge}b\relax
+    \pgftransformrotate{-36}%
+    \pgftransformshift{\pgfpoint{-\pr@cphi cm}{\pr@sphi cm}}%
+    \else
+    \if\pgfkeysvalueof{/tikz/Penrose/alignment edge}A\relax
+    \pgftransformrotate{180}%
+    \pgftransformshift{\pgfpoint{-2*\pr@cphi cm}{0 cm}}%
+    \fi\fi\fi
+    \fi
+    \UsePenroseTile[clip]{reverse golden gnomon}
+    \UsePenroseTile[every Penrose tile/.try, every reverse golden gnomon/.try, pic actions]{reverse golden gnomon}
+%\path[every circle arc/.try] (18:1) circle[radius=1/4];
+%\path[every long arc/.try] (-18:1) circle[radius=1/4];
+\coordinate (-edge a start) at (0,0);
+\coordinate (-edge a end) at (2*\pr@cphi,0);
+\coordinate (-edge B start) at (2*\pr@cphi,0);
+\coordinate (-edge B end) at (-36:1);
+\coordinate (-edge c start) at (-36:1);
+\coordinate (-edge c end) at (0,0);
+    \end{scope}
+  },
+  reverse golden gnomon/.style={
+    every Penrose pic/.try,
+    pic type=reverse golden gnomon,
   },
 }
 
