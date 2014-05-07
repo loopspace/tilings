@@ -25,6 +25,18 @@
 \colorlet{goldenGnomon}{Cyan}
 \colorlet{reverseGoldenGnomon}{LimeGreen}
 
+\makeatletter
+\tikzset{
+  tint fill colour/.code={%
+    \edef\@temp{%
+      \def\noexpand\tikz@fillcolor{\tikz@fillcolor!#1}%
+      \noexpand\tikz@addoption{\noexpand\pgfsetfillcolor{\tikz@fillcolor!#1}}%
+    }%
+    \@temp
+  }
+}
+\makeatother
+
 \begin{document}
 \begin{tikzpicture}
 \path[save Penrose path=a] (0,0) to[out=-30,in=100] (1,0);
@@ -40,6 +52,27 @@
 \MakePenroseTile{dart}
 \end{tikzpicture}
 
+\begin{center}
+\begin{tikzpicture}[
+  every Penrose tile/.style={draw},
+  every golden triangle/.style={fill=goldenTriangle},
+  every reverse golden triangle/.style={fill=reverseGoldenTriangle},
+  every golden gnomon/.style={fill=goldenGnomon},
+  every reverse golden gnomon/.style={fill=reverseGoldenGnomon},
+  every kite/.style={fill=reverseGoldenTriangle},
+  every dart/.style={fill=goldenTriangle},
+  Penrose tile/.code={
+    \pgfmathsetmacro\tint{100*(1 - #1/15)}
+    \pgfkeysalso{tint fill colour=\tint}
+  }
+]
+\foreach[evaluate=\k as \mk using {\k+Mod(\k,2)},evaluate=\k as \ax using {Mod(\k,2) == 0 ? "T" : "t"}] \k in {0,...,9} {
+  \begin{scope}[rotate=\mk*36]
+  \PenroseDecomposition[Penrose step=8cm]{kite}{3}{\ax}
+  \end{scope}
+}
+\end{tikzpicture}
+\end{center}
 
 \begin{tikzpicture}[
   scale=3,
@@ -84,19 +117,6 @@
 \end{tikzpicture}
 
 
-\begin{tikzpicture}[
-  every Penrose tile/.style={draw},
-  every golden triangle/.style={fill=goldenTriangle},
-  every reverse golden triangle/.style={fill=reverseGoldenTriangle},
-  every golden gnomon/.style={fill=goldenGnomon},
-  every reverse golden gnomon/.style={fill=reverseGoldenGnomon},
-]
-\foreach[evaluate=\k as \mk using {\k+Mod(\k,2)},evaluate=\k as \ax using {Mod(\k,2) == 0 ? "T" : "t"}] \k in {0,...,9} {
-  \begin{scope}[rotate=\mk*36]
-  \PenroseDecomposition[Penrose step=5cm]{ktriangle}{1}{\ax}
-  \end{scope}
-}
-\end{tikzpicture}
 
 
 \begin{tikzpicture}[
