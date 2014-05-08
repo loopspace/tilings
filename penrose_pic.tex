@@ -1,3 +1,4 @@
+\immediate\write18{tex penrose.dtx}
 \documentclass{article}
 \usepackage[scale=.91]{geometry}
 \usepackage[svgnames]{xcolor}
@@ -51,6 +52,25 @@
 \MakePenroseTile{kite}
 \MakePenroseTile{dart}
 \end{tikzpicture}
+\begin{tikzpicture}[
+  every Penrose tile/.style={draw},
+  Penrose tile 1/.style={fill=yellow},
+%  Penrose tile/.code 2 args={
+%    \pgfmathsetmacro\tint{#1*20}
+%    \pgfkeysalso{fill=black!\tint}
+%  }
+]
+\foreach \tp/\pos in {rhombus/0cm,rtriangle/2cm,kite/4cm,ktriangle/6cm}
+{
+\begin{scope}[xshift=\pos]
+\foreach[evaluate=\k as \mk using {\k+Mod(\k,2)},evaluate=\k as \ax using {Mod(\k,2) == 0 ? "T" : "t"}] \k in {0,...,9} {
+  \begin{scope}[rotate=\mk*36]
+  \PenroseDecomposition{\tp}{1}{\ax}
+  \end{scope}
+}
+\end{scope}
+}
+\end{tikzpicture}
 
 \begin{center}
 \begin{tikzpicture}[
@@ -61,14 +81,15 @@
   every reverse golden gnomon/.style={fill=reverseGoldenGnomon},
   every kite/.style={fill=reverseGoldenTriangle},
   every dart/.style={fill=goldenTriangle},
-  Penrose tile/.code={
-    \pgfmathsetmacro\tint{100*(1 - #1/15)}
+  Penrose tile/.code 2 args={
+    \pgfmathsetmacro\tint{100*(1 - #1/(1.5*#2))}
     \pgfkeysalso{tint fill colour=\tint}
+%    \message{#1 and #2,}
   }
 ]
 \foreach[evaluate=\k as \mk using {\k+Mod(\k,2)},evaluate=\k as \ax using {Mod(\k,2) == 0 ? "T" : "t"}] \k in {0,...,9} {
   \begin{scope}[rotate=\mk*36]
-  \PenroseDecomposition[Penrose step=8cm]{kite}{3}{\ax}
+  \PenroseDecomposition[Penrose step=8cm]{kite}{1}{\ax}
   \end{scope}
 }
 \end{tikzpicture}
@@ -198,7 +219,7 @@
 \begin{tikzpicture}[
   every Penrose tile/.style={draw},
   Penrose tile 1/.style={fill=yellow},
-  Penrose tile/.code={
+  Penrose tile/.code 2 args={
     \pgfmathsetmacro\tint{#1*20}
     \pgfkeysalso{fill=black!\tint}
   }
@@ -423,3 +444,7 @@
 
 
 \end{document}
+
+% Local Variables:
+% tex-output-type: "pdf18"
+% End:

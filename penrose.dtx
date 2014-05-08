@@ -119,7 +119,7 @@ and the derived files            penrose.ins,
 %</driver>
 % \fi
 %
-% \CheckSum{}
+% \CheckSum{1708}
 %
 % \CharacterTable
 %  {Upper-case    \A\B\C\D\E\F\G\H\I\J\K\L\M\N\O\P\Q\R\S\T\U\V\W\X\Y\Z
@@ -143,7 +143,7 @@ and the derived files            penrose.ins,
 % \DoNotIndex{\newcommand,\newenvironment}
 %
 % \providecommand*{\url}{\texttt}
-% \title{The \textsf{spath3} package}
+% \title{The \textsf{Penrose} package}
 % \author{Andrew Stacey \\ \url{stacey@math.ntnu.no}}
 % \date{1.0 from 2014/05/07}
 %
@@ -152,6 +152,11 @@ and the derived files            penrose.ins,
 %
 % 
 % \section{Introduction}
+%
+% This is a TikZ library for drawing Penrose tiles (both kite/dart and rhombus versions).
+% It provides two methods of drawing: one in which an automatic pattern is built, and one where the tiles can be placed ``by hand''.
+% The tiles can be shaped and (hopefully!) still fit together.
+% For user documentation, see the \Verb+penrose_doc+ file.
 %
 % \StopEventually{}
 %
@@ -162,20 +167,19 @@ and the derived files            penrose.ins,
 % \fi
 % \subsection{Initialisation}
 %
-% \begin{macrocode}
+% We use the \Verb+spath3+ library for manipulating the paths that will make up the tiles.
+%
+%    \begin{macrocode}
 \RequirePackage{spath3}
-
-\pgfmathsetmacro\pr@chphi{cos(18)}
-\pgfmathsetmacro\pr@shphi{sin(18)}
-\pgfmathsetmacro\pr@cphi{cos(36)}
-\pgfmathsetmacro\pr@sphi{sin(36)}
-\pgfmathsetmacro\pr@invphi{2/(sqrt(5)+1)}
-\pgfmathsetmacro\pr@invphisq{\pr@invphi*\pr@invphi}
-\pgfmathsetmacro\pr@ominvphisq{\pr@invphi - \pr@invphisq}
-\pgfmathsetmacro\pr@ominvphi{1 - \pr@invphi}
-
+%    \end{macrocode}
+% Now we move in to the realm of \LaTeX3.
+%    \begin{macrocode}
 \ExplSyntaxOn
-
+%    \end{macrocode}
+%
+% Start with some basic paths (lines) for the sides of the tiles so that we know that we have well-defined tiles at the outset.
+%
+%    \begin{macrocode}
 \MakeSPath{Penrose path a} {\pgfsyssoftpath@movetotoken{0pt}{0pt}\pgfsyssoftpath@linetotoken{1pt}{0pt}}
 \SPathPrepare{Penrose path a}
 \CloneSPath {Penrose path a}{Penrose path b}
@@ -183,194 +187,385 @@ and the derived files            penrose.ins,
 \CloneSPath {Penrose path a}{Penrose path A}
 \CloneSPath {Penrose path a}{Penrose path B}
 \CloneSPath {Penrose path a}{Penrose path C}
-
+%    \end{macrocode}
+%
+% We need a few temporary variables to hold intermediate calculations.
+%
+%    \begin{macrocode}
 \fp_new:N \l__penrose_tmpa_fp
+\fp_new:N \l__penrose_tmpb_fp
+\fp_new:N \l__penrose_tmpc_fp
 \tl_new:N \l__penrose_tmpa_tl
 \tl_new:N \l__penrose_tmpb_tl
-
+\tl_new:N \l__penrose_tmpc_tl
+%    \end{macrocode}
+%
+% \subsection{Creating the Tiles}
+%
+% \begin{macro}{\penrose_normalise_path:n}
+% When defining the path for a side, we normalise so that it starts at the origin and ends at \Verb+(1pt,0pt)+.
+%    \begin{macrocode}
 \cs_new_nopar:Npn \penrose_normalise_path:n #1
 {
-  \spath_get:nnN {#1} {initial point} \l_tmpa_tl
-  \fp_set:Nn \l_tmpa_fp {\tl_head:N \l_tmpa_tl}
-  \tl_set:Nx \l_tmpa_tl {\tl_tail:N \l_tmpa_tl}
-  \fp_set:Nn \l_tmpb_fp {\tl_head:N \l_tmpa_tl}
-  \spath_get:nnN {#1} {final point} \l_tmpa_tl
-  \fp_set:Nn \l_tmpa_fp {\tl_head:N \l_tmpa_tl - \l_tmpa_fp}
-  \tl_set:Nx \l_tmpa_tl {\tl_tail:N \l_tmpa_tl}
-  \fp_set:Nn \l_tmpb_fp {\tl_head:N \l_tmpa_tl - \l_tmpb_fp}
-  \fp_set:Nn \l__penrose_tmpa_fp {\l_tmpa_fp^2 + \l_tmpb_fp^2}
-  \fp_set:Nn \l_tmpa_fp {\l_tmpa_fp/\l__penrose_tmpa_fp}
-  \fp_set:Nn \l_tmpb_fp {\l_tmpb_fp/\l__penrose_tmpa_fp}
-  \fp_set:Nn \l__penrose_tmpa_fp {-\l_tmpb_fp}
-  \tl_set:Nx \l_tmpb_tl { {\fp_use:N \l_tmpa_fp} {\fp_use:N \l_tmpb_fp} {\fp_use:N \l__penrose_tmpa_fp} {\fp_use:N \l_tmpa_fp}}
-  \spath_get:nnN {#1} {initial point} \l_tmpa_tl
-  \fp_set:Nn \l__penrose_tmpa_fp {(-1) * \l_tmpa_fp * \tl_head:N \l_tmpa_tl + (-1) * \l_tmpb_fp * \tl_tail:N \l_tmpa_tl}
-  \fp_set:Nn \l_tmpb_fp {(-1) * \l_tmpa_fp * \tl_tail:N \l_tmpa_tl +  \l_tmpb_fp * \tl_head:N \l_tmpa_tl}
-  \tl_put_right:Nx \l_tmpb_tl {{\fp_to_dim:N \l__penrose_tmpa_fp} {\fp_to_dim:N \l_tmpb_fp}}
-  \spath_transform:nV {#1} \l_tmpb_tl
+%    \end{macrocode}
+% Get the initial point of the path and convert to floating point.
+%    \begin{macrocode}
+  \spath_get:nnN {#1} {initial point} \l__penrose_tmpa_tl
+  \fp_set:Nn \l__penrose_tmpa_fp {\tl_head:N \l__penrose_tmpa_tl}
+  \tl_set:Nx \l__penrose_tmpa_tl {\tl_tail:N \l__penrose_tmpa_tl}
+  \fp_set:Nn \l__penrose_tmpb_fp {\tl_head:N \l__penrose_tmpa_tl}
+%    \end{macrocode}
+% Get the final point of the path, and compute the difference of the final and initial points.
+%
+% The resulting numbers, say \(a\) and \(b\), will be put into a matrix to rotate and scale the path.
+% The formula for the matrix is:
+%^^A
+% \[
+% \frac{1}{a^2 + b^2}
+% \begin{bmatrix} a & b \\ -b & a \end{bmatrix}
+% \]
+%
+%    \begin{macrocode}
+  \spath_get:nnN {#1} {final point} \l__penrose_tmpa_tl
+  \fp_set:Nn \l__penrose_tmpa_fp {\tl_head:N \l__penrose_tmpa_tl - \l__penrose_tmpa_fp}
+  \tl_set:Nx \l__penrose_tmpa_tl {\tl_tail:N \l__penrose_tmpa_tl}
+  \fp_set:Nn \l__penrose_tmpb_fp {\tl_head:N \l__penrose_tmpa_tl - \l__penrose_tmpb_fp}
+%    \end{macrocode}
+% Now compute the square of the length of the path for scaling.
+%    \begin{macrocode}
+  \fp_set:Nn \l__penrose_tmpc_fp {\l__penrose_tmpa_fp^2 + \l__penrose_tmpb_fp^2}
+  \fp_set:Nn \l__penrose_tmpa_fp {\l__penrose_tmpa_fp/\l__penrose_tmpc_fp}
+  \fp_set:Nn \l__penrose_tmpb_fp {\l__penrose_tmpb_fp/\l__penrose_tmpc_fp}
+  \fp_set:Nn \l__penrose_tmpc_fp {-\l__penrose_tmpb_fp}
+%    \end{macrocode}
+% Now construct the matrix.
+%    \begin{macrocode}
+  \tl_set:Nx \l__penrose_tmpb_tl { {\fp_use:N \l__penrose_tmpa_fp} {\fp_use:N \l__penrose_tmpb_fp} {\fp_use:N \l__penrose_tmpc_fp} {\fp_use:N \l__penrose_tmpa_fp}}
+%    \end{macrocode}
+% Get the initial point back again for the translation part.
+%    \begin{macrocode}
+  \spath_get:nnN {#1} {initial point} \l__penrose_tmpa_tl
+%    \end{macrocode}
+% But we need to premultiply by the matrix because of how the transformations are applied.
+%    \begin{macrocode}
+  \fp_set:Nn \l__penrose_tmpa_fp {(-1) * \l__penrose_tmpa_fp * \tl_head:N \l__penrose_tmpa_tl + (-1) * \l__penrose_tmpb_fp * \tl_tail:N \l__penrose_tmpa_tl}
+  \fp_set:Nn \l__penrose_tmpb_fp {(-1) * \l__penrose_tmpa_fp * \tl_tail:N \l__penrose_tmpa_tl +  \l__penrose_tmpb_fp * \tl_head:N \l__penrose_tmpa_tl}
+%    \end{macrocode}
+% Finally, we apply the transformation to the path.
+%    \begin{macrocode}
+  \tl_put_right:Nx \l__penrose_tmpb_tl {{\fp_to_dim:N \l__penrose_tmpa_fp} {\fp_to_dim:N \l__penrose_tmpb_fp}}
+  \spath_transform:nV {#1} \l__penrose_tmpb_tl
 }
-
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\SetPenrosePath}
+% This sets the path corresponding to a particular side to the current path, and normalises it.
+%    \begin{macrocode}
 \NewDocumentCommand \SetPenrosePath { m }
 {
-  \pgfsyssoftpath@getcurrentpath\l_tmpa_tl
+  \pgfsyssoftpath@getcurrentpath\l__penrose_tmpa_tl
   \spath_clear_new:n {Penrose path #1}
-  \spath_put:nnV {Penrose path #1} {path} \l_tmpa_tl
+  \spath_put:nnV {Penrose path #1} {path} \l__penrose_tmpa_tl
   \penrose_normalise_path:n {Penrose path #1}
 }
-
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\tikz_scan_point:n}
+% This is a wrapper around \Verb+\tikz@scan@one@point+ to make it easier to use with \LaTeX3 variables.
+%    \begin{macrocode}
 \cs_new_nopar:Npn \tikz_scan_point:n #1
 {
   \tikz@scan@one@point\pgfutil@firstofone#1\relax
 }
-
 \cs_generate_variant:Nn \tikz_scan_point:n {V}
-
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\penrose_make_tile:nnn}
+% This builds the tile path from its pieces.
+% The arguments are the name of the tile, the descriptions of the sides, and a token list of the coordinates.
+%    \begin{macrocode}
 \cs_new_nopar:Npn \penrose_make_tile:nnn #1#2#3
 {
-  \tl_set:Nn \l_tmpa_tl {#3}
-  \tl_set:Nx \l_tmpb_tl {\tl_head:N \l_tmpa_tl}
-  \tl_set:Nn \l_tmpa_tl {\pgfsyssoftpath@movetotoken}
-  \tikz_scan_point:V \l_tmpb_tl
-  \tl_put_right:Nx \l_tmpa_tl {{\dim_use:N \pgf@x}{\dim_use:N \pgf@y}}
+%    \end{macrocode}
+% Get the first coordinate and initialise the path with a move to this point.
+%    \begin{macrocode}
+  \tl_set:Nn \l__penrose_tmpa_tl {#3}
+  \tl_set:Nx \l__penrose_tmpb_tl {\tl_head:N \l__penrose_tmpa_tl}
+  \tl_set:Nn \l__penrose_tmpa_tl {\pgfsyssoftpath@movetotoken}
+  \tikz_scan_point:V \l__penrose_tmpb_tl
+  \tl_put_right:Nx \l__penrose_tmpa_tl {{\dim_use:N \pgf@x}{\dim_use:N \pgf@y}}
   \spath_clear_new:n {Penrose path tile #1}
-  \spath_put:nnV {Penrose path tile #1} {path} \l_tmpa_tl
+  \spath_put:nnV {Penrose path tile #1} {path} \l__penrose_tmpa_tl
+%    \end{macrocode}
+% Now we have our path initialised, we can start appending the side paths according to the specification in the second argument.
+%
+% We append the initial coordinate to the end of the list to make a closed cycle.
+%    \begin{macrocode}
   \tl_set:Nn \l__penrose_tmpa_tl {#3}
   \tl_put_right:Nx \l__penrose_tmpa_tl {{\tl_head:N \l__penrose_tmpa_tl}}
+%    \end{macrocode}
+% Now we walk through the description of the sides, adding the specified paths to our tile path.
+%    \begin{macrocode}
   \tl_map_inline:nn {#2} {
+%    \end{macrocode}
+% Clone the path for this side.
+%    \begin{macrocode}
     \spath_clone:nn {Penrose path ##1} {Penrose path tmpa}
-    \tl_set:Nx \l_tmpb_tl {\tl_head:N \l__penrose_tmpa_tl}
+%    \end{macrocode}
+% Strip off the next coordinate, and convert it to a point.
+%    \begin{macrocode}
+    \tl_set:Nx \l__penrose_tmpb_tl {\tl_head:N \l__penrose_tmpa_tl}
     \tl_set:Nx \l__penrose_tmpa_tl {\tl_tail:N \l__penrose_tmpa_tl}
-    \tikz_scan_point:V \l_tmpb_tl
-    \fp_set:Nn \l_tmpa_fp { \pgf@x }
-    \fp_set:Nn \l_tmpb_fp { \pgf@y }
-    \tl_set:Nx \l_tmpb_tl {\tl_head:N \l__penrose_tmpa_tl}
-    \tikz_scan_point:V \l_tmpb_tl
-    \fp_set:Nn \l_tmpa_fp {\pgf@x - \l_tmpa_fp}
-    \fp_set:Nn \l_tmpb_fp {\pgf@y - \l_tmpb_fp}
-    \fp_set:Nn \l__penrose_tmpa_fp {-\l_tmpb_fp}
-    \tl_set:Nx \l_tmpb_tl {{\fp_use:N \l_tmpa_fp} {\fp_use:N \l__penrose_tmpa_fp} {\fp_use:N \l_tmpb_fp} {\fp_use:N \l_tmpa_fp} {0} {0}}
-    \spath_transform:nV {Penrose path tmpa} \l_tmpb_tl
+    \tikz_scan_point:V \l__penrose_tmpb_tl
+%    \end{macrocode}
+% Store the resulting coordinate.
+%    \begin{macrocode}
+    \fp_set:Nn \l__penrose_tmpa_fp { \pgf@x }
+    \fp_set:Nn \l__penrose_tmpb_fp { \pgf@y }
+%    \end{macrocode}
+% Now get the next coordinate.
+%    \begin{macrocode}
+    \tl_set:Nx \l__penrose_tmpb_tl {\tl_head:N \l__penrose_tmpa_tl}
+    \tikz_scan_point:V \l__penrose_tmpb_tl
+%    \end{macrocode}
+% We want the difference between the two coordinates.
+%    \begin{macrocode}
+    \fp_set:Nn \l__penrose_tmpa_fp {\pgf@x - \l__penrose_tmpa_fp}
+    \fp_set:Nn \l__penrose_tmpb_fp {\pgf@y - \l__penrose_tmpb_fp}
+%    \end{macrocode}
+% This is converted into a transformation matrix.
+%    \begin{macrocode}
+    \fp_set:Nn \l__penrose_tmpc_fp {-\l__penrose_tmpb_fp}
+    \tl_set:Nx \l__penrose_tmpb_tl {{\fp_use:N \l__penrose_tmpa_fp} {\fp_use:N \l__penrose_tmpc_fp} {\fp_use:N \l__penrose_tmpb_fp} {\fp_use:N \l__penrose_tmpa_fp} {0} {0}}
+%    \end{macrocode}
+% The transformation is applied to the cloned path.
+%    \begin{macrocode}
+    \spath_transform:nV {Penrose path tmpa} \l__penrose_tmpb_tl
+%    \end{macrocode}
+% And this is welded to the tile path.
+%    \begin{macrocode}
     \spath_weld:nn {Penrose path tile #1} {Penrose path tmpa}
   }
+%    \end{macrocode}
+% At the end we close the path.
+%    \begin{macrocode}
   \spath_close_path:n {Penrose path tile #1}
 }
-
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\penrose_make_tile:nn}
+% A wrapper around the above which allows us to specify the second two arguments as two items in a token list.
+%    \begin{macrocode}
 \cs_new_nopar:Npn \penrose_make_tile:nn #1#2
 {
   \penrose_make_tile:nnn {#1} #2
 }
-
 \cs_generate_variant:Nn \penrose_make_tile:nn {nV}
-
+%    \end{macrocode}
+% \end{macro}
+%
+% \subsection{Specifying the Tiles}
+%
+% The tile specifications are contained in a \Verb+prop+.
+%    \begin{macrocode}
 \prop_new:N \g__penrose_tiles_prop
-
-\fp_set:Nn \l_tmpa_fp {cosd(18)}
-\fp_set:Nn \l_tmpb_fp {sind(18)}
-
+%    \end{macrocode}
+%
+% \begin{macro}{\tl_add_coordinate:Nnn}
+% Process a coordinate through \Verb+fp+ and adds it to a token list.
+%    \begin{macrocode}
 \cs_new_nopar:Npn \tl_add_coordinate:Nnn #1#2#3 {
-  \fp_set:Nn \l_tmpa_fp{#2}
-  \fp_set:Nn \l_tmpb_fp{#3}
-  \tl_put_right:Nx #1 {{(\fp_use:N \l_tmpa_fp, \fp_use:N \l_tmpb_fp)}}
+  \fp_set:Nn \l__penrose_tmpa_fp{#2}
+  \fp_set:Nn \l__penrose_tmpb_fp{#3}
+  \tl_put_right:Nx #1 {{(\fp_use:N \l__penrose_tmpa_fp, \fp_use:N \l__penrose_tmpb_fp)}}
 }
+%    \end{macrocode}
+% \end{macro}
+%
+% Now we specify the tiles.
+% The specification is a clockwise list of the vertices together with the labels of the corresponding sides.
+% There are three basic paths, \Verb+a+, \Verb+b+, \Verb+c+, and their complements (which are capitalised).
+%
+% \begin{itemize}
+% \item Thin Rhombus.
+%    \begin{macrocode}
+\tl_clear:N \l__penrose_tmpa_tl
+\tl_add_coordinate:Nnn \l__penrose_tmpa_tl {0}{0}
+\tl_add_coordinate:Nnn \l__penrose_tmpa_tl {cosd(18)}{sind(18)}
+\tl_add_coordinate:Nnn \l__penrose_tmpa_tl {2*cosd(18)}{0}
+\tl_add_coordinate:Nnn \l__penrose_tmpa_tl {cosd(18)}{-sind(18)}
 
-\tl_clear:N \l_tmpa_tl
-\tl_add_coordinate:Nnn \l_tmpa_tl {0}{0}
-\tl_add_coordinate:Nnn \l_tmpa_tl {cosd(18)}{sind(18)}
-\tl_add_coordinate:Nnn \l_tmpa_tl {2*cosd(18)}{0}
-\tl_add_coordinate:Nnn \l_tmpa_tl {cosd(18)}{-sind(18)}
+\prop_gput:Nnx \g__penrose_tiles_prop {thin~ rhombus}  {{a A B b} {\tl_use:N \l__penrose_tmpa_tl}}
+%    \end{macrocode}
+%
+% \item Thick Rhombus.
+%    \begin{macrocode}
+\tl_clear:N \l__penrose_tmpa_tl
+\tl_add_coordinate:Nnn \l__penrose_tmpa_tl {0}{0}
+\tl_add_coordinate:Nnn \l__penrose_tmpa_tl {cosd(36)}{sind(36)}
+\tl_add_coordinate:Nnn \l__penrose_tmpa_tl {2*cosd(36)}{0}
+\tl_add_coordinate:Nnn \l__penrose_tmpa_tl {cosd(36)}{-sind(36)}
 
-\prop_gput:Nnx \g__penrose_tiles_prop {thin~ rhombus}  {{a A B b} {\tl_use:N \l_tmpa_tl}}
+\prop_gput:Nnx \g__penrose_tiles_prop {thick~ rhombus}  {{B a A b} {\tl_use:N \l__penrose_tmpa_tl}}
+%    \end{macrocode}
+%
+% \item Dart.
+%    \begin{macrocode}
+\tl_clear:N \l__penrose_tmpa_tl
+\tl_add_coordinate:Nnn \l__penrose_tmpa_tl {0}{0}
+\tl_add_coordinate:Nnn \l__penrose_tmpa_tl {2*sind(18)*cosd(108)}{2*sind(18)*sind(108)}
+\tl_add_coordinate:Nnn \l__penrose_tmpa_tl {2*sind(18)}{0}
+\tl_add_coordinate:Nnn \l__penrose_tmpa_tl {2*sind(18)*cosd(108)}{-2*sind(18)*sind(108)}
 
-\tl_clear:N \l_tmpa_tl
-\tl_add_coordinate:Nnn \l_tmpa_tl {0}{0}
-\tl_add_coordinate:Nnn \l_tmpa_tl {cosd(36)}{sind(36)}
-\tl_add_coordinate:Nnn \l_tmpa_tl {2*cosd(36)}{0}
-\tl_add_coordinate:Nnn \l_tmpa_tl {cosd(36)}{-sind(36)}
+\prop_gput:Nnx \g__penrose_tiles_prop {dart}  {{c a A C} {\tl_use:N \l__penrose_tmpa_tl}}
+%    \end{macrocode}
+%
+% \item Kite.
+%    \begin{macrocode}
+\tl_clear:N \l__penrose_tmpa_tl
+\tl_add_coordinate:Nnn \l__penrose_tmpa_tl {0}{0}
+\tl_add_coordinate:Nnn \l__penrose_tmpa_tl {cosd(36)}{sind(36)}
+\tl_add_coordinate:Nnn \l__penrose_tmpa_tl {1}{0}
+\tl_add_coordinate:Nnn \l__penrose_tmpa_tl {cosd(36)}{-sind(36)}
 
-\prop_gput:Nnx \g__penrose_tiles_prop {thick~ rhombus}  {{B a A b} {\tl_use:N \l_tmpa_tl}}
+\prop_gput:Nnx \g__penrose_tiles_prop {kite}  {{a c C A} {\tl_use:N \l__penrose_tmpa_tl}}
+%    \end{macrocode}
+%
+% \item Golden Triangle.
+%    \begin{macrocode}
+\tl_clear:N \l__penrose_tmpa_tl
+\tl_add_coordinate:Nnn \l__penrose_tmpa_tl {0}{0}
+\tl_add_coordinate:Nnn \l__penrose_tmpa_tl {cosd(18)}{sind(18)}
+\tl_add_coordinate:Nnn \l__penrose_tmpa_tl {cosd(18)}{-sind(18)}
 
-\tl_clear:N \l_tmpa_tl
-\tl_add_coordinate:Nnn \l_tmpa_tl {0}{0}
-\tl_add_coordinate:Nnn \l_tmpa_tl {2*sind(18)*cosd(108)}{2*sind(18)*sind(108)}
-\tl_add_coordinate:Nnn \l_tmpa_tl {2*sind(18)}{0}
-\tl_add_coordinate:Nnn \l_tmpa_tl {2*sind(18)*cosd(108)}{-2*sind(18)*sind(108)}
+\prop_gput:Nnx \g__penrose_tiles_prop {golden~ triangle}  {{a c b} {\tl_use:N \l__penrose_tmpa_tl}}
+%    \end{macrocode}
+%
+% \item Reverse Golden Triangle.
+%    \begin{macrocode}
+\tl_clear:N \l__penrose_tmpa_tl
+\tl_add_coordinate:Nnn \l__penrose_tmpa_tl {0}{0}
+\tl_add_coordinate:Nnn \l__penrose_tmpa_tl {cosd(18)}{sind(18)}
+\tl_add_coordinate:Nnn \l__penrose_tmpa_tl {cosd(18)}{-sind(18)}
 
-\prop_gput:Nnx \g__penrose_tiles_prop {dart}  {{c a A C} {\tl_use:N \l_tmpa_tl}}
+\prop_gput:Nnx \g__penrose_tiles_prop {reverse~ golden~ triangle}  {{B C A} {\tl_use:N \l__penrose_tmpa_tl}}
+%    \end{macrocode}
+%
+% \item Golden Gnomon
+%    \begin{macrocode}
+\tl_clear:N \l__penrose_tmpa_tl
+\tl_add_coordinate:Nnn \l__penrose_tmpa_tl {0}{0}
+\tl_add_coordinate:Nnn \l__penrose_tmpa_tl {cosd(36)}{sind(36)}
+\tl_add_coordinate:Nnn \l__penrose_tmpa_tl {2*cosd(36)}{0}
 
-\tl_clear:N \l_tmpa_tl
-\tl_add_coordinate:Nnn \l_tmpa_tl {0}{0}
-\tl_add_coordinate:Nnn \l_tmpa_tl {cosd(36)}{sind(36)}
-\tl_add_coordinate:Nnn \l_tmpa_tl {1}{0}
-\tl_add_coordinate:Nnn \l_tmpa_tl {cosd(36)}{-sind(36)}
-
-\prop_gput:Nnx \g__penrose_tiles_prop {kite}  {{a c C A} {\tl_use:N \l_tmpa_tl}}
-
-\tl_clear:N \l_tmpa_tl
-\tl_add_coordinate:Nnn \l_tmpa_tl {0}{0}
-\tl_add_coordinate:Nnn \l_tmpa_tl {cosd(18)}{sind(18)}
-\tl_add_coordinate:Nnn \l_tmpa_tl {cosd(18)}{-sind(18)}
-
-\prop_gput:Nnx \g__penrose_tiles_prop {golden~ triangle}  {{a c b} {\tl_use:N \l_tmpa_tl}}
-
-\tl_clear:N \l_tmpa_tl
-\tl_add_coordinate:Nnn \l_tmpa_tl {0}{0}
-\tl_add_coordinate:Nnn \l_tmpa_tl {cosd(18)}{sind(18)}
-\tl_add_coordinate:Nnn \l_tmpa_tl {cosd(18)}{-sind(18)}
-
-\prop_gput:Nnx \g__penrose_tiles_prop {reverse~ golden~ triangle}  {{B C A} {\tl_use:N \l_tmpa_tl}}
-
-\tl_clear:N \l_tmpa_tl
-\tl_add_coordinate:Nnn \l_tmpa_tl {0}{0}
-\tl_add_coordinate:Nnn \l_tmpa_tl {cosd(36)}{sind(36)}
-\tl_add_coordinate:Nnn \l_tmpa_tl {2*cosd(36)}{0}
-
-\prop_gput:Nnx \g__penrose_tiles_prop {golden~ gnomon}  {{C b A} {\tl_use:N \l_tmpa_tl}}
-
-\tl_clear:N \l_tmpa_tl
-\tl_add_coordinate:Nnn \l_tmpa_tl {0}{0}
-\tl_add_coordinate:Nnn \l_tmpa_tl {2*cosd(36)}{0}
-\tl_add_coordinate:Nnn \l_tmpa_tl {cosd(36)}{-sind(36)}
-\prop_gput:Nnx \g__penrose_tiles_prop {reverse~ golden~ gnomon}  {{a B c} {\tl_use:N \l_tmpa_tl}}
-
-
+\prop_gput:Nnx \g__penrose_tiles_prop {golden~ gnomon}  {{C b A} {\tl_use:N \l__penrose_tmpa_tl}}
+%    \end{macrocode}
+%
+% \item Reverse Golden Gnomon
+%    \begin{macrocode}
+\tl_clear:N \l__penrose_tmpa_tl
+\tl_add_coordinate:Nnn \l__penrose_tmpa_tl {0}{0}
+\tl_add_coordinate:Nnn \l__penrose_tmpa_tl {2*cosd(36)}{0}
+\tl_add_coordinate:Nnn \l__penrose_tmpa_tl {cosd(36)}{-sind(36)}
+\prop_gput:Nnx \g__penrose_tiles_prop {reverse~ golden~ gnomon}  {{a B c} {\tl_use:N \l__penrose_tmpa_tl}}
+%    \end{macrocode}
+% \end{itemize}
+%
+% \begin{macro}{\MakePenroseTile}
+% This is the user wrapper around the tile creation macros.
+%    \begin{macrocode}
 \NewDocumentCommand \MakePenroseTile {m}
 {
-  \prop_get:NnN \g__penrose_tiles_prop {#1} \l_tmpa_tl
-  \penrose_make_tile:nV {#1} \l_tmpa_tl
+  \prop_get:NnN \g__penrose_tiles_prop {#1} \l__penrose_tmpa_tl
+  \penrose_make_tile:nV {#1} \l__penrose_tmpa_tl
 }
-
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\UsePenroseTile}
+% This is the command that actually places a tile on the page.
+% The first argument is optional and is for styling.
+%    \begin{macrocode}
 \NewDocumentCommand \UsePenroseTile {O{} m} 
 {
+%    \end{macrocode}
+% We need to transform the tile to correspond to the current transformation matrix.
+% To ensure that we only transform the current tile, we clone it first.
+%    \begin{macrocode}
   \spath_clone:nn {Penrose path tile #2} {Penrose path tmpa}
-  \pgfgettransform \l_tmpa_tl
-  \tl_clear:N \l_tmpb_tl
-  \tl_set:Nx \l_tmpb_tl {{\tl_head:N \l_tmpa_tl}}
-  \tl_set:Nx \l_tmpa_tl {\tl_tail:N \l_tmpa_tl}
-  \tl_put_right:Nx \l_tmpb_tl {{\tl_item:Nn \l_tmpa_tl {2}}}
-  \tl_put_right:Nx \l_tmpb_tl {{\tl_item:Nn \l_tmpa_tl {1}}}
-  \tl_set:Nx \l_tmpa_tl {\tl_tail:N \l_tmpa_tl}
-  \tl_set:Nx \l_tmpa_tl {\tl_tail:N \l_tmpa_tl}
-  \tl_put_right:NV \l_tmpb_tl \l_tmpa_tl
-  \spath_transform:nV {Penrose path tmpa} \l_tmpb_tl
+%    \end{macrocode}
+% The transformation matrix returned by PGF appears to be transposed from what it should be.
+% (This needs a little more investigation, it might be that I've implemented the multiplication incorrectly here.)
+%    \begin{macrocode}
+  \pgfgettransform \l__penrose_tmpa_tl
+  \tl_clear:N \l__penrose_tmpb_tl
+  \tl_set:Nx \l__penrose_tmpb_tl {{\tl_head:N \l__penrose_tmpa_tl}}
+  \tl_set:Nx \l__penrose_tmpa_tl {\tl_tail:N \l__penrose_tmpa_tl}
+  \tl_put_right:Nx \l__penrose_tmpb_tl {{\tl_item:Nn \l__penrose_tmpa_tl {2}}}
+  \tl_put_right:Nx \l__penrose_tmpb_tl {{\tl_item:Nn \l__penrose_tmpa_tl {1}}}
+  \tl_set:Nx \l__penrose_tmpa_tl {\tl_tail:N \l__penrose_tmpa_tl}
+  \tl_set:Nx \l__penrose_tmpa_tl {\tl_tail:N \l__penrose_tmpa_tl}
+  \tl_put_right:NV \l__penrose_tmpb_tl \l__penrose_tmpa_tl
+%    \end{macrocode}
+% Apply the transformation, protocol the path, and render it.
+%    \begin{macrocode}
+  \spath_transform:nV {Penrose path tmpa} \l__penrose_tmpb_tl
   \spath_protocol_path:n {Penrose path tmpa}
   \spath_tikz_path:nn {#1}{Penrose path tmpa}
 }
-
+%    \end{macrocode}
+% \end{macro}
+%
+% This is a style for a user to take a path and make it into the path for one of the sides.
+% It needs to store both that side and the reverse.
+%    \begin{macrocode}
 \tikzset{
   save~ Penrose~ path/.code={
     \tikz@addmode{
-      \pgfsyssoftpath@getcurrentpath\l_tmpa_tl
+%    \end{macrocode}
+% Get the current path.
+%    \begin{macrocode}
+      \pgfsyssoftpath@getcurrentpath\l__penrose_tmpa_tl
+%    \end{macrocode}
+% Clear the receiving path, and store the current path in it.
+%    \begin{macrocode}
       \spath_clear_new:n {Penrose path #1}
-      \spath_put:nnV {Penrose path #1} {path} \l_tmpa_tl
+      \spath_put:nnV {Penrose path #1} {path} \l__penrose_tmpa_tl
+%    \end{macrocode}
+% Normalise the path.
+%    \begin{macrocode}
       \penrose_normalise_path:n {Penrose path #1}
+%    \end{macrocode}
+% Now create the reverse path.
+% The name is the upper case version.
+%    \begin{macrocode}
       \tl_to_uppercase:n {\tl_set:Nx \l__penrose_tmpa_tl {#1}}
+%    \end{macrocode}
+% Clone the path.
+%    \begin{macrocode}
       \spath_clone:nn {Penrose path #1} {Penrose path \tl_use:N \l__penrose_tmpa_tl }
+%    \end{macrocode}
+% Reverse it.
+%    \begin{macrocode}
       \spath_reverse:n {Penrose path \tl_use:N \l__penrose_tmpa_tl}
+%    \end{macrocode}
+% Swap the start and end.
+%    \begin{macrocode}
       \spath_transform:nnnnnnn {Penrose path \tl_use:N \l__penrose_tmpa_tl} {-1} {0} {0} {-1} {1} {0}
     }
+  },
+  expand~ key/.code={
+    \exp_args:NV \pgfkeysalso #1
   }
 }
-
+%    \end{macrocode}
+%
+% Create the basic tile shapes.
+%    \begin{macrocode}
 \MakePenroseTile {thin~ rhombus}
 \MakePenroseTile {thick~ rhombus} 
 \MakePenroseTile {dart}
@@ -379,229 +574,337 @@ and the derived files            penrose.ins,
 \MakePenroseTile {reverse~ golden~ triangle}
 \MakePenroseTile {golden~ gnomon}
 \MakePenroseTile {reverse~ golden~ gnomon}
-
-% Now let's try emulating the Lindenmayer system
-
+%    \end{macrocode}
+%
+% \subsection{Lindenmayer System}
+% 
+% This is an implementation of the Lindenmayer System description of Penrose tilings as a way of generating tilings from a specific starting seed.
+%
+% The implementation uses \Verb+prop+s to store \emph{rules} and \emph{actions}.
+% The rules are used to expand the starting seed to a certain level, after which the actions are carried out.
+% The syntax is based on the PGF library, but as we're already using \LaTeX3 it is reimplemented in that.
+%
+% These are the rules for generating rhombus tilings.
+%    \begin{macrocode}
 \prop_new:N \g__penrose_rhombus_lms_rule_prop
 \prop_put:Nnn \g__penrose_rhombus_lms_rule_prop {T} {[f*sT][f>g]}
 \prop_put:Nnn \g__penrose_rhombus_lms_rule_prop {t} {[f_st][f>G]}
 \prop_put:Nnn \g__penrose_rhombus_lms_rule_prop {G} {[f+sG][sf>g][sf*sT]}
 \prop_put:Nnn \g__penrose_rhombus_lms_rule_prop {g} {[f-sg][sf>G][sf_st]}
-
+%    \end{macrocode}
+%
+% These are the rules for generating kite and dart tilings.
+%    \begin{macrocode}
 \prop_new:N \g__penrose_kite_lms_rule_prop
 \prop_put:Nnn \g__penrose_kite_lms_rule_prop {T} {[f*sT][f>st][+sg]}
 \prop_put:Nnn \g__penrose_kite_lms_rule_prop {t} {[f_st][f>sT][-sG]}
 \prop_put:Nnn \g__penrose_kite_lms_rule_prop {G} {[f*+sG][sT]}
 \prop_put:Nnn \g__penrose_kite_lms_rule_prop {g} {[f-_sg][st]}
-
+%    \end{macrocode}
+%
+% Each of the standard tilings can also be drawn using triangles using the same rules.
+%    \begin{macrocode}
 \prop_set_eq:NN \g__penrose_rtriangle_lms_rule_prop \g__penrose_rhombus_lms_rule_prop
 \prop_set_eq:NN \g__penrose_ktriangle_lms_rule_prop \g__penrose_kite_lms_rule_prop
-
+%    \end{macrocode}
+%
+% These hold the various actions.
+%    \begin{macrocode}
 \prop_new:N \g__penrose_default_lms_action_prop
 \prop_new:N \g__penrose_rhombus_lms_action_prop
 \prop_new:N \g__penrose_kite_lms_action_prop
 \prop_new:N \g__penrose_rtriangle_lms_action_prop
 \prop_new:N \g__penrose_ktriangle_lms_action_prop
-
+%    \end{macrocode}
+%
+% We need some parameters.
+%    \begin{macrocode}
 \dim_new:N \l__penrose_step_dim
-\fp_new:N \l__penrose_scale_fp
 \dim_set:Nn \l__penrose_step_dim {1cm}
-\fp_set:Nn \l__penrose_scale_fp {1}
-
+%    \end{macrocode}
+%
+% These are the defaults, which will be used in all the rule sets.
+%    \begin{macrocode}
 \prop_put:Nnn \g__penrose_default_lms_action_prop {[} {\group_begin:}
 \prop_put:Nnn \g__penrose_default_lms_action_prop {]} {\group_end:}
 \prop_put:Nnn \g__penrose_default_lms_action_prop {f} {\pgftransformxshift{\l__penrose_step_dim}}
-\prop_put:Nnn \g__penrose_default_lms_action_prop {s} {\pgftransformscale{\fp_use:N \l__penrose_scale_fp}}
-
+\prop_put:Nnn \g__penrose_default_lms_action_prop {s} {
+  \fp_set:Nn \l__penrose_tmpa_fp { 2 * sind(18) * \l__penrose_step_dim }
+  \dim_set:Nn \l__penrose_step_dim {\fp_to_dim:N \l__penrose_tmpa_fp}
+}
+%    \end{macrocode}
+%
+% The rhombus rules need a variety of turns.
+%    \begin{macrocode}
 \prop_put:Nnn \g__penrose_rhombus_lms_action_prop {+} {\pgftransformrotate{144}}
 \prop_put:Nnn \g__penrose_rhombus_lms_action_prop {*} {\pgftransformrotate{108}}
 \prop_put:Nnn \g__penrose_rhombus_lms_action_prop {-} {\pgftransformrotate{216}}
 \prop_put:Nnn \g__penrose_rhombus_lms_action_prop {_} {\pgftransformrotate{252}}
 \prop_put:Nnn \g__penrose_rhombus_lms_action_prop {>} {\pgftransformrotate{180}}
-
-\prop_put:Nnn \g__penrose_rhombus_lms_action_prop {s} {
-  \fp_set:Nn \l_tmpa_fp { 2 * sind(18) * \l__penrose_step_dim }
-  \dim_set:Nn \l__penrose_step_dim {\fp_to_dim:N \l_tmpa_fp}
-}
-
+%    \end{macrocode}
+%
+% Up to now, the actions for the rhombus and its triangle replacement are the same.
+%    \begin{macrocode}
 \prop_set_eq:NN \g__penrose_rtriangle_lms_action_prop  \g__penrose_rhombus_lms_action_prop
-
+%    \end{macrocode}
+%
+% Now we do the actions that actually draw something.
+%    \begin{macrocode}
 \prop_put:Nnn \g__penrose_rhombus_lms_action_prop {T} {
   \group_begin:
+%    \end{macrocode}
+% As we go through, we keep track of how many tiles we've drawn.
+%    \begin{macrocode}
   \int_gincr:N \l__penrose_tile_int
+%    \end{macrocode}
+% Set up the position, size, and angle correctly.
+%    \begin{macrocode}
   \pgftransformrotate{198}
-  \fp_set:Nn \l_tmpa_fp {\l__penrose_step_dim*2*cosd(18)}
-  \pgftransformxshift{-\fp_to_dim:N \l_tmpa_fp}
-  \fp_set:Nn \l_tmpa_fp {\l__penrose_step_dim/1cm}
-  \pgftransformscale{\fp_use:N \l_tmpa_fp}
-  \UsePenroseTile[every~ Penrose~ tile/.try, every~ thin~ rhombus/.try, Penrose~ tile~ \int_use:N \l__penrose_tile_int/.try, Penrose~ tile/.try/.expand~ once=\int_use:N \l__penrose_tile_int ]{thin~rhombus}
+  \fp_set:Nn \l__penrose_tmpa_fp {\l__penrose_step_dim*2*cosd(18)}
+  \pgftransformxshift{-\fp_to_dim:N \l__penrose_tmpa_fp}
+  \fp_set:Nn \l__penrose_tmpa_fp {\l__penrose_step_dim/1cm}
+  \pgftransformscale{\fp_use:N \l__penrose_tmpa_fp}
+%    \end{macrocode}
+% Now we draw the thin rhombus, applying every style we can possibly imagine.
+% The \Verb+Penrose tile+ style gets the current tile and total tile numbers passed to it.
+%    \begin{macrocode}
+\tl_set:Nx \l__penrose_tmpc_tl {{\int_use:N  \l__penrose_tile_int} { \int_use:N \l__penrose_tiles_int}}
+  \UsePenroseTile[every~ Penrose~ tile/.try, every~ thin~ rhombus/.try, Penrose~ tile~ \int_use:N \l__penrose_tile_int/.try, Penrose~ tile/.try/.expand~ once=\l__penrose_tmpc_tl ]{thin~rhombus}
   \group_end:
 }
+%    \end{macrocode}
+%
+% Same for the thick rhombus.
+%    \begin{macrocode}
 \prop_put:Nnn \g__penrose_rhombus_lms_action_prop {G} {
   \group_begin:
   \int_gincr:N \l__penrose_tile_int
-  \fp_set:Nn \l_tmpa_fp {\l__penrose_step_dim/1cm/(2*cosd(36))}
-  \pgftransformscale{\fp_use:N \l_tmpa_fp}
-  \UsePenroseTile[every~ Penrose~ tile/.try, every~ thick~ rhombus/.try, Penrose~ tile~ \int_use:N \l__penrose_tile_int/.try, Penrose~ tile/.try/.expand~ once=\int_use:N \l__penrose_tile_int ]{thick~rhombus}
+  \fp_set:Nn \l__penrose_tmpa_fp {\l__penrose_step_dim/1cm/(2*cosd(36))}
+  \pgftransformscale{\fp_use:N \l__penrose_tmpa_fp}
+  \tl_set:Nx \l__penrose_tmpc_tl {{\int_use:N  \l__penrose_tile_int} { \int_use:N \l__penrose_tiles_int}}
+\UsePenroseTile[every~ Penrose~ tile/.try, every~ thick~ rhombus/.try, Penrose~ tile~ \int_use:N \l__penrose_tile_int/.try, Penrose~ tile/.try/.expand~ once=\l__penrose_tmpc_tl ]{thick~rhombus}
   \group_end:
 }
-
+%    \end{macrocode}
+%
+% Now we do the same for the kite and dart tiling.
+%    \begin{macrocode}
 \prop_put:Nnn \g__penrose_kite_lms_action_prop {+} {\pgftransformrotate{36}}
 \prop_put:Nnn \g__penrose_kite_lms_action_prop {*} {\pgftransformrotate{108}}
 \prop_put:Nnn \g__penrose_kite_lms_action_prop {-} {\pgftransformrotate{-36}}
 \prop_put:Nnn \g__penrose_kite_lms_action_prop {_} {\pgftransformrotate{-108}}
 \prop_put:Nnn \g__penrose_kite_lms_action_prop {>} {\pgftransformrotate{180}}
-
-\prop_put:Nnn \g__penrose_kite_lms_action_prop {s} {
-  \fp_set:Nn \l_tmpa_fp { 2 * sind(18) * \l__penrose_step_dim }
-  \dim_set:Nn \l__penrose_step_dim {\fp_to_dim:N \l_tmpa_fp}
-}
-
+%    \end{macrocode}
+%
+%    \begin{macrocode}
 \prop_set_eq:NN \g__penrose_ktriangle_lms_action_prop  \g__penrose_kite_lms_action_prop
-
-
+%    \end{macrocode}
+%
+%    \begin{macrocode}
 \prop_put:Nnn \g__penrose_kite_lms_action_prop {T} {
   \group_begin:
   \int_gincr:N \l__penrose_tile_int
   \pgftransformrotate{36}
-  \fp_set:Nn \l_tmpa_fp {\l__penrose_step_dim/1cm}
-  \pgftransformscale{\fp_use:N \l_tmpa_fp}
-  \UsePenroseTile[every~ Penrose~ tile/.try, every~ kite/.try, Penrose~ tile~ \int_use:N \l__penrose_tile_int/.try, Penrose~ tile/.try/.expand~ once=\int_use:N \l__penrose_tile_int ]{kite}
+  \fp_set:Nn \l__penrose_tmpa_fp {\l__penrose_step_dim/1cm}
+  \pgftransformscale{\fp_use:N \l__penrose_tmpa_fp}
+  \tl_set:Nx \l__penrose_tmpc_tl {{\int_use:N  \l__penrose_tile_int} { \int_use:N \l__penrose_tiles_int}}
+  \UsePenroseTile[every~ Penrose~ tile/.try, every~ kite/.try, Penrose~ tile~ \int_use:N \l__penrose_tile_int/.try, Penrose~ tile/.try/.expand~ once=\l__penrose_tmpc_tl ]{kite}
   \group_end:
 }
-
+%    \end{macrocode}
+%
+%    \begin{macrocode}
 \prop_put:Nnn \g__penrose_kite_lms_action_prop {g} {
   \group_begin:
   \int_gincr:N \l__penrose_tile_int
   \pgftransformrotate{144}
   \pgftransformxshift{-\l__penrose_step_dim * 2 * sin(18)}
-  \fp_set:Nn \l_tmpa_fp {\l__penrose_step_dim/1cm}
-  \pgftransformscale{\fp_use:N \l_tmpa_fp}
-  \UsePenroseTile[every~ Penrose~ tile/.try, every~ dart/.try, Penrose~ tile~ \int_use:N \l__penrose_tile_int/.try, Penrose~ tile/.try/.expand~ once=\int_use:N \l__penrose_tile_int ]{dart}
+  \fp_set:Nn \l__penrose_tmpa_fp {\l__penrose_step_dim/1cm}
+  \pgftransformscale{\fp_use:N \l__penrose_tmpa_fp}
+  \tl_set:Nx \l__penrose_tmpc_tl {{\int_use:N  \l__penrose_tile_int} { \int_use:N \l__penrose_tiles_int}}
+  \UsePenroseTile[every~ Penrose~ tile/.try, every~ dart/.try, Penrose~ tile~ \int_use:N \l__penrose_tile_int/.try, Penrose~ tile/.try/.expand~ once=\l__penrose_tmpc_tl ]{dart}
   \group_end:
 }
-
+%    \end{macrocode}
+%
+% Now we set up the actions for the triangle variations.
+%    \begin{macrocode}
 \prop_put:Nnn \g__penrose_rtriangle_lms_action_prop {T} {
   \group_begin:
   \int_gincr:N \l__penrose_tile_int
   \pgftransformrotate{18}
-  \fp_set:Nn \l_tmpa_fp {\l__penrose_step_dim/1cm}
-  \pgftransformscale{\fp_use:N \l_tmpa_fp}
-  \UsePenroseTile[every~ Penrose~ tile/.try, every~ reverse~ golden~ triangle/.try, Penrose~ tile~ \int_use:N \l__penrose_tile_int/.try, Penrose~ tile/.try/.expand~ once=\int_use:N \l__penrose_tile_int ]{reverse~ golden~ triangle}
+  \fp_set:Nn \l__penrose_tmpa_fp {\l__penrose_step_dim/1cm}
+  \pgftransformscale{\fp_use:N \l__penrose_tmpa_fp}
+  \tl_set:Nx \l__penrose_tmpc_tl {{\int_use:N  \l__penrose_tile_int} { \int_use:N \l__penrose_tiles_int}}
+  \UsePenroseTile[every~ Penrose~ tile/.try, every~ reverse~ golden~ triangle/.try, Penrose~ tile~ \int_use:N \l__penrose_tile_int/.try, Penrose~ tile/.try/.expand~ once=\l__penrose_tmpc_tl ]{reverse~ golden~ triangle}
   \group_end:
 }
-
+%    \end{macrocode}
+%
+%    \begin{macrocode}
 \prop_put:Nnn \g__penrose_rtriangle_lms_action_prop {t} {
   \group_begin:
   \int_gincr:N \l__penrose_tile_int
   \pgftransformrotate{-18}
-  \fp_set:Nn \l_tmpa_fp {\l__penrose_step_dim/1cm}
-  \pgftransformscale{\fp_use:N \l_tmpa_fp}
-  \UsePenroseTile[every~ Penrose~ tile/.try, every~ golden~ triangle/.try, Penrose~ tile~ \int_use:N \l__penrose_tile_int/.try, Penrose~ tile/.try/.expand~ once=\int_use:N \l__penrose_tile_int ]{golden~ triangle}
+  \fp_set:Nn \l__penrose_tmpa_fp {\l__penrose_step_dim/1cm}
+  \pgftransformscale{\fp_use:N \l__penrose_tmpa_fp}
+  \tl_set:Nx \l__penrose_tmpc_tl {{\int_use:N  \l__penrose_tile_int} { \int_use:N \l__penrose_tiles_int}}
+  \tl_set:Nx \l__penrose_tmpc_tl {{\int_use:N  \l__penrose_tile_int} { \int_use:N \l__penrose_tiles_int}}
+  \UsePenroseTile[every~ Penrose~ tile/.try, every~ golden~ triangle/.try, Penrose~ tile~ \int_use:N \l__penrose_tile_int/.try, Penrose~ tile/.try/.expand~ once=\l__penrose_tmpc_tl ]{golden~ triangle}
   \group_end:
 }
-
+%    \end{macrocode}
+%
+%    \begin{macrocode}
 \prop_put:Nnn \g__penrose_rtriangle_lms_action_prop {G} {
   \group_begin:
   \int_gincr:N \l__penrose_tile_int
   \pgftransformrotate{180}
   \pgftransformxshift{-\l__penrose_step_dim}
-  \fp_set:Nn \l_tmpa_fp {\l__penrose_step_dim/1cm/(2*cosd(36))}
-  \pgftransformscale{\fp_use:N \l_tmpa_fp}
-  \UsePenroseTile[every~ Penrose~ tile/.try, every~ reverse~ golden~ gnomon/.try, Penrose~ tile~ \int_use:N \l__penrose_tile_int/.try, Penrose~ tile/.try/.expand~ once=\int_use:N \l__penrose_tile_int ]{reverse~ golden~ gnomon}
+  \fp_set:Nn \l__penrose_tmpa_fp {\l__penrose_step_dim/1cm/(2*cosd(36))}
+  \pgftransformscale{\fp_use:N \l__penrose_tmpa_fp}
+  \tl_set:Nx \l__penrose_tmpc_tl {{\int_use:N  \l__penrose_tile_int} { \int_use:N \l__penrose_tiles_int}}
+  \UsePenroseTile[every~ Penrose~ tile/.try, every~ reverse~ golden~ gnomon/.try, Penrose~ tile~ \int_use:N \l__penrose_tile_int/.try, Penrose~ tile/.try/.expand~ once=\l__penrose_tmpc_tl ]{reverse~ golden~ gnomon}
   \group_end:
 }
-
+%    \end{macrocode}
+%
+%    \begin{macrocode}
 \prop_put:Nnn \g__penrose_rtriangle_lms_action_prop {g} {
   \group_begin:
   \int_gincr:N \l__penrose_tile_int
   \pgftransformrotate{180}
   \pgftransformxshift{-\l__penrose_step_dim}
-  \fp_set:Nn \l_tmpa_fp {\l__penrose_step_dim/1cm/(2*cosd(36))}
-  \pgftransformscale{\fp_use:N \l_tmpa_fp}
-  \UsePenroseTile[every~ Penrose~ tile/.try, every~ golden~ gnomon/.try, Penrose~ tile~ \int_use:N \l__penrose_tile_int/.try, Penrose~ tile/.try/.expand~ once=\int_use:N \l__penrose_tile_int ]{golden~ gnomon}
+  \fp_set:Nn \l__penrose_tmpa_fp {\l__penrose_step_dim/1cm/(2*cosd(36))}
+  \pgftransformscale{\fp_use:N \l__penrose_tmpa_fp}
+  \tl_set:Nx \l__penrose_tmpc_tl {{\int_use:N  \l__penrose_tile_int} { \int_use:N \l__penrose_tiles_int}}
+  \UsePenroseTile[every~ Penrose~ tile/.try, every~ golden~ gnomon/.try, Penrose~ tile~ \int_use:N \l__penrose_tile_int/.try, Penrose~ tile/.try/.expand~ once=\l__penrose_tmpc_tl ]{golden~ gnomon}
   \group_end:
 }
-
+%    \end{macrocode}
+%
+%    \begin{macrocode}
 \prop_put:Nnn \g__penrose_ktriangle_lms_action_prop {T} {
   \group_begin:
   \int_gincr:N \l__penrose_tile_int
   \pgftransformrotate{18}
-  \fp_set:Nn \l_tmpa_fp {\l__penrose_step_dim/1cm}
-  \pgftransformscale{\fp_use:N \l_tmpa_fp}
-  \UsePenroseTile[every~ Penrose~ tile/.try, every~ reverse~ golden~ triangle/.try, Penrose~ tile~ \int_use:N \l__penrose_tile_int/.try, Penrose~ tile/.try/.expand~ once=\int_use:N \l__penrose_tile_int ]{reverse~ golden~ triangle}
+  \fp_set:Nn \l__penrose_tmpa_fp {\l__penrose_step_dim/1cm}
+  \pgftransformscale{\fp_use:N \l__penrose_tmpa_fp}
+  \tl_set:Nx \l__penrose_tmpc_tl {{\int_use:N  \l__penrose_tile_int} { \int_use:N \l__penrose_tiles_int}}
+  \UsePenroseTile[every~ Penrose~ tile/.try, every~ reverse~ golden~ triangle/.try, Penrose~ tile~ \int_use:N \l__penrose_tile_int/.try, Penrose~ tile/.try/.expand~ once=\l__penrose_tmpc_tl ]{reverse~ golden~ triangle}
   \group_end:
 }
-
+%    \end{macrocode}
+%
+%    \begin{macrocode}
 \prop_put:Nnn \g__penrose_ktriangle_lms_action_prop {t} {
   \group_begin:
   \int_gincr:N \l__penrose_tile_int
   \pgftransformrotate{-18}
-  \fp_set:Nn \l_tmpa_fp {\l__penrose_step_dim/1cm}
-  \pgftransformscale{\fp_use:N \l_tmpa_fp}
-  \UsePenroseTile[every~ Penrose~ tile/.try, every~ golden~ triangle/.try, Penrose~ tile~ \int_use:N \l__penrose_tile_int/.try, Penrose~ tile/.try/.expand~ once=\int_use:N \l__penrose_tile_int ]{golden~ triangle}
+  \fp_set:Nn \l__penrose_tmpa_fp {\l__penrose_step_dim/1cm}
+  \pgftransformscale{\fp_use:N \l__penrose_tmpa_fp}
+  \tl_set:Nx \l__penrose_tmpc_tl {{\int_use:N  \l__penrose_tile_int} { \int_use:N \l__penrose_tiles_int}}
+  \UsePenroseTile[every~ Penrose~ tile/.try, every~ golden~ triangle/.try, Penrose~ tile~ \int_use:N \l__penrose_tile_int/.try, Penrose~ tile/.try/.expand~ once=\l__penrose_tmpc_tl ]{golden~ triangle}
   \group_end:
 }
-
+%    \end{macrocode}
+%
+%    \begin{macrocode}
 \prop_put:Nnn \g__penrose_ktriangle_lms_action_prop {G} {
   \group_begin:
   \int_gincr:N \l__penrose_tile_int
   \pgftransformrotate{180}
   \pgftransformxshift{-\l__penrose_step_dim}
-  \fp_set:Nn \l_tmpa_fp {\l__penrose_step_dim/1cm/(2*cosd(36))}
-  \pgftransformscale{\fp_use:N \l_tmpa_fp}
-  \UsePenroseTile[every~ Penrose~ tile/.try, every~ reverse~ golden~ gnomon/.try, Penrose~ tile~ \int_use:N \l__penrose_tile_int/.try, Penrose~ tile/.try/.expand~ once=\int_use:N \l__penrose_tile_int ]{reverse~ golden~ gnomon}
+  \fp_set:Nn \l__penrose_tmpa_fp {\l__penrose_step_dim/1cm/(2*cosd(36))}
+  \pgftransformscale{\fp_use:N \l__penrose_tmpa_fp}
+  \tl_set:Nx \l__penrose_tmpc_tl {{\int_use:N  \l__penrose_tile_int} { \int_use:N \l__penrose_tiles_int}}
+  \UsePenroseTile[every~ Penrose~ tile/.try, every~ reverse~ golden~ gnomon/.try, Penrose~ tile~ \int_use:N \l__penrose_tile_int/.try, Penrose~ tile/.try/.expand~ once=\l__penrose_tmpc_tl ]{reverse~ golden~ gnomon}
   \group_end:
 }
-
+%    \end{macrocode}
+%
+%    \begin{macrocode}
 \prop_put:Nnn \g__penrose_ktriangle_lms_action_prop {g} {
   \group_begin:
   \int_gincr:N \l__penrose_tile_int
   \pgftransformrotate{180}
   \pgftransformxshift{-\l__penrose_step_dim}
-  \fp_set:Nn \l_tmpa_fp {\l__penrose_step_dim/1cm/(2*cosd(36))}
-  \pgftransformscale{\fp_use:N \l_tmpa_fp}
-  \UsePenroseTile[every~ Penrose~ tile/.try, every~ golden~ gnomon/.try, Penrose~ tile~ \int_use:N \l__penrose_tile_int/.try, Penrose~ tile/.try/.expand~ once=\int_use:N \l__penrose_tile_int ]{golden~ gnomon}
+  \fp_set:Nn \l__penrose_tmpa_fp {\l__penrose_step_dim/1cm/(2*cosd(36))}
+  \pgftransformscale{\fp_use:N \l__penrose_tmpa_fp}
+  \tl_set:Nx \l__penrose_tmpc_tl {{\int_use:N  \l__penrose_tile_int} { \int_use:N \l__penrose_tiles_int}}
+  \UsePenroseTile[every~ Penrose~ tile/.try, every~ golden~ gnomon/.try, Penrose~ tile~ \int_use:N \l__penrose_tile_int/.try, Penrose~ tile/.try/.expand~ once=\l__penrose_tmpc_tl ]{golden~ gnomon}
   \group_end:
 }
-
-% #1 -> tl to store result in
-% #2 -> name
-% #3 -> number of iterations
-% #4 -> initial state
+%    \end{macrocode}
+%
+% \begin{macro}{\penrose_make_lms:Nnnn}
+% This creates the token list of actions, starting with the seed.
+% The arguments are: a token list to store the result in, the name of the system, the number of iterations, and the initial state.
+%    \begin{macrocode}
 \cs_new_nopar:Npn \penrose_make_lms:Nnnn #1#2#3#4
 {
   \group_begin:
+%    \end{macrocode}
+% On the first time round, we start with the given seed.
+%    \begin{macrocode}
   \tl_set:Nn \l__penrose_tmpb_tl {#4}
+%    \end{macrocode}
+% We repeat the specified number of times.
+%    \begin{macrocode}
   \prg_replicate:nn {#3} {
+%    \end{macrocode}
+% Duplicate the current state.
+%    \begin{macrocode}
     \tl_set_eq:NN \l__penrose_tmpa_tl \l__penrose_tmpb_tl
+%    \end{macrocode}
+% Clear the receiving token list.
+%    \begin{macrocode}
     \tl_clear:N \l__penrose_tmpb_tl
+%    \end{macrocode}
+% Walk through the current list, appending to the receiving list according to the rules.
+%    \begin{macrocode}
     \tl_map_inline:Nn \l__penrose_tmpa_tl
     {
+%    \end{macrocode}
+% If a rule exists, copy that.
+%    \begin{macrocode}
       \prop_if_in:cnTF {g__penrose_#2_lms_rule_prop} {##1}
       {
         \tl_put_right:Nx \l__penrose_tmpb_tl {\prop_get:cn {g__penrose_#2_lms_rule_prop} {##1} }
       }
       {
+%    \end{macrocode}
+% Otherwise, just copy the token.
+%    \begin{macrocode}
         \tl_put_right:Nn \l__penrose_tmpb_tl {##1}
       }
     }
   }
-  \tl_set:Nn \l_tmpa_tl {
+%    \end{macrocode}
+% We've done all this inside a group, now pass the result outside.
+%    \begin{macrocode}
+  \tl_set:Nn \l__penrose_tmpa_tl {
     \group_end:
     \tl_set:Nn #1
   }
-  \tl_put_right:Nx \l_tmpa_tl {{\tl_use:N \l__penrose_tmpb_tl}}
-  \tl_use:N \l_tmpa_tl
+  \tl_put_right:Nx \l__penrose_tmpa_tl {{\tl_use:N \l__penrose_tmpb_tl}}
+  \tl_use:N \l__penrose_tmpa_tl
 }
-
 \cs_generate_variant:Nn \penrose_make_lms:Nnnn {Nnnx}
-
-% #1 -> token list with result
-% #2 -> name 
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\penrose_invoke_lms:Nn}
+% This carries out the actions specified by the resulting rules.
+%    \begin{macrocode}
 \cs_new_nopar:Npn \penrose_invoke_lms:Nn #1#2
 {
   \group_begin:
+%    \end{macrocode}
+% Walk through the given list, carrying out the corresponding action if it exists.
+% If not, look at the default.
+% Otherwise, just do nothing.
+%    \begin{macrocode}
   \tl_map_inline:Nn #1 {
     \prop_if_in:cnTF {g__penrose_#2_lms_action_prop} {##1}
     {
@@ -616,42 +919,130 @@ and the derived files            penrose.ins,
   }
   \group_end:
 }
-
+%    \end{macrocode}
+% \end{macro}
+%
+% We keep track of the number of tiles.
+%    \begin{macrocode}
 \int_new:N \l__penrose_tile_int
-
+\int_new:N \l__penrose_tiles_int
+%    \end{macrocode}
+%
+% \begin{macro}{\PenroseDecomposition}
+% This is the user macro to invoke the decomposition.
+% The arguments are: optional styles, the name, number of iterations, and starting seed.
+%    \begin{macrocode}
 \NewDocumentCommand \PenroseDecomposition { O{} m m m }
 {
   \group_begin:
-  \int_gzero:N \l__penrose_tile_int
   \tikzset{#1}
-  \penrose_make_lms:Nnnx \l_tmpa_tl {#2} {#3} {#4}
-  \penrose_invoke_lms:Nn \l_tmpa_tl {#2}
+  \penrose_make_lms:Nnnx \l__penrose_tmpa_tl {#2} {#3} {#4}
+  \penrose_count_lms:N \l__penrose_tmpa_tl
+  \int_gzero:N \l__penrose_tile_int
+  \penrose_invoke_lms:Nn \l__penrose_tmpa_tl {#2}
   \group_end:
 }
-
-\def\PenroseNumberOfTiles
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\penrose_count_lms:N}
+% This counts the number of tiles in the string.
+%    \begin{macrocode}
+\cs_new_nopar:Npn \penrose_count_lms:N #1
 {
-  \int_use:N \l__penrose_tile_int
+  \int_gzero:N \l__penrose_tiles_int
+  \tl_map_inline:Nn #1
+  {
+    \tl_if_eq:nnT {##1} {T}
+    {
+      \int_incr:N \l__penrose_tiles_int
+    }
+    \tl_if_eq:nnT {##1} {t}
+    {
+      \int_incr:N \l__penrose_tiles_int
+    }
+    \tl_if_eq:nnT {##1} {G}
+    {
+      \int_incr:N \l__penrose_tiles_int
+    }
+    \tl_if_eq:nnT {##1} {g}
+    {
+      \int_incr:N \l__penrose_tiles_int
+    }
+  }
 }
-
+%    \end{macrocode}
+% \end{macro}
+%
+% This is a \Verb+\tikzset+ mechanism for setting the dimensions of the tiling.
+%    \begin{macrocode}
 \tikzset{
   Penrose~ step/.code={
     \dim_set:Nn \l__penrose_step_dim {#1}
-  },
-  Penrose~ scale/.code={
-    \fp_set:Nn \l__penrose_scale_fp {#1}
   }
 }
-
+%    \end{macrocode}
+%
+% We're done with \LaTeX3, so turn off the syntax.
+%    \begin{macrocode}
 \ExplSyntaxOff
-
+%    \end{macrocode}
+%
+% \subsection{TikZ Pictures}
+%
+% New in TikZ3.0 is the ability to make pictures that can be reused.
+% Penrose tiles seems an obvious use for this.
+% These pictures can be placed alongside other tiles, matching by edge type.
+%
+% There are a variety of constants that are frequently used and reused, so we define them all here.
+% These are the PGF versions.
+%
+%    \begin{macrocode}
+\pgfmathsetmacro\pr@chphi{cos(18)}
+\pgfmathsetmacro\pr@shphi{sin(18)}
+\pgfmathsetmacro\pr@cphi{cos(36)}
+\pgfmathsetmacro\pr@sphi{sin(36)}
+\pgfmathsetmacro\pr@invphi{2/(sqrt(5)+1)}
+\pgfmathsetmacro\pr@invphisq{\pr@invphi*\pr@invphi}
+\pgfmathsetmacro\pr@ominvphisq{\pr@invphi - \pr@invphisq}
+\pgfmathsetmacro\pr@ominvphi{1 - \pr@invphi}
+%    \end{macrocode}
+%
+% The implementation is essentially the same for each, so only the first will be commented.
+%    \begin{macrocode}
 \tikzset{
+%    \end{macrocode}
+% The key \Verb+align with=<tile> along <edge>+ is used to set the parameters for placing a tile next to an existing one.
+%    \begin{macrocode}
+  align with/.code args={#1 along #2}{%
+    \tikzset{
+      Penrose/alignment location=#1,
+      Penrose/alignment edge=#2,
+    }%
+  },
+  Penrose/alignment location/.initial={},
+  Penrose/alignment edge/.initial=a,
+%    \end{macrocode}
+% This is the code for setting up a \Verb+pic+.
+%    \begin{macrocode}
   thin rhombus/.pic={
     \begin{scope}
+%    \end{macrocode}
+% Were we given a tile to align ourselves against?
+%    \begin{macrocode}
     \pgfkeysgetvalue{/tikz/Penrose/alignment location}{\prloc}
     \ifx\prloc\pgfutil@empty
     \else
+%    \end{macrocode}
+% Yes, we were.
+% So we adjust our position accordingly.
+% The first job is to transform so that we're along the edge of the receiving tile.
+%    \begin{macrocode}
     \begingroup
+%    \end{macrocode}
+% We get the locations of the start and end of the receiving tile.
+% As \Verb+pic+ sets the node prefix, we have to temporarily suspend that (hence working in a group).
+%    \begin{macrocode}
     \tikzset{name prefix ..}%
     \tikz@scan@one@point\pgfutil@firstofone(\prloc-edge \pgfkeysvalueof{/tikz/Penrose/alignment edge} start)%
     \global\pgf@xa=\pgf@x
@@ -660,13 +1051,28 @@ and the derived files            penrose.ins,
     \global\pgf@xb=\pgf@x
     \global\pgf@yb=\pgf@y
     \endgroup
+%    \end{macrocode}
+% We store the initial points in \Verb+\pgf@xa+ and \Verb+\pgf@ya+ but we want \Verb+\pgf@xb+ and \Verb+\pgf@yb+ to be a vector along the edge.
+%    \begin{macrocode}
     \advance\pgf@xb by -\pgf@xa
     \advance\pgf@yb by -\pgf@ya
+%    \end{macrocode}
+% We shift to the start of the edge.
+%    \begin{macrocode}
     \pgftransformshift{\pgfpoint{\pgf@xa}{\pgf@ya}}%
+%    \end{macrocode}
+% And normalise the vector along it.
+%    \begin{macrocode}
     \pgfpointnormalised{\pgfpoint{\pgf@xb}{\pgf@yb}}
     \pgf@xb=\pgf@x
     \pgf@yb=\pgf@y
+%    \end{macrocode}
+% Now rotate so that the \(x\)--axis lies along the edge.
+%    \begin{macrocode}
 \pgftransformtriangle{\pgfpoint{0pt}{0pt}}{\pgfpoint{\pgf@xb}{\pgf@yb}}{\pgfpoint{-\pgf@yb}{\pgf@xb}}
+%    \end{macrocode}
+% The next job is to shift and rotate the current tile so that the correct edge ends up against the receiving tile.
+%    \begin{macrocode}
     \if\pgfkeysvalueof{/tikz/Penrose/alignment edge}b\relax
     \pgftransformrotate{-18}%
     \pgftransformshift{\pgfpoint{-\pr@chphi cm}{\pr@shphi cm}}%
@@ -683,10 +1089,22 @@ and the derived files            penrose.ins,
     \pgftransformshift{\pgfpoint{-\pr@chphi cm}{-\pr@shphi cm}}%
     \fi\fi\fi\fi
     \fi
+%    \end{macrocode}
+% Now that the transformation is finalised, we can render the tile.
+% We clip against the tile path so that the tiles don't ``bleed''.
+% If we didn't do this, drawing the tile would result in overlaps which can look a bit ugly.
+%    \begin{macrocode}
     \UsePenroseTile[clip]{thin rhombus}
     \UsePenroseTile[every Penrose tile/.try, every thin rhombus/.try, pic actions]{thin rhombus}
+%    \end{macrocode}
+% These draw the arcs that designate the joining rules.
+% We draw full circles so that it doesn't matter what shape the tiles are.
+%    \begin{macrocode}
 \path[every circle arc/.try] (18:1) circle[radius=1/4];
 \path[every long arc/.try] (-18:1) circle[radius=1/4];
+%    \end{macrocode}
+% Lastly, we put coordinates at each vertex, labelled by which edge they are.
+%    \begin{macrocode}
 \coordinate (-edge a start) at (0,0);
 \coordinate (-edge a end) at (18:1);
 \coordinate (-edge A start) at (18:1);
@@ -697,10 +1115,16 @@ and the derived files            penrose.ins,
 \coordinate (-edge b end) at (0,0);
     \end{scope}
   },
+%    \end{macrocode}
+% This is a shortcut for installing the \Verb+pic+ type.
+%    \begin{macrocode}
   thin rhombus/.style={
     every Penrose pic/.try,
     pic type=thin rhombus,
   },
+%    \end{macrocode}
+% Same again, but for the thick rhombus.
+%    \begin{macrocode}
   thick rhombus/.pic={
     \begin{scope}
     \pgfkeysgetvalue{/tikz/Penrose/alignment location}{\prloc}
@@ -756,14 +1180,9 @@ and the derived files            penrose.ins,
     every Penrose pic/.try,
     pic type=thick rhombus,
   },
-  align with/.code args={#1 along #2}{%
-    \tikzset{
-      Penrose/alignment location=#1,
-      Penrose/alignment edge=#2,
-    }%
-  },
-  Penrose/alignment location/.initial={},
-  Penrose/alignment edge/.initial=a,
+%    \end{macrocode}
+% Now the kite.
+%    \begin{macrocode}
   kite/.pic={
     \begin{scope}
     \pgfkeysgetvalue{/tikz/Penrose/alignment location}{\prloc}
@@ -815,6 +1234,9 @@ and the derived files            penrose.ins,
 \coordinate (-edge A end) at (0,0);
     \end{scope}
   },
+%    \end{macrocode}
+% The dart is next.
+%    \begin{macrocode}
   dart/.pic={
     \begin{scope}
     \pgfkeysgetvalue{/tikz/Penrose/alignment location}{\prloc}
@@ -874,6 +1296,9 @@ and the derived files            penrose.ins,
     every Penrose pic/.try,
     pic type=dart,
   },
+%    \end{macrocode}
+% The golden triangle.
+%    \begin{macrocode}
   golden triangle/.pic={
     \begin{scope}
     \pgfkeysgetvalue{/tikz/Penrose/alignment location}{\prloc}
@@ -909,8 +1334,6 @@ and the derived files            penrose.ins,
     \fi
     \UsePenroseTile[clip]{golden triangle}
     \UsePenroseTile[every Penrose tile/.try, every golden triangle/.try, pic actions]{golden triangle}
-%\path[every circle arc/.try] (18:1) circle[radius=1/4];
-%\path[every long arc/.try] (-18:1) circle[radius=1/4];
 \coordinate (-edge a start) at (0,0);
 \coordinate (-edge a end) at (18:1);
 \coordinate (-edge c start) at (18:1);
@@ -923,6 +1346,9 @@ and the derived files            penrose.ins,
     every Penrose pic/.try,
     pic type=golden triangle,
   },
+%    \end{macrocode}
+% The reverse golden triangle (is there a better name?).
+%    \begin{macrocode}
   reverse golden triangle/.pic={
     \begin{scope}
     \pgfkeysgetvalue{/tikz/Penrose/alignment location}{\prloc}
@@ -958,8 +1384,6 @@ and the derived files            penrose.ins,
     \fi
     \UsePenroseTile[clip]{reverse golden triangle}
     \UsePenroseTile[every Penrose tile/.try, every reverse golden triangle/.try, pic actions]{reverse golden triangle}
-%\path[every circle arc/.try] (18:1) circle[radius=1/4];
-%\path[every long arc/.try] (-18:1) circle[radius=1/4];
 \coordinate (-edge B start) at (0,0);
 \coordinate (-edge B end) at (18:1);
 \coordinate (-edge C start) at (18:1);
@@ -972,6 +1396,9 @@ and the derived files            penrose.ins,
     every Penrose pic/.try,
     pic type=reverse golden triangle,
   },
+%    \end{macrocode}
+% The golden gnomon.
+%    \begin{macrocode}
   golden gnomon/.pic={
     \begin{scope}
     \pgfkeysgetvalue{/tikz/Penrose/alignment location}{\prloc}
@@ -1006,8 +1433,6 @@ and the derived files            penrose.ins,
     \fi
     \UsePenroseTile[clip]{golden gnomon}
     \UsePenroseTile[every Penrose tile/.try, every golden gnomon/.try, pic actions]{golden gnomon}
-%\path[every circle arc/.try] (18:1) circle[radius=1/4];
-%\path[every long arc/.try] (-18:1) circle[radius=1/4];
 \coordinate (-edge C start) at (0,0);
 \coordinate (-edge C end) at (36:1);
 \coordinate (-edge b start) at (36:1);
@@ -1020,6 +1445,9 @@ and the derived files            penrose.ins,
     every Penrose pic/.try,
     pic type=golden gnomon,
   },
+%    \end{macrocode}
+% The reverse golden gnomon.
+%    \begin{macrocode}
   reverse golden gnomon/.pic={
     \begin{scope}
     \pgfkeysgetvalue{/tikz/Penrose/alignment location}{\prloc}
@@ -1055,8 +1483,6 @@ and the derived files            penrose.ins,
     \fi
     \UsePenroseTile[clip]{reverse golden gnomon}
     \UsePenroseTile[every Penrose tile/.try, every reverse golden gnomon/.try, pic actions]{reverse golden gnomon}
-%\path[every circle arc/.try] (18:1) circle[radius=1/4];
-%\path[every long arc/.try] (-18:1) circle[radius=1/4];
 \coordinate (-edge a start) at (0,0);
 \coordinate (-edge a end) at (2*\pr@cphi,0);
 \coordinate (-edge B start) at (2*\pr@cphi,0);
@@ -1070,7 +1496,7 @@ and the derived files            penrose.ins,
     pic type=reverse golden gnomon,
   },
 }
-% \end{macrocode}
+%    \end{macrocode}
 %
 % \iffalse
 %</library>

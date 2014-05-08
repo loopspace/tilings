@@ -1,0 +1,11 @@
+*.pdf
+*.aux
+*.log
+*.toc
+*.out
+*.glo
+*.hd
+*.idx
+*.ins
+README.txt
+tikzlibrarypenrose.code.tex
