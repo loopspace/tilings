@@ -48,11 +48,11 @@ Andrew Stacey.
 
 This work consists of the files  penrose.dtx
                                  penrose_doc.tex
-and the derived files            penrose.ins,
-                                 penrose.pdf,
+and the derived files            penrose.ins
+                                 penrose_code.pdf
                                  tikzlibrarypenrose.code.tex
-                                 penrose_doc.pdf
-                                 README.txt
+                                 penrose.pdf
+                                 README
 
 \endpostamble
 \usedir{tex/latex/penrose}
@@ -119,7 +119,7 @@ and the derived files            penrose.ins,
 %</driver>
 % \fi
 %
-% \CheckSum{1708}
+% \CheckSum{1688}
 %
 % \CharacterTable
 %  {Upper-case    \A\B\C\D\E\F\G\H\I\J\K\L\M\N\O\P\Q\R\S\T\U\V\W\X\Y\Z
@@ -156,7 +156,7 @@ and the derived files            penrose.ins,
 % This is a TikZ library for drawing Penrose tiles (both kite/dart and rhombus versions).
 % It provides two methods of drawing: one in which an automatic pattern is built, and one where the tiles can be placed ``by hand''.
 % The tiles can be shaped and (hopefully!) still fit together.
-% For user documentation, see the \Verb+penrose_doc+ file.
+% For user documentation, see the \Verb+penrose.pdf+ file.
 %
 % \StopEventually{}
 %
@@ -417,9 +417,11 @@ and the derived files            penrose.ins,
 %    \begin{macrocode}
 \tl_clear:N \l__penrose_tmpa_tl
 \tl_add_coordinate:Nnn \l__penrose_tmpa_tl {0}{0}
-\tl_add_coordinate:Nnn \l__penrose_tmpa_tl {2*sind(18)*cosd(108)}{2*sind(18)*sind(108)}
+\tl_add_coordinate:Nnn \l__penrose_tmpa_tl
+{2*sind(18)*cosd(108)}{2*sind(18)*sind(108)}
 \tl_add_coordinate:Nnn \l__penrose_tmpa_tl {2*sind(18)}{0}
-\tl_add_coordinate:Nnn \l__penrose_tmpa_tl {2*sind(18)*cosd(108)}{-2*sind(18)*sind(108)}
+\tl_add_coordinate:Nnn \l__penrose_tmpa_tl
+{2*sind(18)*cosd(108)}{-2*sind(18)*sind(108)}
 
 \prop_gput:Nnx \g__penrose_tiles_prop {dart}  {{c a A C} {\tl_use:N \l__penrose_tmpa_tl}}
 %    \end{macrocode}
@@ -1023,6 +1025,10 @@ and the derived files            penrose.ins,
   Penrose/alignment location/.initial={},
   Penrose/alignment edge/.initial=a,
 %    \end{macrocode}
+% Default clipping style.
+%    \begin{macrocode}
+  every Penrose tile clip/.style={clip},
+%    \end{macrocode}
 % This is the code for setting up a \Verb+pic+.
 %    \begin{macrocode}
   thin rhombus/.pic={
@@ -1093,13 +1099,15 @@ and the derived files            penrose.ins,
 % Now that the transformation is finalised, we can render the tile.
 % We clip against the tile path so that the tiles don't ``bleed''.
 % If we didn't do this, drawing the tile would result in overlaps which can look a bit ugly.
+% On the other hand, tight clipping can lead to ``gaps'' between the tiles so we make this optional by enclosing it in a style.
 %    \begin{macrocode}
-    \UsePenroseTile[clip]{thin rhombus}
+    \UsePenroseTile[every Penrose tile clip/.try, every thin rhombus clip/.try]{thin rhombus}
     \UsePenroseTile[every Penrose tile/.try, every thin rhombus/.try, pic actions]{thin rhombus}
 %    \end{macrocode}
 % These draw the arcs that designate the joining rules.
 % We draw full circles so that it doesn't matter what shape the tiles are.
 %    \begin{macrocode}
+    \UsePenroseTile[every Penrose arc clip/.try, every thin rhombus arc clip/.try]{thin rhombus}
 \path[every circle arc/.try] (18:1) circle[radius=1/4];
 \path[every long arc/.try] (-18:1) circle[radius=1/4];
 %    \end{macrocode}
@@ -1162,8 +1170,9 @@ and the derived files            penrose.ins,
     \pgftransformshift{\pgfpoint{-2*\pr@cphi cm}{0 cm}}%
     \fi\fi\fi\fi
     \fi
-    \UsePenroseTile[clip]{thick rhombus}
+    \UsePenroseTile[every Penrose tile clip/.try, every thick rhombus clip/.try]{thick rhombus}
     \UsePenroseTile[every Penrose tile/.try, every thick rhombus/.try, pic actions]{thick rhombus}
+    \UsePenroseTile[every Penrose arc clip/.try, every thick rhombus arc clip/.try]{thin rhombus}
 \path[every circle arc/.try] (2*\pr@cphi,0) circle[radius=1/4];
 \path[every long arc/.try] (0,0) circle[radius=3/4];
 \coordinate (-edge B start) at (0,0);
@@ -1220,8 +1229,9 @@ and the derived files            penrose.ins,
     \pgftransformshift{\pgfpoint{-\pr@cphi cm}{-\pr@sphi cm}}%
     \fi\fi\fi\fi
     \fi
-    \UsePenroseTile[clip]{kite}
+    \UsePenroseTile[every Penrose tile clip/.try, every kite clip/.try]{kite}
     \UsePenroseTile[every Penrose tile/.try, every kite/.try, pic actions]{kite}
+    \UsePenroseTile[every Penrose arc clip/.try, every kite arc clip/.try]{thin rhombus}
 \path[every circle arc/.try] (0,0) circle[radius=\pr@invphi];
 \path[every long arc/.try] (1,0) circle[radius=\pr@invphisq];
 \coordinate (-edge a start) at (0,0);
@@ -1274,8 +1284,9 @@ and the derived files            penrose.ins,
     \pgftransformshift{\pgfpoint{-\pr@invphi cm}{0 cm}}%
     \fi\fi\fi\fi
     \fi
-    \UsePenroseTile[clip]{dart}
+    \UsePenroseTile[every Penrose tile clip/.try, every dart clip/.try]{dart}
     \UsePenroseTile[every Penrose tile/.try, every dart/.try, pic actions]{dart}
+    \UsePenroseTile[every Penrose arc clip/.try, every dart arc clip/.try]{thin rhombus}
 \path[every circle arc/.try] (\pr@invphi,0) circle[radius=\pr@ominvphi];
 \path[every long arc/.try] (0,0) circle[radius=\pr@ominvphisq];
 \coordinate (-edge c start) at (0,0);
@@ -1332,7 +1343,7 @@ and the derived files            penrose.ins,
     \pgftransformshift{\pgfpoint{-\pr@chphi cm}{-\pr@shphi cm}}%
     \fi\fi\fi
     \fi
-    \UsePenroseTile[clip]{golden triangle}
+    \UsePenroseTile[every Penrose tile clip/.try, every golden triangle clip/.try]{golden triangle}
     \UsePenroseTile[every Penrose tile/.try, every golden triangle/.try, pic actions]{golden triangle}
 \coordinate (-edge a start) at (0,0);
 \coordinate (-edge a end) at (18:1);
@@ -1382,7 +1393,7 @@ and the derived files            penrose.ins,
     \pgftransformrotate{18}%
     \fi\fi\fi
     \fi
-    \UsePenroseTile[clip]{reverse golden triangle}
+    \UsePenroseTile[every Penrose tile clip/.try, every reverse golden triangle clip/.try]{reverse golden triangle}
     \UsePenroseTile[every Penrose tile/.try, every reverse golden triangle/.try, pic actions]{reverse golden triangle}
 \coordinate (-edge B start) at (0,0);
 \coordinate (-edge B end) at (18:1);
@@ -1431,7 +1442,7 @@ and the derived files            penrose.ins,
     \if\pgfkeysvalueof{/tikz/Penrose/alignment edge}a\relax
     \fi\fi\fi
     \fi
-    \UsePenroseTile[clip]{golden gnomon}
+    \UsePenroseTile[every Penrose tile clip/.try, every golden gnomon clip/.try]{golden gnomon}
     \UsePenroseTile[every Penrose tile/.try, every golden gnomon/.try, pic actions]{golden gnomon}
 \coordinate (-edge C start) at (0,0);
 \coordinate (-edge C end) at (36:1);
@@ -1481,7 +1492,7 @@ and the derived files            penrose.ins,
     \pgftransformshift{\pgfpoint{-2*\pr@cphi cm}{0 cm}}%
     \fi\fi\fi
     \fi
-    \UsePenroseTile[clip]{reverse golden gnomon}
+    \UsePenroseTile[every Penrose tile clip/.try, every reverse golden gnomon clip/.try]{reverse golden gnomon}
     \UsePenroseTile[every Penrose tile/.try, every reverse golden gnomon/.try, pic actions]{reverse golden gnomon}
 \coordinate (-edge a start) at (0,0);
 \coordinate (-edge a end) at (2*\pr@cphi,0);
