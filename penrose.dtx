@@ -872,7 +872,7 @@ and the derived files            penrose.ins
 %    \begin{macrocode}
       \prop_if_in:cnTF {g__penrose_#2_lms_rule_prop} {##1}
       {
-        \tl_put_right:Nx \l__penrose_tmpb_tl {\prop_get:cn {g__penrose_#2_lms_rule_prop} {##1} }
+        \tl_put_right:Nx \l__penrose_tmpb_tl {\prop_item:cn {g__penrose_#2_lms_rule_prop} {##1} }
       }
       {
 %    \end{macrocode}
@@ -910,12 +910,12 @@ and the derived files            penrose.ins
   \tl_map_inline:Nn #1 {
     \prop_if_in:cnTF {g__penrose_#2_lms_action_prop} {##1}
     {
-      \prop_get:cn {g__penrose_#2_lms_action_prop} {##1}
+      \prop_item:cn {g__penrose_#2_lms_action_prop} {##1}
     }
     {
       \prop_if_in:cnT {g__penrose_default_lms_action_prop} {##1}
       {
-        \prop_get:cn {g__penrose_default_lms_action_prop} {##1}
+        \prop_item:cn {g__penrose_default_lms_action_prop} {##1}
       }
     }
   }
