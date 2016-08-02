@@ -39,6 +39,158 @@
 \makeatother
 
 \begin{document}
+
+\begin{tikzpicture}[overlay]
+\path[save Penrose path=a] (0,0) to[out=-30,in=100] (1,0);
+\path[save Penrose path=b] (0,0) to[out=0,in=140] (1,0);
+\path[save Penrose path=c] (0,0) to[out=-40,in=140] (1,0);
+\path[save Penrose path=d] (0,0) to[out=-20,in=160] (1,0);
+%\path[save Penrose path=a] (0,0) -| (.25,.1) -| (.5,0) -- (1,0);
+%\path[save Penrose path=b] (0,0) -- (.25,0) -- (.5,.1) -- (.5,0) -- (1,0);
+%\path[save Penrose path=c] (0,0) -- (.25,0) -- (.25,.1) -- (.5,0) -- (1,0);
+%\path[save Penrose path=d] (0,0) -| (.25,.1) -- (.5,-.1) |- (1,0);
+
+\MakePenroseTile{pentagon 5}
+\MakePenroseTile{pentagon 3}
+\MakePenroseTile{pentagon 2}
+\MakePenroseTile{pentagram}
+\MakePenroseTile{boat}
+\MakePenroseTile{diamond}
+\MakePenroseTile{thick rhombus}
+\end{tikzpicture}
+
+\begin{tikzpicture}[
+  every Penrose tile/.style={draw},
+  every pentagon 5/.style={fill=yellow},
+  every pentagon 3/.style={fill=red},
+  every pentagon 2/.style={fill=blue},
+  every diamond/.style={fill=yellow},
+  every pentagram/.style={fill=yellow},
+  every boat/.style={fill=yellow},
+  scale=50,
+  overlay,
+  remember picture
+]
+\coordinate (a) at (current page.center);
+\begin{scope}[shift={(a)}]
+\PenroseDecomposition{pentagon}{5}{D}
+\end{scope}
+\end{tikzpicture}
+\end{document}
+\newpage
+
+
+\begin{tikzpicture}
+\pic[draw] (a) at (0,0) {pentagon 5};
+\pic[draw] (b) at (2,0) {pentagon 3};
+\pic[draw] (c) at (4,0) {pentagon 2};
+\pic[draw] (bt) at (0,-2) {boat};
+\pic[draw] (p) at (2,-2) {diamond};
+\pic[draw] (d) at (6,-2) {pentagram};
+\pic[draw] at (0,-4) {thick rhombus};
+\end{tikzpicture}
+
+\begin{tikzpicture}[
+  every Penrose tile/.style={draw},
+  original tile/.style={
+    every Penrose tile/.append style={ultra thick, red}  
+  },
+%  every pentagon 5/.style={fill=green},
+%  every pentagon 3/.style={fill=red},
+%  every pentagon 2/.style={fill=blue},
+]
+\PenroseDecomposition[original tile]{pentagon}{0}{P}
+\PenroseDecomposition{pentagon}{0}{P}
+\PenroseDecomposition{pentagon}{1}{P}
+\begin{scope}[xshift=2cm]
+\PenroseDecomposition[original tile]{pentagon}{0}{Q}
+\PenroseDecomposition{pentagon}{1}{Q}
+\begin{scope}[xshift=2cm]
+\PenroseDecomposition[original tile]{pentagon}{0}{R}
+\PenroseDecomposition{pentagon}{1}{R}
+\begin{scope}[xshift=2cm]
+\PenroseDecomposition[original tile]{pentagon}{0}{D}
+\PenroseDecomposition[every Penrose tile/.style={draw=gray}]{pentagon}{1}{D}
+\PenroseDecomposition[every Penrose tile/.style={draw,ultra thin}]{pentagon}{1}{D}
+\begin{scope}[xshift=2cm]
+\PenroseDecomposition[original tile]{pentagon}{0}{B}
+\PenroseDecomposition{pentagon}{1}{B}
+\begin{scope}[xshift=3cm]
+\PenroseDecomposition[original tile]{pentagon}{0}{G}
+\PenroseDecomposition{pentagon}{1}{G}
+\end{scope}
+\end{scope}
+\end{scope}
+\end{scope}
+\end{scope}
+\end{tikzpicture}
+\end{document}
+\begin{tikzpicture}[
+  every Penrose tile/.style={draw},
+%  every diamond/.style={fill=gray},
+%  every pentagram/.style={fill=gray},
+%  every boat/.style={fill=gray},
+%  every pentagon/.style={fill=blue},
+]
+\begin{scope}[scale=3]
+%\PenroseDecomposition{pentagon}{0}{Q}
+\PenroseDecomposition{pentagon}{1}{G}
+\end{scope}
+\end{tikzpicture}
+
+\newpage
+
+\end{document}
+
+
+\begin{tikzpicture}[
+  every Penrose tile/.style={draw},
+  original tile/.style={
+    every Penrose tile/.append style={ultra thick, red}  
+  },
+  Penrose tile 2/.style={fill=green}
+]
+\begin{scope}[xshift=3cm]
+\PenroseDecomposition[original tile]{kite}{0}{T}
+\PenroseDecomposition{kite}{1}{T}
+\PenroseDecomposition[rotate=72]{kite}{1}{t}
+\begin{scope}[xshift=2cm]
+\PenroseDecomposition[original tile]{kite}{0}{g}
+\PenroseDecomposition{kite}{1}{g}
+\PenroseDecomposition[rotate=-72]{kite}{1}{G}
+\begin{scope}[xshift=2cm]
+\PenroseDecomposition[original tile]{rhombus}{0}{T}
+\PenroseDecomposition[xshift=1cm,rotate=-144,xshift=-1cm]{rhombus}{0}{t}
+\PenroseDecomposition{rhombus}{1}{T}
+\PenroseDecomposition[xshift=1cm,rotate=-144,xshift=-1cm]{rhombus}{1}{t}
+\begin{scope}[xshift=2cm]
+\PenroseDecomposition[original tile]{rhombus}{0}{G}
+%\PenroseDecomposition[xshift=1cm,rotate=-144,xshift=-1cm]{rhombus}{0}{g}
+\PenroseDecomposition{rhombus}{1}{G}
+\PenroseDecomposition{rhombus}{1}{g}
+\end{scope}
+\end{scope}
+\end{scope}
+\end{scope}
+\end{tikzpicture}
+\end{document}
+
+
+\begin{tikzpicture}[
+  every Penrose pic/.style={transform shape}
+]
+\begin{scope}[rotate=45]
+\pic[draw,thin rhombus];
+\end{scope}
+\begin{scope}[scale=4]
+\pic[draw,thin rhombus];
+\end{scope}
+\begin{scope}[shift={(2,1)}]
+\pic[draw,thin rhombus];
+\end{scope}
+\end{tikzpicture}
+
+
 \begin{tikzpicture}
 \path[save Penrose path=a] (0,0) to[out=-30,in=100] (1,0);
 \path[save Penrose path=b] (0,0) to[out=0,in=140] (1,0);
