@@ -676,12 +676,12 @@ and the derived files            penrose.ins
 % These are the rules for generating pentagon tilings.
 %    \begin{macrocode}
 \prop_new:N \g__penrose_pentagon_lms_rule_prop
-\prop_put:Nnn \g__penrose_pentagon_lms_rule_prop {P} {[s>P][sF+Q][+sF+Q][*sF+Q][-sF+Q][_sF+Q]} % pentagon 5
-\prop_put:Nnn \g__penrose_pentagon_lms_rule_prop {Q} {[s>P][+sFR][*sF*R][-sF+Q][_sF+Q][sF+Q][->fsD]} % pentagon 3
-\prop_put:Nnn \g__penrose_pentagon_lms_rule_prop {R} {[s>P][-sF+Q][+sF*R][*sFR][_sF*R][sFR][_>fsD][>fsD]} % pentagon 2
-\prop_put:Nnn \g__penrose_pentagon_lms_rule_prop {G} {[s>G][se[>d+R][eB]][+se[>d+R][eB]][-se[>d+R][eB]][*se[>d+R][eB]][_se[>d+R][eB]]} % pentagram
-\prop_put:Nnn \g__penrose_pentagon_lms_rule_prop {B} {[s>G][se[>d+R][eB]][+se[>d+R][eB]][-se[>d+R][eB]]} % boat
-\prop_put:Nnn \g__penrose_pentagon_lms_rule_prop {D} {[s>d+R][s>eG][seB]} % diamond
+\prop_put:Nnn \g__penrose_pentagon_lms_rule_prop {P} {[s>P][1sF+Q][1+sF+Q][1*sF+Q][1-sF+Q][1_sF+Q]} % pentagon 5
+\prop_put:Nnn \g__penrose_pentagon_lms_rule_prop {Q} {[s>P][1+sFR][1*sF*R][1-sF+Q][1_sF+Q][1sF+Q][->fsD]} % pentagon 3
+\prop_put:Nnn \g__penrose_pentagon_lms_rule_prop {R} {[s>P][1-sF+Q][1+sF*R][1*sFR][1_sF*R][1sFR][_>fsD][>fsD]} % pentagon 2
+\prop_put:Nnn \g__penrose_pentagon_lms_rule_prop {G} {[s>G][se[>d+R][e1B]][+se[>d+R][e1B]][-se[>d+R][e1B]][*se[>d+R][e1B]][_se[>d+R][e1B]]} % pentagram
+\prop_put:Nnn \g__penrose_pentagon_lms_rule_prop {B} {[s>G][se[>d+R][e1B]][+se[>d+R][e1B]][-se[>d+R][e1B]]} % boat
+\prop_put:Nnn \g__penrose_pentagon_lms_rule_prop {D} {[s>d+R][s>eG][se1B]} % diamond
 %    \end{macrocode}
 %
 % Each of the standard tilings can also be drawn using triangles using the same rules.
@@ -924,6 +924,12 @@ and the derived files            penrose.ins
 %
 % The rules need a variety of turns.
 %    \begin{macrocode}
+\int_new:N \l__penrose_pentagon_parity_int
+\seq_new:N \l__penrose_pentagon_parity_seq
+\seq_set_from_clist:Nn \l__penrose_pentagon_parity_seq {odd,even}
+\prop_put:Nnn \g__penrose_pentagon_lms_action_prop {1} {
+  \int_set:Nn \l__penrose_pentagon_parity_int {3 -  \l__penrose_pentagon_parity_int}
+  }
 \prop_put:Nnn \g__penrose_pentagon_lms_action_prop {+} {\pgftransformrotate{72}}
 \prop_put:Nnn \g__penrose_pentagon_lms_action_prop {*} {\pgftransformrotate{144}}
 \prop_put:Nnn \g__penrose_pentagon_lms_action_prop {-} {\pgftransformrotate{288}}
@@ -969,7 +975,7 @@ and the derived files            penrose.ins
   \fp_set:Nn \l__penrose_tmpa_fp {\l__penrose_step_dim/(1cm)}
   \pgftransformscale{\fp_use:N \l__penrose_tmpa_fp}
 \tl_set:Nx \l__penrose_tmpc_tl {{\int_use:N  \l__penrose_tile_int} { \int_use:N \l__penrose_tiles_int}}
-  \UsePenroseTile[every~ Penrose~ tile/.try, every~ pentagon/.try, every~ pentagon~ 5/.try, Penrose~ tile~ \int_use:N \l__penrose_tile_int/.try, Penrose~ tile/.try/.expand~ once=\l__penrose_tmpc_tl ]{pentagon~5}
+  \UsePenroseTile[every~ Penrose~ tile/.try, every~ pentagon/.try, every~ \seq_item:Nn  \l__penrose_pentagon_parity_seq { \l__penrose_pentagon_parity_int}\space pentagon/.try, every~ pentagon~ 5/.try, Penrose~ tile~ \int_use:N \l__penrose_tile_int/.try, Penrose~ tile/.try/.expand~ once=\l__penrose_tmpc_tl ]{pentagon~5}
   \group_end:
 }
 %    \end{macrocode}
@@ -985,7 +991,7 @@ and the derived files            penrose.ins
   \fp_set:Nn \l__penrose_tmpa_fp {\l__penrose_step_dim/(1cm)}
   \pgftransformscale{\fp_use:N \l__penrose_tmpa_fp}
 \tl_set:Nx \l__penrose_tmpc_tl {{\int_use:N  \l__penrose_tile_int} { \int_use:N \l__penrose_tiles_int}}
-  \UsePenroseTile[every~ Penrose~ tile/.try, every~ pentagon/.try, every~ pentagon~ 3/.try, Penrose~ tile~ \int_use:N \l__penrose_tile_int/.try, Penrose~ tile/.try/.expand~ once=\l__penrose_tmpc_tl ]{pentagon~3}
+  \UsePenroseTile[every~ Penrose~ tile/.try, every~ pentagon/.try, every~ \seq_item:Nn  \l__penrose_pentagon_parity_seq { \l__penrose_pentagon_parity_int}\space pentagon/.try, every~ pentagon~ 3/.try, Penrose~ tile~ \int_use:N \l__penrose_tile_int/.try, Penrose~ tile/.try/.expand~ once=\l__penrose_tmpc_tl ]{pentagon~3}
   \group_end:
 }
 %    \end{macrocode}
@@ -1001,7 +1007,7 @@ and the derived files            penrose.ins
   \fp_set:Nn \l__penrose_tmpa_fp {\l__penrose_step_dim/(1cm)}
   \pgftransformscale{\fp_use:N \l__penrose_tmpa_fp}
 \tl_set:Nx \l__penrose_tmpc_tl {{\int_use:N  \l__penrose_tile_int} { \int_use:N \l__penrose_tiles_int}}
-  \UsePenroseTile[every~ Penrose~ tile/.try, every~ pentagon/.try, every~ pentagon~ 2/.try, Penrose~ tile~ \int_use:N \l__penrose_tile_int/.try, Penrose~ tile/.try/.expand~ once=\l__penrose_tmpc_tl ]{pentagon~2}
+  \UsePenroseTile[every~ Penrose~ tile/.try, every~ pentagon/.try, every~ \seq_item:Nn  \l__penrose_pentagon_parity_seq { \l__penrose_pentagon_parity_int}\space pentagon/.try, every~ pentagon~ 2/.try, Penrose~ tile~ \int_use:N \l__penrose_tile_int/.try, Penrose~ tile/.try/.expand~ once=\l__penrose_tmpc_tl ]{pentagon~2}
   \group_end:
 }
 %    \end{macrocode}
@@ -1157,6 +1163,7 @@ and the derived files            penrose.ins
   \penrose_make_lms:Nnnx \l__penrose_tmpa_tl {#2} {#3} {#4}
   \penrose_count_lms:N \l__penrose_tmpa_tl
   \int_gzero:N \l__penrose_tile_int
+  \int_gset:Nn \l__penrose_pentagon_parity_int {2}
   \penrose_invoke_lms:Nn \l__penrose_tmpa_tl {#2}
   \group_end:
 }
