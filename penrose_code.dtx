@@ -20,7 +20,7 @@ This package is for the creation of Penrose tilings using either kite-and-dart o
 \fi
 %</internal>
 %<*install>
-\input docstrip.tex
+\input l3docstrip.tex
 \keepsilent
 \askforoverwritefalse
 \preamble
@@ -34,7 +34,7 @@ See http://www.latex-project.org/lppl.txt
 \endpreamble
 \postamble
 
-Copyright (C) 2014-2016 by Andrew Stacey <loopspace@mathforge.org>
+Copyright (C) 2014-2018 by Andrew Stacey <loopspace@mathforge.org>
 
 This work may be distributed and/or modified under the
 conditions of the LaTeX Project Public License (LPPL), either
@@ -46,12 +46,12 @@ http://www.latex-project.org/lppl.txt
 This work is "maintained" (as per LPPL maintenance status) by
 Andrew Stacey.
 
-This work consists of the files  penrose.dtx
-                                 penrose_doc.tex
+This work consists of the files  penrose3.dtx
+                                 penrose.tex
 and the derived files            penrose.ins
-                                 penrose_code.pdf
-                                 tikzlibrarypenrose.code.tex
+                                 penrose3.pdf
                                  penrose.pdf
+                                 tikzlibrarypenrose.code.tex
                                  README
 
 \endpostamble
@@ -119,7 +119,7 @@ and the derived files            penrose.ins
 %</driver>
 % \fi
 %
-% \CheckSum{2922}
+% \CheckSum{2944}
 %
 % \CharacterTable
 %  {Upper-case    \A\B\C\D\E\F\G\H\I\J\K\L\M\N\O\P\Q\R\S\T\U\V\W\X\Y\Z
@@ -140,7 +140,14 @@ and the derived files            penrose.ins
 %
 % \changes{1.0}{2014/05/07}{Converted to DTX file}
 %
-% \DoNotIndex{\newcommand,\newenvironment}
+% \DoNotIndex
+%   {
+%     \begingroup,
+%     \catcode,
+%     \active,
+%     \csname,
+%     \endcsname,
+%   }%
 %
 % \providecommand*{\url}{\texttt}
 % \title{The \textsf{Penrose} package}
@@ -167,6 +174,10 @@ and the derived files            penrose.ins
 % \fi
 % \subsection{Initialisation}
 %
+%
+%    \begin{macrocode}
+%<@@=penrose>
+%    \end{macrocode}
 % We use the \Verb+spath3+ library for manipulating the paths that will make up the tiles.
 %
 %    \begin{macrocode}
@@ -191,6 +202,7 @@ and the derived files            penrose.ins
 \CloneSPath {Penrose path a}{Penrose path D}
 %    \end{macrocode}
 %
+% \begin{variable}{\l__penrose_tmpa_fp, \l__penrose_tmpb_fp, \l__penrose_tmpc_fp, \l__penrose_tmpa_tl, \l__penrose_tmpb_tl, \l__penrose_tmpc_tl}
 % We need a few temporary variables to hold intermediate calculations.
 %
 %    \begin{macrocode}
@@ -201,10 +213,11 @@ and the derived files            penrose.ins
 \tl_new:N \l__penrose_tmpb_tl
 \tl_new:N \l__penrose_tmpc_tl
 %    \end{macrocode}
+% \end{variable}
 %
 % \subsection{Creating the Tiles}
 %
-% \begin{macro}{\penrose_normalise_path:n}
+% \begin{macro}[internal]{\penrose_normalise_path:n}
 % When defining the path for a side, we normalise so that it starts at the origin and ends at \Verb+(1pt,0pt)+.
 %    \begin{macrocode}
 \cs_new_nopar:Npn \penrose_normalise_path:n #1
@@ -261,7 +274,7 @@ and the derived files            penrose.ins
 %    \end{macrocode}
 % \end{macro}
 %
-% \begin{macro}{\SetPenrosePath}
+% \begin{macro}[internal]{\SetPenrosePath}
 % This sets the path corresponding to a particular side to the current path, and normalises it.
 %    \begin{macrocode}
 \NewDocumentCommand \SetPenrosePath { m }
@@ -274,7 +287,7 @@ and the derived files            penrose.ins
 %    \end{macrocode}
 % \end{macro}
 %
-% \begin{macro}{\tikz_scan_point:n}
+% \begin{macro}[internal]{\tikz_scan_point:n}
 % This is a wrapper around \Verb+\tikz@scan@one@point+ to make it easier to use with \LaTeX3 variables.
 %    \begin{macrocode}
 \cs_new_nopar:Npn \tikz_scan_point:n #1
@@ -285,7 +298,7 @@ and the derived files            penrose.ins
 %    \end{macrocode}
 % \end{macro}
 %
-% \begin{macro}{\penrose_make_tile:nnn}
+% \begin{macro}[internal]{\penrose_make_tile:nnn}
 % This builds the tile path from its pieces.
 % The arguments are the name of the tile, the descriptions of the sides, and a token list of the coordinates.
 %    \begin{macrocode}
@@ -359,7 +372,7 @@ and the derived files            penrose.ins
 %    \end{macrocode}
 % \end{macro}
 %
-% \begin{macro}{\penrose_make_tile:nn}
+% \begin{macro}[internal]{\penrose_make_tile:nn}
 % A wrapper around the above which allows us to specify the second two arguments as two items in a token list.
 %    \begin{macrocode}
 \cs_new_nopar:Npn \penrose_make_tile:nn #1#2
@@ -377,7 +390,7 @@ and the derived files            penrose.ins
 \prop_new:N \g__penrose_tiles_prop
 %    \end{macrocode}
 %
-% \begin{macro}{\tl_add_coordinate:Nnn}
+% \begin{macro}[internal]{\tl_add_coordinate:Nnn}
 % Process a coordinate through \Verb+fp+ and adds it to a token list.
 %    \begin{macrocode}
 \cs_new_nopar:Npn \tl_add_coordinate:Nnn #1#2#3 {
@@ -540,7 +553,7 @@ and the derived files            penrose.ins
 %
 % \end{itemize}
 %
-% \begin{macro}{\MakePenroseTile}
+% \begin{macro}[internal]{\MakePenroseTile}
 % This is the user wrapper around the tile creation macros.
 %    \begin{macrocode}
 \NewDocumentCommand \MakePenroseTile {m}
@@ -551,7 +564,7 @@ and the derived files            penrose.ins
 %    \end{macrocode}
 % \end{macro}
 %
-% \begin{macro}{\UsePenroseTile}
+% \begin{macro}[internal]{\UsePenroseTile}
 % This is the command that actually places a tile on the page.
 % The first argument is optional and is for styling.
 %    \begin{macrocode}
@@ -608,7 +621,7 @@ and the derived files            penrose.ins
 % Now create the reverse path.
 % The name is the upper case version.
 %    \begin{macrocode}
-      \tl_to_uppercase:n {\tl_set:Nx \l__penrose_tmpa_tl {#1}}
+      \tex_uppercase:D {\tl_set:Nx \l__penrose_tmpa_tl {#1}}
 %    \end{macrocode}
 % Clone the path.
 %    \begin{macrocode}
@@ -1061,7 +1074,7 @@ and the derived files            penrose.ins
 }
 %    \end{macrocode}
 %
-% \begin{macro}{\penrose_make_lms:Nnnn}
+% \begin{macro}[internal]{\penrose_make_lms:Nnnn}
 % This creates the token list of actions, starting with the seed.
 % The arguments are: a token list to store the result in, the name of the system, the number of iterations, and the initial state.
 %    \begin{macrocode}
@@ -1118,7 +1131,7 @@ and the derived files            penrose.ins
 %    \end{macrocode}
 % \end{macro}
 %
-% \begin{macro}{\penrose_invoke_lms:Nn}
+% \begin{macro}[internal]{\penrose_invoke_lms:Nn}
 % This carries out the actions specified by the resulting rules.
 %    \begin{macrocode}
 \cs_new_nopar:Npn \penrose_invoke_lms:Nn #1#2
@@ -1152,7 +1165,7 @@ and the derived files            penrose.ins
 \int_new:N \l__penrose_tiles_int
 %    \end{macrocode}
 %
-% \begin{macro}{\PenroseDecomposition}
+% \begin{macro}[internal]{\PenroseDecomposition}
 % This is the user macro to invoke the decomposition.
 % The arguments are: optional styles, the name, number of iterations, and starting seed.
 %    \begin{macrocode}
@@ -1170,7 +1183,7 @@ and the derived files            penrose.ins
 %    \end{macrocode}
 % \end{macro}
 %
-% \begin{macro}{\penrose_count_lms:N}
+% \begin{macro}[internal]{\penrose_count_lms:N}
 % This counts the number of tiles in the string.
 %    \begin{macrocode}
 \cs_new_nopar:Npn \penrose_count_lms:N #1
