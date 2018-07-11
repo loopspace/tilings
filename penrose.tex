@@ -1,4 +1,4 @@
-\immediate\write18{tex penrose.dtx}
+\immediate\write18{tex penrose_code.dtx}
 \documentclass{ltxdoc}
 \usepackage[T1]{fontenc}
 \usepackage{trace}
@@ -34,6 +34,19 @@
 \end{center}
 }
 
+\newenvironment{justexample}
+  {\VerbatimEnvironment
+   \begin{VerbatimOut}{example.out}}
+  {\end{VerbatimOut}
+   \begin{center}
+   \setlength{\parindent}{0pt}
+   \fbox{\begin{minipage}{.9\linewidth}
+     \lstset{breakatwhitespace=true,breaklines=true,language=TeX,basicstyle=\small}
+     \lstinputlisting[]{example.out}
+   \end{minipage}}
+\end{center}
+}
+
 \colorlet{thinRhombus}{DarkOrchid}
 \colorlet{thickRhombus}{DarkSlateGray}
 \colorlet{circleArc}{RosyBrown}
@@ -62,8 +75,8 @@
 \providecommand*{\url}{\texttt}
 
 \title{The \textsf{Penrose} Package: Documentation}
-\author{Andrew Stacey \\ \url{stacey@math.ntnu.no}}
-\date{1.0~from 2014/05/07}
+\author{Andrew Stacey\texorpdfstring{\\ \url{loopspace@mathforge.org}}{}}
+\date{1.0~from 2018/07/10}
 
 \begin{document}
 \maketitle
@@ -71,7 +84,7 @@
 \section{Introduction}
 
 The \textsf{Penrose} package is a TikZ library for drawing Penrose tiles.
-Both the kite/dart and rhombus tiles are supported.
+It currently supports the kite/dart, rhombus, and pentagon tile sets.
 There are two main methods for their placement: one that automatically generates a tiling, and one that allows for ``by hand'' placement.
 Furthermore, the tiles themselves can be deformed and will still (hopefully!) fit together in the correct fashion.
 
@@ -107,6 +120,12 @@ This package defines several \Verb+pic+ types:
 \item Dart \tikz[baseline=-.5ex] \pic[draw,dart];
 \item Thin Rhombus \tikz[baseline=-.5ex] \pic[draw,thin rhombus];
 \item Thick Rhombus \tikz[baseline=-.5ex] \pic[draw,thick rhombus];
+\item Pentagon \tikz[baseline=-.5ex] \pic[draw, pentagon 5];
+(Actually, there are three pentagons: \Verb+pentagon 5+, \Verb+pentagon 3+, and \Verb+pentagon 2+.
+The number signifies how many pentagons it goes next to.)
+\item Pentagram \tikz[baseline=-.5ex] \pic[draw, pentagram];
+\item Boat \tikz[baseline=-.5ex] \pic[draw, boat];
+\item Diamond \tikz[baseline=-.5ex] \pic[draw, diamond];
 \item Golden Triangle \tikz[baseline=-.5ex] \pic[draw,golden triangle];
 \item Reverse Golden Triangle \tikz[baseline=-.5ex] \pic[draw,reverse golden triangle];
 \item Golden Gnomon \tikz[baseline=-.5ex] \pic[draw,golden gnomon];
@@ -132,12 +151,19 @@ When a Penrose tile has been named then it can be used for positioning other til
 Each edge is assigned a label from \Verb+a b c A B C+ and a new tile can be aligned with an old one along a matching edge (\Verb+a+ matches with \Verb+A+ and so on).
 
 The edge labels are as follows.
+For the \Verb+pentagon 5+, for example, the edges are all the same and the numbers are used to distinguish between them.
 
 \foreach \tile/\edges in {
   kite/{a,A,c,C},
   dart/{a,A,c,C},
   thin rhombus/{a,A,b,B},
   thick rhombus/{a,A,b,B},
+  pentagon 5/{a1,a2,a3,a4,a5},
+  pentagon 3/{A,b1,a1,a2,b2},
+  pentagon 2/{d,A1,c1,c2,A2},
+  pentagram/{C1,C2,C3,C4,C5,C6,C7,C8,C9,C10},
+  boat/{C1,C2,C3,C4,B1,D,B2},
+  diamond/{D1,B1,B2,D2},
   golden triangle/{a,b,c},
   reverse golden triangle/{A,B,C},
   golden gnomon/{A,b,C},
@@ -159,11 +185,20 @@ align with=<tile> along <edge>
 \end{verbatim}
 %
 where \Verb+<tile>+ is the name given to an existing tile, and \Verb+<edge>+ is the label on the existing tile.
+If the tile being placed has edges that are identical (for example, \Verb+pentagon 5+), this syntax extends to
+%
+\begin{verbatim}
+align with=<tile> along <edge> using <number>
+\end{verbatim}
+%
+to specify which of the edges on the new tile to use.
 
 \begin{example}
 \begin{tikzpicture}
 \pic[kite,name=tile];
 \pic[dart,align with=tile along c];
+\pic[pentagon 5,name=ptile,at={(3,0)}];
+\pic[pentagon 3,align with=ptile along a1 using 2];
 \end{tikzpicture}
 \end{example}
 
@@ -238,7 +273,7 @@ In practical terms, this means that if drawn then the line width is half that wh
 There is a way to specify a Penrose tiling using \emph{Lindenmayer systems}.
 In brief, this takes a golden triangle or gnomon (or one of the reverse ones) and repeatedly decomposes it into smaller triangles and gnomon.
 Once a desired level has been reached, the resulting triangles and gnomon are glued together in pairs to create either darts and kites or rhombuses (of both types).
-This library contains an implementation of this both for kites and darts and for rhombuses.
+This library contains an implementation of this both for each of the tilings.
 
 The user command is:
 %
@@ -251,12 +286,18 @@ where \Verb+<type>+ is one of:
 \begin{itemize}
 \item \Verb+kite+ for the kite and dart tiling,
 \item \Verb+rhombus+ for the rhombus tiling,
+\item \Verb+pentagon+ for the pentagon tiling.
 \item \Verb+ktriangle+ for the triangular decomposition used to form the kite and dart tiling but with the individual triangles
 \item \Verb+rtriangle+ for the triangular decomposition used to form the rhombus tiling but with the individual triangles.
 \end{itemize}
 
 The \Verb+<seed>+ is a ``word'' that will be used to initiate the Lindenmayer system.
-The key letters in the alphabet are \Verb+T+, \Verb+t+, \Verb+G+, and \Verb+g+.
+The key letters in the alphabet for the kite/darts and rhombuses are \Verb+T+, \Verb+t+, \Verb+G+, and \Verb+g+.
+These actually correspond to the two triangles and two gnomons.
+For the pentagons, the key letters are \Verb+P+, \Verb+Q+, \Verb+R+, \Verb+G+, \Verb+B+, \Verb+D+.
+These correspond to the three pentagons, the pentagram, the boat, and the diamond.
+Other permitted letters are \Verb+[+, \Verb+]+, \Verb+s+, \Verb+f+, \Verb!+!, \Verb+*+, \Verb+-+, \Verb+_+, \Verb+>+.
+These refer to various transformations (for details, see the implementation).
 
 The \Verb+<level>+ controls how far to take the iteration.
 The code is not particularly optimised for speed, and once \Verb+<level>+ gets to about \(5\) or \(6\) then we are at the ``make a cup of tea while compiling'' stage, depending on the processor.
@@ -264,9 +305,9 @@ The code is not particularly optimised for speed, and once \Verb+<level>+ gets t
 \begin{example}
 \begin{tikzpicture}[
   every Penrose tile/.style={draw},
-  Penrose step=4cm,
+  Penrose step=2cm,
 ]
-\PenroseDecomposition{kite}{2}{T}
+\PenroseDecomposition{kite}{0}{T}
 \end{tikzpicture}
 \end{example}
 
@@ -304,13 +345,13 @@ Lastly, \Verb+Penrose step+ is used to control the size of the resulting picture
 \label{sec:pathdeform}
 
 This package provides the ability to deform the various tiles.
-The various tiles can be built from three paths (labelled \Verb+a+, \Verb+b+, and \Verb+c+) together with their reverses.
+The various tiles can be built from four paths (labelled \Verb+a+, \Verb+b+, \Verb+c+, and \Verb+d+) together with their reverses.
 By changing these paths, one can get a wide variety of different tiles with the same fundamental matching rules.
 Indeed, by using asymmetric paths, the matching rules can be enforced without the need for additional decoration.
 
 Internally, the \Verb+penrose+ library uses the \Verb+spath3+ package for storing and manipulating the paths.
 
-To create a new edge path, use the key \Verb+save Penrose path=<edge>+ where \Verb+<edge>+ is one of \Verb+a+, \Verb+b+, or \Verb+c+.
+To create a new edge path, use the key \Verb+save Penrose path=<edge>+ where \Verb+<edge>+ is one of \Verb+a+, \Verb+b+, \Verb+c+, or \Verb+d+.
 There are no constraints on the size of the path as all paths are scaled and transformed to fit the tiles.
 Once the edge paths have been specified, they are welded together into the tiles using the following command:
 %
@@ -357,7 +398,7 @@ With deformed tiles, there is no guarantee that the inner arcs will match up per
 
 Let's set some aesthetically pleasing shapes.
 
-\begin{example}
+\begin{justexample}
 \begin{tikzpicture}
 \path[save Penrose path=a] (0,0) to[out=-30,in=100] (1,0);
 \path[save Penrose path=b] (0,0) to[out=0,in=140] (1,0);
@@ -371,7 +412,22 @@ Let's set some aesthetically pleasing shapes.
 \MakePenroseTile{kite}
 \MakePenroseTile{dart}
 \end{tikzpicture}
-\end{example}
+\end{justexample}
+
+\begin{tikzpicture}
+\path[save Penrose path=a] (0,0) to[out=-30,in=100] (1,0);
+\path[save Penrose path=b] (0,0) to[out=0,in=140] (1,0);
+\path[save Penrose path=c] (0,0) to[out=-40,in=140] (1,0);
+\MakePenroseTile{thin rhombus}
+\MakePenroseTile{thick rhombus}
+\MakePenroseTile{golden triangle}
+\MakePenroseTile{reverse golden triangle}
+\MakePenroseTile{golden gnomon}
+\MakePenroseTile{reverse golden gnomon}
+\MakePenroseTile{kite}
+\MakePenroseTile{dart}
+\end{tikzpicture}
+
 
 Styling the first tile.
 Note that as the pattern is formed by repeating two different initial seeds \(5\) times, there are \(10\) ``first tiles'' in each overall pattern.
@@ -406,7 +462,9 @@ It is defined as:
   tint fill colour/.code={%
     \edef\@temp{%
       \def\noexpand\tikz@fillcolor{\tikz@fillcolor!#1}%
-      \noexpand\tikz@addoption{\noexpand\pgfsetfillcolor{\tikz@fillcolor!#1}}%
+      \noexpand\tikz@addoption{%
+        \noexpand\pgfsetfillcolor{\tikz@fillcolor!#1}%
+      }%
     }%
     \@temp
   }
@@ -589,6 +647,81 @@ The tiles can make interesting forms by themselves.
   \pic[thick rhombus,name=j\l,align with=i along \a];
 \end{tikzpicture}
 \end{example}
+
+Lastly, here's an example that generates full page patterns.
+
+\begin{justexample}
+\foreach \tp/\lvl in {rhombus/5,rhombus/6,kite/5,kite/6}
+{
+\begin{tikzpicture}[
+  every Penrose tile/.style={draw},
+  remember picture,
+  overlay,
+  scale=20
+]
+\coordinate (a) at (current page.center);
+\begin{scope}[shift={(a)}]
+\foreach[evaluate=\k as \mk using {\k+Mod(\k,2)},evaluate=\k as \ax using {Mod(\k,2) == 0 ? "T" : "t"}] \k in {0,...,9} {
+  \begin{scope}[rotate=\mk*36]
+  \PenroseDecomposition{\tp}{\lvl}{\ax}
+  \end{scope}
+}
+\end{scope}
+\end{tikzpicture}
+\newpage
+}
+\end{justexample}
+
+\begin{tikzpicture}
+\path[save Penrose path=a] (0,0) -- (1,0);
+\path[save Penrose path=b] (0,0) -- (1,0);
+\path[save Penrose path=c] (0,0) -- (1,0);
+\MakePenroseTile{thin rhombus}
+\MakePenroseTile{thick rhombus}
+\MakePenroseTile{golden triangle}
+\MakePenroseTile{reverse golden triangle}
+\MakePenroseTile{golden gnomon}
+\MakePenroseTile{reverse golden gnomon}
+\MakePenroseTile{kite}
+\MakePenroseTile{dart}
+\end{tikzpicture}
+
+\newpage
+
+\foreach \tp/\lvl in {rhombus/5,rhombus/6,kite/5,kite/6}
+{
+\begin{tikzpicture}[
+  every Penrose tile/.style={draw},
+  remember picture,
+  overlay,
+  scale=20
+]
+\coordinate (a) at (current page.center);
+\begin{scope}[shift={(a)}]
+\foreach[evaluate=\k as \mk using {\k+Mod(\k,2)},evaluate=\k as \ax using {Mod(\k,2) == 0 ? "T" : "t"}] \k in {0,...,9} {
+  \begin{scope}[rotate=\mk*36]
+  \PenroseDecomposition{\tp}{\lvl}{\ax}
+  \end{scope}
+}
+\end{scope}
+\end{tikzpicture}
+\newpage
+}
+
+
+%% \foreach \lvl in {5,6}
+%% {
+%% \begin{tikzpicture}[
+%%   every Penrose tile/.style={draw},
+%%   remember picture,
+%%   overlay,
+%%   scale=180
+%% ]
+%% \coordinate (a) at (current page.center);
+%%   \PenroseDecomposition{pentagon}{\lvl}{D}
+%% \end{tikzpicture}
+%% \newpage
+%% }
 
 
 \end{document}

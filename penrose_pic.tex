@@ -1,4 +1,4 @@
-\immediate\write18{tex penrose.dtx}
+\immediate\write18{tex penrose_code.dtx}
 \documentclass{article}
 \usepackage[scale=.91]{geometry}
 \usepackage[svgnames]{xcolor}
@@ -50,30 +50,29 @@
 %\path[save Penrose path=c] (0,0) -- (.25,0) -- (.25,.1) -- (.5,0) -- (1,0);
 %\path[save Penrose path=d] (0,0) -| (.25,.1) -- (.5,-.1) |- (1,0);
 
-\MakePenroseTile{pentagon 5}
-\MakePenroseTile{pentagon 3}
-\MakePenroseTile{pentagon 2}
-\MakePenroseTile{pentagram}
-\MakePenroseTile{boat}
-\MakePenroseTile{diamond}
-\MakePenroseTile{thick rhombus}
+%% \MakePenroseTile{pentagon 5}
+%% \MakePenroseTile{pentagon 3}
+%% \MakePenroseTile{pentagon 2}
+%% \MakePenroseTile{pentagram}
+%% \MakePenroseTile{boat}
+%% \MakePenroseTile{diamond}
 \end{tikzpicture}
 
 \begin{tikzpicture}[
   every Penrose tile/.style={draw},
-  every pentagon 5/.style={fill=yellow},
-  every pentagon 3/.style={fill=red},
-  every pentagon 2/.style={fill=blue},
-  every diamond/.style={fill=yellow},
-  every pentagram/.style={fill=yellow},
-  every boat/.style={fill=yellow},
-  scale=50,
+%  every pentagon 5/.style={fill=yellow},
+%  every odd pentagon/.style={fill=red},
+%  every even pentagon/.style={fill=blue},
+%  every diamond/.style={fill=yellow},
+%  every pentagram/.style={fill=yellow},
+%  every boat/.style={fill=yellow},
+  scale=180,
   overlay,
   remember picture
 ]
 \coordinate (a) at (current page.center);
 \begin{scope}[shift={(a)}]
-\PenroseDecomposition{pentagon}{5}{D}
+\PenroseDecomposition{pentagon}{6}{D}
 \end{scope}
 \end{tikzpicture}
 \end{document}

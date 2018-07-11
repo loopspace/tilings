@@ -151,8 +151,8 @@ and the derived files            penrose.ins
 %
 % \providecommand*{\url}{\texttt}
 % \title{The \textsf{Penrose} package}
-% \author{Andrew Stacey \\ \url{stacey@math.ntnu.no}}
-% \date{1.0 from 2014/05/07}
+% \author{Andrew Stacey\texorpdfstring{\\ \url{loopspace@mathforge.org}}{}}
+% \date{1.0 from 2018/07/10}
 %
 %
 % \maketitle
@@ -160,7 +160,7 @@ and the derived files            penrose.ins
 % 
 % \section{Introduction}
 %
-% This is a TikZ library for drawing Penrose tiles (both kite/dart and rhombus versions).
+% This is a TikZ library for drawing Penrose tiles (kite/dart, rhombus, and pentagon versions).
 % It provides two methods of drawing: one in which an automatic pattern is built, and one where the tiles can be placed ``by hand''.
 % The tiles can be shaped and (hopefully!) still fit together.
 % For user documentation, see the \Verb+penrose.pdf+ file.
@@ -191,7 +191,11 @@ and the derived files            penrose.ins
 % Start with some basic paths (lines) for the sides of the tiles so that we know that we have well-defined tiles at the outset.
 %
 %    \begin{macrocode}
-\MakeSPath{Penrose path a} {\pgfsyssoftpath@movetotoken{0pt}{0pt}\pgfsyssoftpath@linetotoken{1pt}{0pt}}
+\MakeSPath{Penrose path a}
+      {
+        \pgfsyssoftpath@movetotoken{0pt}{0pt}
+        \pgfsyssoftpath@linetotoken{1pt}{0pt}
+      }
 \SPathPrepare{Penrose path a}
 \CloneSPath {Penrose path a}{Penrose path b}
 \CloneSPath {Penrose path a}{Penrose path c}
@@ -242,20 +246,29 @@ and the derived files            penrose.ins
 %
 %    \begin{macrocode}
   \spath_get:nnN {#1} {final point} \l__penrose_tmpa_tl
-  \fp_set:Nn \l__penrose_tmpa_fp {\tl_head:N \l__penrose_tmpa_tl - \l__penrose_tmpa_fp}
+  \fp_set:Nn \l__penrose_tmpa_fp
+  {\tl_head:N \l__penrose_tmpa_tl - \l__penrose_tmpa_fp}
   \tl_set:Nx \l__penrose_tmpa_tl {\tl_tail:N \l__penrose_tmpa_tl}
-  \fp_set:Nn \l__penrose_tmpb_fp {\tl_head:N \l__penrose_tmpa_tl - \l__penrose_tmpb_fp}
+  \fp_set:Nn \l__penrose_tmpb_fp
+  {\tl_head:N \l__penrose_tmpa_tl - \l__penrose_tmpb_fp}
 %    \end{macrocode}
 % Now compute the square of the length of the path for scaling.
 %    \begin{macrocode}
-  \fp_set:Nn \l__penrose_tmpc_fp {\l__penrose_tmpa_fp^2 + \l__penrose_tmpb_fp^2}
+  \fp_set:Nn \l__penrose_tmpc_fp
+  {\l__penrose_tmpa_fp^2 + \l__penrose_tmpb_fp^2}
   \fp_set:Nn \l__penrose_tmpa_fp {\l__penrose_tmpa_fp/\l__penrose_tmpc_fp}
   \fp_set:Nn \l__penrose_tmpb_fp {\l__penrose_tmpb_fp/\l__penrose_tmpc_fp}
   \fp_set:Nn \l__penrose_tmpc_fp {-\l__penrose_tmpb_fp}
 %    \end{macrocode}
 % Now construct the matrix.
 %    \begin{macrocode}
-  \tl_set:Nx \l__penrose_tmpb_tl { {\fp_use:N \l__penrose_tmpa_fp} {\fp_use:N \l__penrose_tmpb_fp} {\fp_use:N \l__penrose_tmpc_fp} {\fp_use:N \l__penrose_tmpa_fp}}
+  \tl_set:Nx \l__penrose_tmpb_tl
+  {
+    {\fp_use:N \l__penrose_tmpa_fp}
+    {\fp_use:N \l__penrose_tmpb_fp}
+    {\fp_use:N \l__penrose_tmpc_fp}
+    {\fp_use:N \l__penrose_tmpa_fp}
+  }
 %    \end{macrocode}
 % Get the initial point back again for the translation part.
 %    \begin{macrocode}
@@ -263,12 +276,23 @@ and the derived files            penrose.ins
 %    \end{macrocode}
 % But we need to premultiply by the matrix because of how the transformations are applied.
 %    \begin{macrocode}
-  \fp_set:Nn \l__penrose_tmpa_fp {(-1) * \l__penrose_tmpa_fp * \tl_head:N \l__penrose_tmpa_tl + (-1) * \l__penrose_tmpb_fp * \tl_tail:N \l__penrose_tmpa_tl}
-  \fp_set:Nn \l__penrose_tmpb_fp {(-1) * \l__penrose_tmpa_fp * \tl_tail:N \l__penrose_tmpa_tl +  \l__penrose_tmpb_fp * \tl_head:N \l__penrose_tmpa_tl}
+  \fp_set:Nn \l__penrose_tmpa_fp
+  {
+    (-1) * \l__penrose_tmpa_fp * \tl_head:N \l__penrose_tmpa_tl
+    + (-1) * \l__penrose_tmpb_fp * \tl_tail:N \l__penrose_tmpa_tl
+  }
+  \fp_set:Nn \l__penrose_tmpb_fp
+  {
+    (-1) * \l__penrose_tmpa_fp * \tl_tail:N \l__penrose_tmpa_tl
+    +  \l__penrose_tmpb_fp * \tl_head:N \l__penrose_tmpa_tl
+  }
 %    \end{macrocode}
 % Finally, we apply the transformation to the path.
 %    \begin{macrocode}
-  \tl_put_right:Nx \l__penrose_tmpb_tl {{\fp_to_dim:N \l__penrose_tmpa_fp} {\fp_to_dim:N \l__penrose_tmpb_fp}}
+  \tl_put_right:Nx \l__penrose_tmpb_tl {
+    {\fp_to_dim:N \l__penrose_tmpa_fp}
+    {\fp_to_dim:N \l__penrose_tmpb_fp}
+  }
   \spath_transform:nV {#1} \l__penrose_tmpb_tl
 }
 %    \end{macrocode}
@@ -311,7 +335,10 @@ and the derived files            penrose.ins
   \tl_set:Nx \l__penrose_tmpb_tl {\tl_head:N \l__penrose_tmpa_tl}
   \tl_set:Nn \l__penrose_tmpa_tl {\pgfsyssoftpath@movetotoken}
   \tikz_scan_point:V \l__penrose_tmpb_tl
-  \tl_put_right:Nx \l__penrose_tmpa_tl {{\dim_use:N \pgf@x}{\dim_use:N \pgf@y}}
+  \tl_put_right:Nx \l__penrose_tmpa_tl
+  {
+    {\dim_use:N \pgf@x}{\dim_use:N \pgf@y}
+  }
   \spath_clear_new:n {Penrose path tile #1}
   \spath_put:nnV {Penrose path tile #1} {path} \l__penrose_tmpa_tl
 %    \end{macrocode}
@@ -354,7 +381,15 @@ and the derived files            penrose.ins
 % This is converted into a transformation matrix.
 %    \begin{macrocode}
     \fp_set:Nn \l__penrose_tmpc_fp {-\l__penrose_tmpb_fp}
-    \tl_set:Nx \l__penrose_tmpb_tl {{\fp_use:N \l__penrose_tmpa_fp} {\fp_use:N \l__penrose_tmpc_fp} {\fp_use:N \l__penrose_tmpb_fp} {\fp_use:N \l__penrose_tmpa_fp} {0} {0}}
+    \tl_set:Nx \l__penrose_tmpb_tl
+    {
+      {\fp_use:N \l__penrose_tmpa_fp}
+      {\fp_use:N \l__penrose_tmpc_fp}
+      {\fp_use:N \l__penrose_tmpb_fp}
+      {\fp_use:N \l__penrose_tmpa_fp}
+      {0}
+      {0}
+    }
 %    \end{macrocode}
 % The transformation is applied to the cloned path.
 %    \begin{macrocode}
@@ -396,7 +431,10 @@ and the derived files            penrose.ins
 \cs_new_nopar:Npn \tl_add_coordinate:Nnn #1#2#3 {
   \fp_set:Nn \l__penrose_tmpa_fp{#2}
   \fp_set:Nn \l__penrose_tmpb_fp{#3}
-  \tl_put_right:Nx #1 {{(\fp_use:N \l__penrose_tmpa_fp, \fp_use:N \l__penrose_tmpb_fp)}}
+  \tl_put_right:Nx #1
+  {
+    {(\fp_use:N \l__penrose_tmpa_fp, \fp_use:N \l__penrose_tmpb_fp)}
+  }
 }
 %    \end{macrocode}
 % \end{macro}
@@ -414,7 +452,8 @@ and the derived files            penrose.ins
 \tl_add_coordinate:Nnn \l__penrose_tmpa_tl {2*cosd(18)}{0}
 \tl_add_coordinate:Nnn \l__penrose_tmpa_tl {cosd(18)}{-sind(18)}
 
-\prop_gput:Nnx \g__penrose_tiles_prop {thin~ rhombus}  {{a A B b} {\tl_use:N \l__penrose_tmpa_tl}}
+\prop_gput:Nnx \g__penrose_tiles_prop {thin~ rhombus}
+{{a A B b} {\tl_use:N \l__penrose_tmpa_tl}}
 %    \end{macrocode}
 %
 % \item Thick Rhombus.
@@ -425,7 +464,8 @@ and the derived files            penrose.ins
 \tl_add_coordinate:Nnn \l__penrose_tmpa_tl {2*cosd(36)}{0}
 \tl_add_coordinate:Nnn \l__penrose_tmpa_tl {cosd(36)}{-sind(36)}
 
-\prop_gput:Nnx \g__penrose_tiles_prop {thick~ rhombus}  {{B a A b} {\tl_use:N \l__penrose_tmpa_tl}}
+\prop_gput:Nnx \g__penrose_tiles_prop {thick~ rhombus}
+{{B a A b} {\tl_use:N \l__penrose_tmpa_tl}}
 %    \end{macrocode}
 %
 % \item Dart.
@@ -438,7 +478,8 @@ and the derived files            penrose.ins
 \tl_add_coordinate:Nnn \l__penrose_tmpa_tl
 {2*sind(18)*cosd(108)}{-2*sind(18)*sind(108)}
 
-\prop_gput:Nnx \g__penrose_tiles_prop {dart}  {{c a A C} {\tl_use:N \l__penrose_tmpa_tl}}
+\prop_gput:Nnx \g__penrose_tiles_prop {dart}
+{{c a A C} {\tl_use:N \l__penrose_tmpa_tl}}
 %    \end{macrocode}
 %
 % \item Kite.
@@ -449,7 +490,8 @@ and the derived files            penrose.ins
 \tl_add_coordinate:Nnn \l__penrose_tmpa_tl {1}{0}
 \tl_add_coordinate:Nnn \l__penrose_tmpa_tl {cosd(36)}{-sind(36)}
 
-\prop_gput:Nnx \g__penrose_tiles_prop {kite}  {{a c C A} {\tl_use:N \l__penrose_tmpa_tl}}
+\prop_gput:Nnx \g__penrose_tiles_prop {kite}
+{{a c C A} {\tl_use:N \l__penrose_tmpa_tl}}
 %    \end{macrocode}
 %
 % \item Golden Triangle.
@@ -459,7 +501,8 @@ and the derived files            penrose.ins
 \tl_add_coordinate:Nnn \l__penrose_tmpa_tl {cosd(18)}{sind(18)}
 \tl_add_coordinate:Nnn \l__penrose_tmpa_tl {cosd(18)}{-sind(18)}
 
-\prop_gput:Nnx \g__penrose_tiles_prop {golden~ triangle}  {{a c b} {\tl_use:N \l__penrose_tmpa_tl}}
+\prop_gput:Nnx \g__penrose_tiles_prop {golden~ triangle}
+{{a c b} {\tl_use:N \l__penrose_tmpa_tl}}
 %    \end{macrocode}
 %
 % \item Reverse Golden Triangle.
@@ -469,7 +512,8 @@ and the derived files            penrose.ins
 \tl_add_coordinate:Nnn \l__penrose_tmpa_tl {cosd(18)}{sind(18)}
 \tl_add_coordinate:Nnn \l__penrose_tmpa_tl {cosd(18)}{-sind(18)}
 
-\prop_gput:Nnx \g__penrose_tiles_prop {reverse~ golden~ triangle}  {{B C A} {\tl_use:N \l__penrose_tmpa_tl}}
+\prop_gput:Nnx \g__penrose_tiles_prop {reverse~ golden~ triangle}
+{{B C A} {\tl_use:N \l__penrose_tmpa_tl}}
 %    \end{macrocode}
 %
 % \item Golden Gnomon
@@ -479,7 +523,8 @@ and the derived files            penrose.ins
 \tl_add_coordinate:Nnn \l__penrose_tmpa_tl {cosd(36)}{sind(36)}
 \tl_add_coordinate:Nnn \l__penrose_tmpa_tl {2*cosd(36)}{0}
 
-\prop_gput:Nnx \g__penrose_tiles_prop {golden~ gnomon}  {{C b A} {\tl_use:N \l__penrose_tmpa_tl}}
+\prop_gput:Nnx \g__penrose_tiles_prop {golden~ gnomon}
+{{C b A} {\tl_use:N \l__penrose_tmpa_tl}}
 %    \end{macrocode}
 %
 % \item Reverse Golden Gnomon
@@ -488,7 +533,8 @@ and the derived files            penrose.ins
 \tl_add_coordinate:Nnn \l__penrose_tmpa_tl {0}{0}
 \tl_add_coordinate:Nnn \l__penrose_tmpa_tl {2*cosd(36)}{0}
 \tl_add_coordinate:Nnn \l__penrose_tmpa_tl {cosd(36)}{-sind(36)}
-\prop_gput:Nnx \g__penrose_tiles_prop {reverse~ golden~ gnomon}  {{a B c} {\tl_use:N \l__penrose_tmpa_tl}}
+\prop_gput:Nnx \g__penrose_tiles_prop {reverse~ golden~ gnomon}
+{{a B c} {\tl_use:N \l__penrose_tmpa_tl}}
 %    \end{macrocode}
 %
 % \item Primary Pentagon (pentagon 5)
@@ -496,20 +542,24 @@ and the derived files            penrose.ins
 \tl_clear:N \l__penrose_tmpa_tl
 \tl_add_coordinate:Nnn \l__penrose_tmpa_tl {0}{0}
 \tl_add_coordinate:Nnn \l__penrose_tmpa_tl {cosd(108)}{sind(108)}
-\tl_add_coordinate:Nnn \l__penrose_tmpa_tl {1+cosd(72)+cosd(144)}{sind(72)+sind(144)}
+\tl_add_coordinate:Nnn \l__penrose_tmpa_tl
+{1+cosd(72)+cosd(144)}{sind(72)+sind(144)}
 \tl_add_coordinate:Nnn \l__penrose_tmpa_tl {1+cosd(72)}{sind(72)}
 \tl_add_coordinate:Nnn \l__penrose_tmpa_tl {1}{0}
-\prop_gput:Nnx \g__penrose_tiles_prop {pentagon~ 5} {{a a a a a} {\tl_use:N \l__penrose_tmpa_tl}}
+\prop_gput:Nnx \g__penrose_tiles_prop {pentagon~ 5}
+{{a a a a a} {\tl_use:N \l__penrose_tmpa_tl}}
 %    \end{macrocode}
 %
 % \item Secondary Pentagon (pentagon 3)
 %    \begin{macrocode}
-\prop_gput:Nnx \g__penrose_tiles_prop {pentagon~ 3} {{A b a a b} {\tl_use:N \l__penrose_tmpa_tl}}
+\prop_gput:Nnx \g__penrose_tiles_prop {pentagon~ 3}
+{{A b a a b} {\tl_use:N \l__penrose_tmpa_tl}}
 %    \end{macrocode}
 %
 % \item Tertiary Pentagon (pentagon 2)
 %    \begin{macrocode}
-\prop_gput:Nnx \g__penrose_tiles_prop {pentagon~ 2} {{d A c c A} {\tl_use:N \l__penrose_tmpa_tl}}
+\prop_gput:Nnx \g__penrose_tiles_prop {pentagon~ 2}
+{{d A c c A} {\tl_use:N \l__penrose_tmpa_tl}}
 %    \end{macrocode}
 %
 % \item Pentagram
@@ -517,15 +567,19 @@ and the derived files            penrose.ins
 \tl_clear:N \l__penrose_tmpa_tl
 \tl_add_coordinate:Nnn \l__penrose_tmpa_tl {1}{0}
 \tl_add_coordinate:Nnn \l__penrose_tmpa_tl {1-cosd(36)}{-sind(36)}
-\tl_add_coordinate:Nnn \l__penrose_tmpa_tl {1-cosd(36)-cosd(108)}{-sind(36)-sind(108)}
+\tl_add_coordinate:Nnn \l__penrose_tmpa_tl
+{1-cosd(36)-cosd(108)}{-sind(36)-sind(108)}
 \tl_add_coordinate:Nnn \l__penrose_tmpa_tl {cosd(108)}{-sind(108)}
-\tl_add_coordinate:Nnn \l__penrose_tmpa_tl {-1+3*cosd(108)+cosd(36)}{-sind(36)-sind(108)}
-\tl_add_coordinate:Nnn \l__penrose_tmpa_tl {-1+2*cosd(108)+cosd(36)}{-sind(36)}
+\tl_add_coordinate:Nnn \l__penrose_tmpa_tl
+{-1+3*cosd(108)+cosd(36)}{-sind(36)-sind(108)}
+\tl_add_coordinate:Nnn \l__penrose_tmpa_tl
+{-1+2*cosd(108)+cosd(36)}{-sind(36)}
 \tl_add_coordinate:Nnn \l__penrose_tmpa_tl {-1+2*cosd(108)}{0}
 \tl_add_coordinate:Nnn \l__penrose_tmpa_tl {2*cosd(108)}{0}
 \tl_add_coordinate:Nnn \l__penrose_tmpa_tl {cosd(108)}{sind(108)}
 \tl_add_coordinate:Nnn \l__penrose_tmpa_tl {0}{0}
-\prop_gput:Nnx \g__penrose_tiles_prop {pentagram} {{C C C C C C C C C C} {\tl_use:N \l__penrose_tmpa_tl}}
+\prop_gput:Nnx \g__penrose_tiles_prop {pentagram}
+{{C C C C C C C C C C} {\tl_use:N \l__penrose_tmpa_tl}}
 %    \end{macrocode}
 %
 % \item Boat
@@ -537,8 +591,10 @@ and the derived files            penrose.ins
 \tl_add_coordinate:Nnn \l__penrose_tmpa_tl {0}{0}
 \tl_add_coordinate:Nnn \l__penrose_tmpa_tl {1}{0}
 \tl_add_coordinate:Nnn \l__penrose_tmpa_tl {1-cosd(36)}{-sind(36)}
-\tl_add_coordinate:Nnn \l__penrose_tmpa_tl {-1+2*cosd(108)+cosd(36)}{-sind(36)}
-\prop_gput:Nnx \g__penrose_tiles_prop {boat} {{C C C C B D B} {\tl_use:N \l__penrose_tmpa_tl}}
+\tl_add_coordinate:Nnn \l__penrose_tmpa_tl
+{-1+2*cosd(108)+cosd(36)}{-sind(36)}
+\prop_gput:Nnx \g__penrose_tiles_prop {boat}
+{{C C C C B D B} {\tl_use:N \l__penrose_tmpa_tl}}
 %    \end{macrocode}
 %
 % \item Diamond.
@@ -548,7 +604,8 @@ and the derived files            penrose.ins
 \tl_add_coordinate:Nnn \l__penrose_tmpa_tl {cosd(18)}{sind(18)}
 \tl_add_coordinate:Nnn \l__penrose_tmpa_tl {2*cosd(18)}{0}
 \tl_add_coordinate:Nnn \l__penrose_tmpa_tl {cosd(18)}{-sind(18)}
-\prop_gput:Nnx \g__penrose_tiles_prop {diamond}  {{D B B D} {\tl_use:N \l__penrose_tmpa_tl}}
+\prop_gput:Nnx \g__penrose_tiles_prop {diamond}
+{{D B B D} {\tl_use:N \l__penrose_tmpa_tl}}
 %    \end{macrocode}
 %
 % \end{itemize}
@@ -583,8 +640,14 @@ and the derived files            penrose.ins
   \tl_clear:N \l__penrose_tmpb_tl
   \tl_set:Nx \l__penrose_tmpb_tl {{\tl_head:N \l__penrose_tmpa_tl}}
   \tl_set:Nx \l__penrose_tmpa_tl {\tl_tail:N \l__penrose_tmpa_tl}
-  \tl_put_right:Nx \l__penrose_tmpb_tl {{\tl_item:Nn \l__penrose_tmpa_tl {2}}}
-  \tl_put_right:Nx \l__penrose_tmpb_tl {{\tl_item:Nn \l__penrose_tmpa_tl {1}}}
+  \tl_put_right:Nx \l__penrose_tmpb_tl
+  {
+    {\tl_item:Nn \l__penrose_tmpa_tl {2}}
+  }
+  \tl_put_right:Nx \l__penrose_tmpb_tl
+  {
+    {\tl_item:Nn \l__penrose_tmpa_tl {1}}
+  }
   \tl_set:Nx \l__penrose_tmpa_tl {\tl_tail:N \l__penrose_tmpa_tl}
   \tl_set:Nx \l__penrose_tmpa_tl {\tl_tail:N \l__penrose_tmpa_tl}
   \tl_put_right:NV \l__penrose_tmpb_tl \l__penrose_tmpa_tl
@@ -625,7 +688,8 @@ and the derived files            penrose.ins
 %    \end{macrocode}
 % Clone the path.
 %    \begin{macrocode}
-      \spath_clone:nn {Penrose path #1} {Penrose path \tl_use:N \l__penrose_tmpa_tl }
+      \spath_clone:nn {Penrose path #1}
+      {Penrose path \tl_use:N \l__penrose_tmpa_tl }
 %    \end{macrocode}
 % Reverse it.
 %    \begin{macrocode}
@@ -633,7 +697,8 @@ and the derived files            penrose.ins
 %    \end{macrocode}
 % Swap the start and end.
 %    \begin{macrocode}
-      \spath_transform:nnnnnnn {Penrose path \tl_use:N \l__penrose_tmpa_tl} {-1} {0} {0} {-1} {1} {0}
+      \spath_transform:nnnnnnn {Penrose path \tl_use:N \l__penrose_tmpa_tl}
+      {-1} {0} {0} {-1} {1} {0}
     }
   },
   expand~ key/.code={
@@ -689,18 +754,38 @@ and the derived files            penrose.ins
 % These are the rules for generating pentagon tilings.
 %    \begin{macrocode}
 \prop_new:N \g__penrose_pentagon_lms_rule_prop
-\prop_put:Nnn \g__penrose_pentagon_lms_rule_prop {P} {[s>P][1sF+Q][1+sF+Q][1*sF+Q][1-sF+Q][1_sF+Q]} % pentagon 5
-\prop_put:Nnn \g__penrose_pentagon_lms_rule_prop {Q} {[s>P][1+sFR][1*sF*R][1-sF+Q][1_sF+Q][1sF+Q][->fsD]} % pentagon 3
-\prop_put:Nnn \g__penrose_pentagon_lms_rule_prop {R} {[s>P][1-sF+Q][1+sF*R][1*sFR][1_sF*R][1sFR][_>fsD][>fsD]} % pentagon 2
-\prop_put:Nnn \g__penrose_pentagon_lms_rule_prop {G} {[s>G][se[>d+R][e1B]][+se[>d+R][e1B]][-se[>d+R][e1B]][*se[>d+R][e1B]][_se[>d+R][e1B]]} % pentagram
-\prop_put:Nnn \g__penrose_pentagon_lms_rule_prop {B} {[s>G][se[>d+R][e1B]][+se[>d+R][e1B]][-se[>d+R][e1B]]} % boat
-\prop_put:Nnn \g__penrose_pentagon_lms_rule_prop {D} {[s>d+R][s>eG][se1B]} % diamond
+\prop_put:Nnn \g__penrose_pentagon_lms_rule_prop {P}
+{[s>P][1sF+Q][1+sF+Q][1*sF+Q][1-sF+Q][1_sF+Q]} % pentagon 5
+\prop_put:Nnn \g__penrose_pentagon_lms_rule_prop {Q}
+{[s>P][1+sFR][1*sF*R][1-sF+Q][1_sF+Q][1sF+Q][->fsD]} % pentagon 3
+\prop_put:Nnn \g__penrose_pentagon_lms_rule_prop {R}
+{[s>P][1-sF+Q][1+sF*R][1*sFR][1_sF*R][1sFR][_>fsD][>fsD]} % pentagon 2
+\prop_put:Nnn \g__penrose_pentagon_lms_rule_prop {G}
+{
+  [s>G]
+  [se[>d+R][e1B]]
+  [+se[>d+R][e1B]]
+  [-se[>d+R][e1B]]
+  [*se[>d+R][e1B]]
+  [_se[>d+R][e1B]]
+} % pentagram
+\prop_put:Nnn \g__penrose_pentagon_lms_rule_prop {B}
+{
+  [s>G]
+  [se[>d+R][e1B]]
+  [+se[>d+R][e1B]]
+  [-se[>d+R][e1B]]
+} % boat
+\prop_put:Nnn \g__penrose_pentagon_lms_rule_prop {D}
+{[s>d+R][s>eG][se1B]} % diamond
 %    \end{macrocode}
 %
 % Each of the standard tilings can also be drawn using triangles using the same rules.
 %    \begin{macrocode}
-\prop_set_eq:NN \g__penrose_rtriangle_lms_rule_prop \g__penrose_rhombus_lms_rule_prop
-\prop_set_eq:NN \g__penrose_ktriangle_lms_rule_prop \g__penrose_kite_lms_rule_prop
+\prop_set_eq:NN \g__penrose_rtriangle_lms_rule_prop
+\g__penrose_rhombus_lms_rule_prop
+\prop_set_eq:NN \g__penrose_ktriangle_lms_rule_prop
+\g__penrose_kite_lms_rule_prop
 %    \end{macrocode}
 %
 % These hold the various actions.
@@ -723,7 +808,8 @@ and the derived files            penrose.ins
 %    \begin{macrocode}
 \prop_put:Nnn \g__penrose_default_lms_action_prop {[} {\group_begin:}
 \prop_put:Nnn \g__penrose_default_lms_action_prop {]} {\group_end:}
-\prop_put:Nnn \g__penrose_default_lms_action_prop {f} {\pgftransformxshift{\l__penrose_step_dim}}
+\prop_put:Nnn \g__penrose_default_lms_action_prop {f}
+{\pgftransformxshift{\l__penrose_step_dim}}
 \prop_put:Nnn \g__penrose_default_lms_action_prop {s} {
   \fp_set:Nn \l__penrose_tmpa_fp { 2 * sind(18) * \l__penrose_step_dim }
   \dim_set:Nn \l__penrose_step_dim {\fp_to_dim:N \l__penrose_tmpa_fp}
@@ -732,16 +818,22 @@ and the derived files            penrose.ins
 %
 % The rhombus rules need a variety of turns.
 %    \begin{macrocode}
-\prop_put:Nnn \g__penrose_rhombus_lms_action_prop {+} {\pgftransformrotate{144}}
-\prop_put:Nnn \g__penrose_rhombus_lms_action_prop {*} {\pgftransformrotate{108}}
-\prop_put:Nnn \g__penrose_rhombus_lms_action_prop {-} {\pgftransformrotate{216}}
-\prop_put:Nnn \g__penrose_rhombus_lms_action_prop {_} {\pgftransformrotate{252}}
-\prop_put:Nnn \g__penrose_rhombus_lms_action_prop {>} {\pgftransformrotate{180}}
+\prop_put:Nnn \g__penrose_rhombus_lms_action_prop {+}
+{\pgftransformrotate{144}}
+\prop_put:Nnn \g__penrose_rhombus_lms_action_prop {*}
+{\pgftransformrotate{108}}
+\prop_put:Nnn \g__penrose_rhombus_lms_action_prop {-}
+{\pgftransformrotate{216}}
+\prop_put:Nnn \g__penrose_rhombus_lms_action_prop {_}
+{\pgftransformrotate{252}}
+\prop_put:Nnn \g__penrose_rhombus_lms_action_prop {>}
+{\pgftransformrotate{180}}
 %    \end{macrocode}
 %
 % Up to now, the actions for the rhombus and its triangle replacement are the same.
 %    \begin{macrocode}
-\prop_set_eq:NN \g__penrose_rtriangle_lms_action_prop  \g__penrose_rhombus_lms_action_prop
+\prop_set_eq:NN \g__penrose_rtriangle_lms_action_prop
+\g__penrose_rhombus_lms_action_prop
 %    \end{macrocode}
 %
 % Now we do the actions that actually draw something.
@@ -764,8 +856,17 @@ and the derived files            penrose.ins
 % Now we draw the thin rhombus, applying every style we can possibly imagine.
 % The \Verb+Penrose tile+ style gets the current tile and total tile numbers passed to it.
 %    \begin{macrocode}
-\tl_set:Nx \l__penrose_tmpc_tl {{\int_use:N  \l__penrose_tile_int} { \int_use:N \l__penrose_tiles_int}}
-  \UsePenroseTile[every~ Penrose~ tile/.try, every~ thin~ rhombus/.try, Penrose~ tile~ \int_use:N \l__penrose_tile_int/.try, Penrose~ tile/.try/.expand~ once=\l__penrose_tmpc_tl ]{thin~rhombus}
+  \tl_set:Nx \l__penrose_tmpc_tl
+  {
+    {\int_use:N  \l__penrose_tile_int}
+    {\int_use:N \l__penrose_tiles_int}
+  }
+  \UsePenroseTile[
+    every~ Penrose~ tile/.try,
+    every~ thin~ rhombus/.try,
+    Penrose~ tile~ \int_use:N \l__penrose_tile_int/.try,
+    Penrose~ tile/.try/.expand~ once=\l__penrose_tmpc_tl
+  ]{thin~rhombus}
   \group_end:
 }
 %    \end{macrocode}
@@ -777,8 +878,17 @@ and the derived files            penrose.ins
   \int_gincr:N \l__penrose_tile_int
   \fp_set:Nn \l__penrose_tmpa_fp {\l__penrose_step_dim/(1cm)/(2*cosd(36))}
   \pgftransformscale{\fp_use:N \l__penrose_tmpa_fp}
-  \tl_set:Nx \l__penrose_tmpc_tl {{\int_use:N  \l__penrose_tile_int} { \int_use:N \l__penrose_tiles_int}}
-\UsePenroseTile[every~ Penrose~ tile/.try, every~ thick~ rhombus/.try, Penrose~ tile~ \int_use:N \l__penrose_tile_int/.try, Penrose~ tile/.try/.expand~ once=\l__penrose_tmpc_tl ]{thick~rhombus}
+  \tl_set:Nx \l__penrose_tmpc_tl
+  {
+    {\int_use:N  \l__penrose_tile_int}
+    {\int_use:N \l__penrose_tiles_int}
+  }
+  \UsePenroseTile[
+    every~ Penrose~ tile/.try,
+    every~ thick~ rhombus/.try,
+    Penrose~ tile~ \int_use:N \l__penrose_tile_int/.try,
+    Penrose~ tile/.try/.expand~ once=\l__penrose_tmpc_tl
+  ]{thick~rhombus}
   \group_end:
 }
 %    \end{macrocode}
@@ -788,12 +898,14 @@ and the derived files            penrose.ins
 \prop_put:Nnn \g__penrose_kite_lms_action_prop {+} {\pgftransformrotate{36}}
 \prop_put:Nnn \g__penrose_kite_lms_action_prop {*} {\pgftransformrotate{108}}
 \prop_put:Nnn \g__penrose_kite_lms_action_prop {-} {\pgftransformrotate{-36}}
-\prop_put:Nnn \g__penrose_kite_lms_action_prop {_} {\pgftransformrotate{-108}}
+\prop_put:Nnn \g__penrose_kite_lms_action_prop {_}
+{\pgftransformrotate{-108}}
 \prop_put:Nnn \g__penrose_kite_lms_action_prop {>} {\pgftransformrotate{180}}
 %    \end{macrocode}
 %
 %    \begin{macrocode}
-\prop_set_eq:NN \g__penrose_ktriangle_lms_action_prop  \g__penrose_kite_lms_action_prop
+\prop_set_eq:NN \g__penrose_ktriangle_lms_action_prop
+\g__penrose_kite_lms_action_prop
 %    \end{macrocode}
 %
 %    \begin{macrocode}
@@ -803,8 +915,17 @@ and the derived files            penrose.ins
   \pgftransformrotate{36}
   \fp_set:Nn \l__penrose_tmpa_fp {\l__penrose_step_dim/(1cm)}
   \pgftransformscale{\fp_use:N \l__penrose_tmpa_fp}
-  \tl_set:Nx \l__penrose_tmpc_tl {{\int_use:N  \l__penrose_tile_int} { \int_use:N \l__penrose_tiles_int}}
-  \UsePenroseTile[every~ Penrose~ tile/.try, every~ kite/.try, Penrose~ tile~ \int_use:N \l__penrose_tile_int/.try, Penrose~ tile/.try/.expand~ once=\l__penrose_tmpc_tl ]{kite}
+  \tl_set:Nx \l__penrose_tmpc_tl
+  {
+    {\int_use:N  \l__penrose_tile_int}
+    {\int_use:N \l__penrose_tiles_int}
+  }
+  \UsePenroseTile[
+    every~ Penrose~ tile/.try,
+    every~ kite/.try,
+    Penrose~ tile~ \int_use:N \l__penrose_tile_int/.try,
+    Penrose~ tile/.try/.expand~ once=\l__penrose_tmpc_tl
+  ]{kite}
   \group_end:
 }
 %    \end{macrocode}
@@ -817,8 +938,17 @@ and the derived files            penrose.ins
   \pgftransformxshift{-\l__penrose_step_dim * 2 * sin(18)}
   \fp_set:Nn \l__penrose_tmpa_fp {\l__penrose_step_dim/(1cm)}
   \pgftransformscale{\fp_use:N \l__penrose_tmpa_fp}
-  \tl_set:Nx \l__penrose_tmpc_tl {{\int_use:N  \l__penrose_tile_int} { \int_use:N \l__penrose_tiles_int}}
-  \UsePenroseTile[every~ Penrose~ tile/.try, every~ dart/.try, Penrose~ tile~ \int_use:N \l__penrose_tile_int/.try, Penrose~ tile/.try/.expand~ once=\l__penrose_tmpc_tl ]{dart}
+  \tl_set:Nx \l__penrose_tmpc_tl
+  {
+    {\int_use:N  \l__penrose_tile_int}
+    {\int_use:N \l__penrose_tiles_int}
+  }
+  \UsePenroseTile[
+    every~ Penrose~ tile/.try,
+    every~ dart/.try,
+    Penrose~ tile~ \int_use:N \l__penrose_tile_int/.try,
+    Penrose~ tile/.try/.expand~ once=\l__penrose_tmpc_tl
+  ]{dart}
   \group_end:
 }
 %    \end{macrocode}
@@ -831,8 +961,17 @@ and the derived files            penrose.ins
   \pgftransformrotate{18}
   \fp_set:Nn \l__penrose_tmpa_fp {\l__penrose_step_dim/(1cm)}
   \pgftransformscale{\fp_use:N \l__penrose_tmpa_fp}
-  \tl_set:Nx \l__penrose_tmpc_tl {{\int_use:N  \l__penrose_tile_int} { \int_use:N \l__penrose_tiles_int}}
-  \UsePenroseTile[every~ Penrose~ tile/.try, every~ reverse~ golden~ triangle/.try, Penrose~ tile~ \int_use:N \l__penrose_tile_int/.try, Penrose~ tile/.try/.expand~ once=\l__penrose_tmpc_tl ]{reverse~ golden~ triangle}
+  \tl_set:Nx \l__penrose_tmpc_tl
+  {
+    {\int_use:N  \l__penrose_tile_int}
+    {\int_use:N \l__penrose_tiles_int}
+  }
+  \UsePenroseTile[
+    every~ Penrose~ tile/.try,
+    every~ reverse~ golden~ triangle/.try,
+    Penrose~ tile~ \int_use:N \l__penrose_tile_int/.try,
+    Penrose~ tile/.try/.expand~ once=\l__penrose_tmpc_tl
+  ]{reverse~ golden~ triangle}
   \group_end:
 }
 %    \end{macrocode}
@@ -844,9 +983,22 @@ and the derived files            penrose.ins
   \pgftransformrotate{-18}
   \fp_set:Nn \l__penrose_tmpa_fp {\l__penrose_step_dim/(1cm)}
   \pgftransformscale{\fp_use:N \l__penrose_tmpa_fp}
-  \tl_set:Nx \l__penrose_tmpc_tl {{\int_use:N  \l__penrose_tile_int} { \int_use:N \l__penrose_tiles_int}}
-  \tl_set:Nx \l__penrose_tmpc_tl {{\int_use:N  \l__penrose_tile_int} { \int_use:N \l__penrose_tiles_int}}
-  \UsePenroseTile[every~ Penrose~ tile/.try, every~ golden~ triangle/.try, Penrose~ tile~ \int_use:N \l__penrose_tile_int/.try, Penrose~ tile/.try/.expand~ once=\l__penrose_tmpc_tl ]{golden~ triangle}
+  \tl_set:Nx \l__penrose_tmpc_tl
+  {
+    {\int_use:N  \l__penrose_tile_int}
+    {\int_use:N \l__penrose_tiles_int}
+  }
+  \tl_set:Nx \l__penrose_tmpc_tl
+  {
+    {\int_use:N  \l__penrose_tile_int}
+    {\int_use:N \l__penrose_tiles_int}
+  }
+  \UsePenroseTile[
+    every~ Penrose~ tile/.try,
+    every~ golden~ triangle/.try,
+    Penrose~ tile~ \int_use:N \l__penrose_tile_int/.try,
+    Penrose~ tile/.try/.expand~ once=\l__penrose_tmpc_tl
+  ]{golden~ triangle}
   \group_end:
 }
 %    \end{macrocode}
@@ -859,8 +1011,17 @@ and the derived files            penrose.ins
   \pgftransformxshift{-\l__penrose_step_dim}
   \fp_set:Nn \l__penrose_tmpa_fp {\l__penrose_step_dim/(1cm)/(2*cosd(36))}
   \pgftransformscale{\fp_use:N \l__penrose_tmpa_fp}
-  \tl_set:Nx \l__penrose_tmpc_tl {{\int_use:N  \l__penrose_tile_int} { \int_use:N \l__penrose_tiles_int}}
-  \UsePenroseTile[every~ Penrose~ tile/.try, every~ reverse~ golden~ gnomon/.try, Penrose~ tile~ \int_use:N \l__penrose_tile_int/.try, Penrose~ tile/.try/.expand~ once=\l__penrose_tmpc_tl ]{reverse~ golden~ gnomon}
+  \tl_set:Nx \l__penrose_tmpc_tl
+  {
+    {\int_use:N  \l__penrose_tile_int}
+    {\int_use:N \l__penrose_tiles_int}
+  }
+  \UsePenroseTile[
+    every~ Penrose~ tile/.try,
+    every~ reverse~ golden~ gnomon/.try,
+    Penrose~ tile~ \int_use:N \l__penrose_tile_int/.try,
+    Penrose~ tile/.try/.expand~ once=\l__penrose_tmpc_tl
+  ]{reverse~ golden~ gnomon}
   \group_end:
 }
 %    \end{macrocode}
@@ -873,8 +1034,17 @@ and the derived files            penrose.ins
   \pgftransformxshift{-\l__penrose_step_dim}
   \fp_set:Nn \l__penrose_tmpa_fp {\l__penrose_step_dim/(1cm)/(2*cosd(36))}
   \pgftransformscale{\fp_use:N \l__penrose_tmpa_fp}
-  \tl_set:Nx \l__penrose_tmpc_tl {{\int_use:N  \l__penrose_tile_int} { \int_use:N \l__penrose_tiles_int}}
-  \UsePenroseTile[every~ Penrose~ tile/.try, every~ golden~ gnomon/.try, Penrose~ tile~ \int_use:N \l__penrose_tile_int/.try, Penrose~ tile/.try/.expand~ once=\l__penrose_tmpc_tl ]{golden~ gnomon}
+  \tl_set:Nx \l__penrose_tmpc_tl
+  {
+    {\int_use:N  \l__penrose_tile_int}
+    {\int_use:N \l__penrose_tiles_int}
+  }
+  \UsePenroseTile[
+    every~ Penrose~ tile/.try,
+    every~ golden~ gnomon/.try,
+    Penrose~ tile~ \int_use:N \l__penrose_tile_int/.try,
+    Penrose~ tile/.try/.expand~ once=\l__penrose_tmpc_tl
+  ]{golden~ gnomon}
   \group_end:
 }
 %    \end{macrocode}
@@ -886,8 +1056,17 @@ and the derived files            penrose.ins
   \pgftransformrotate{18}
   \fp_set:Nn \l__penrose_tmpa_fp {\l__penrose_step_dim/(1cm)}
   \pgftransformscale{\fp_use:N \l__penrose_tmpa_fp}
-  \tl_set:Nx \l__penrose_tmpc_tl {{\int_use:N  \l__penrose_tile_int} { \int_use:N \l__penrose_tiles_int}}
-  \UsePenroseTile[every~ Penrose~ tile/.try, every~ reverse~ golden~ triangle/.try, Penrose~ tile~ \int_use:N \l__penrose_tile_int/.try, Penrose~ tile/.try/.expand~ once=\l__penrose_tmpc_tl ]{reverse~ golden~ triangle}
+  \tl_set:Nx \l__penrose_tmpc_tl
+  {
+    {\int_use:N  \l__penrose_tile_int}
+    {\int_use:N \l__penrose_tiles_int}
+  }
+  \UsePenroseTile[
+    every~ Penrose~ tile/.try,
+    every~ reverse~ golden~ triangle/.try,
+    Penrose~ tile~ \int_use:N \l__penrose_tile_int/.try,
+    Penrose~ tile/.try/.expand~ once=\l__penrose_tmpc_tl
+  ]{reverse~ golden~ triangle}
   \group_end:
 }
 %    \end{macrocode}
@@ -899,8 +1078,17 @@ and the derived files            penrose.ins
   \pgftransformrotate{-18}
   \fp_set:Nn \l__penrose_tmpa_fp {\l__penrose_step_dim/(1cm)}
   \pgftransformscale{\fp_use:N \l__penrose_tmpa_fp}
-  \tl_set:Nx \l__penrose_tmpc_tl {{\int_use:N  \l__penrose_tile_int} { \int_use:N \l__penrose_tiles_int}}
-  \UsePenroseTile[every~ Penrose~ tile/.try, every~ golden~ triangle/.try, Penrose~ tile~ \int_use:N \l__penrose_tile_int/.try, Penrose~ tile/.try/.expand~ once=\l__penrose_tmpc_tl ]{golden~ triangle}
+  \tl_set:Nx \l__penrose_tmpc_tl
+  {
+    {\int_use:N  \l__penrose_tile_int}
+    {\int_use:N \l__penrose_tiles_int}
+  }
+  \UsePenroseTile[
+    every~ Penrose~ tile/.try,
+    every~ golden~ triangle/.try,
+    Penrose~ tile~ \int_use:N \l__penrose_tile_int/.try,
+    Penrose~ tile/.try/.expand~ once=\l__penrose_tmpc_tl
+  ]{golden~ triangle}
   \group_end:
 }
 %    \end{macrocode}
@@ -913,8 +1101,17 @@ and the derived files            penrose.ins
   \pgftransformxshift{-\l__penrose_step_dim}
   \fp_set:Nn \l__penrose_tmpa_fp {\l__penrose_step_dim/(1cm)/(2*cosd(36))}
   \pgftransformscale{\fp_use:N \l__penrose_tmpa_fp}
-  \tl_set:Nx \l__penrose_tmpc_tl {{\int_use:N  \l__penrose_tile_int} { \int_use:N \l__penrose_tiles_int}}
-  \UsePenroseTile[every~ Penrose~ tile/.try, every~ reverse~ golden~ gnomon/.try, Penrose~ tile~ \int_use:N \l__penrose_tile_int/.try, Penrose~ tile/.try/.expand~ once=\l__penrose_tmpc_tl ]{reverse~ golden~ gnomon}
+  \tl_set:Nx \l__penrose_tmpc_tl
+  {
+    {\int_use:N  \l__penrose_tile_int}
+    {\int_use:N \l__penrose_tiles_int}
+  }
+  \UsePenroseTile[
+    every~ Penrose~ tile/.try,
+    every~ reverse~ golden~ gnomon/.try,
+    Penrose~ tile~ \int_use:N \l__penrose_tile_int/.try,
+    Penrose~ tile/.try/.expand~ once=\l__penrose_tmpc_tl
+  ]{reverse~ golden~ gnomon}
   \group_end:
 }
 %    \end{macrocode}
@@ -927,8 +1124,17 @@ and the derived files            penrose.ins
   \pgftransformxshift{-\l__penrose_step_dim}
   \fp_set:Nn \l__penrose_tmpa_fp {\l__penrose_step_dim/(1cm)/(2*cosd(36))}
   \pgftransformscale{\fp_use:N \l__penrose_tmpa_fp}
-  \tl_set:Nx \l__penrose_tmpc_tl {{\int_use:N  \l__penrose_tile_int} { \int_use:N \l__penrose_tiles_int}}
-  \UsePenroseTile[every~ Penrose~ tile/.try, every~ golden~ gnomon/.try, Penrose~ tile~ \int_use:N \l__penrose_tile_int/.try, Penrose~ tile/.try/.expand~ once=\l__penrose_tmpc_tl ]{golden~ gnomon}
+  \tl_set:Nx \l__penrose_tmpc_tl
+  {
+    {\int_use:N  \l__penrose_tile_int}
+    {\int_use:N \l__penrose_tiles_int}
+  }
+  \UsePenroseTile[
+    every~ Penrose~ tile/.try,
+    every~ golden~ gnomon/.try,
+    Penrose~ tile~ \int_use:N \l__penrose_tile_int/.try,
+    Penrose~ tile/.try/.expand~ once=\l__penrose_tmpc_tl
+  ]{golden~ gnomon}
   \group_end:
 }
 %    \end{macrocode}
@@ -941,19 +1147,29 @@ and the derived files            penrose.ins
 \seq_new:N \l__penrose_pentagon_parity_seq
 \seq_set_from_clist:Nn \l__penrose_pentagon_parity_seq {odd,even}
 \prop_put:Nnn \g__penrose_pentagon_lms_action_prop {1} {
-  \int_set:Nn \l__penrose_pentagon_parity_int {3 -  \l__penrose_pentagon_parity_int}
+  \int_set:Nn \l__penrose_pentagon_parity_int
+  {3 -  \l__penrose_pentagon_parity_int}
   }
-\prop_put:Nnn \g__penrose_pentagon_lms_action_prop {+} {\pgftransformrotate{72}}
-\prop_put:Nnn \g__penrose_pentagon_lms_action_prop {*} {\pgftransformrotate{144}}
-\prop_put:Nnn \g__penrose_pentagon_lms_action_prop {-} {\pgftransformrotate{288}}
-\prop_put:Nnn \g__penrose_pentagon_lms_action_prop {_} {\pgftransformrotate{216}}
-\prop_put:Nnn \g__penrose_pentagon_lms_action_prop {>} {\pgftransformrotate{180}}
-\prop_put:Nnn \g__penrose_pentagon_lms_action_prop {|} {\pgftransformxscale{-1}}
+\prop_put:Nnn \g__penrose_pentagon_lms_action_prop {+}
+{\pgftransformrotate{72}}
+\prop_put:Nnn \g__penrose_pentagon_lms_action_prop {*}
+{\pgftransformrotate{144}}
+\prop_put:Nnn \g__penrose_pentagon_lms_action_prop {-}
+{\pgftransformrotate{288}}
+\prop_put:Nnn \g__penrose_pentagon_lms_action_prop {_}
+{\pgftransformrotate{216}}
+\prop_put:Nnn \g__penrose_pentagon_lms_action_prop {>}
+{\pgftransformrotate{180}}
+\prop_put:Nnn \g__penrose_pentagon_lms_action_prop {|}
+{\pgftransformxscale{-1}}
 %    \end{macrocode}
 % The scale factor is different.
 %    \begin{macrocode}
 \prop_put:Nnn \g__penrose_pentagon_lms_action_prop {s} {
-  \fp_set:Nn \l__penrose_tmpa_fp { 1/(2 + 2 * cosd(72) ) * \l__penrose_step_dim }
+  \fp_set:Nn \l__penrose_tmpa_fp
+  {
+    1/(2 + 2 * cosd(72) ) * \l__penrose_step_dim
+  }
   \dim_set:Nn \l__penrose_step_dim {\fp_to_dim:N \l__penrose_tmpa_fp}
 }
 %    \end{macrocode}
@@ -968,11 +1184,17 @@ and the derived files            penrose.ins
   \pgftransformyshift{\fp_to_dim:N \l__penrose_tmpa_fp}
 }
 \prop_put:Nnn \g__penrose_pentagon_lms_action_prop {d} {
-  \fp_set:Nn \l__penrose_tmpa_fp { (tand(54)/2 - tand(72)/2 + sind(36) ) * \l__penrose_step_dim }
+  \fp_set:Nn \l__penrose_tmpa_fp
+  {
+    (tand(54)/2 - tand(72)/2 + sind(36) ) * \l__penrose_step_dim
+  }
   \pgftransformyshift{\fp_to_dim:N \l__penrose_tmpa_fp}
 }
 \prop_put:Nnn \g__penrose_pentagon_lms_action_prop {e} {
-  \fp_set:Nn \l__penrose_tmpa_fp { tand(54) * cosd(36) * \l__penrose_step_dim }
+  \fp_set:Nn \l__penrose_tmpa_fp
+  {
+    tand(54) * cosd(36) * \l__penrose_step_dim
+  }
   \pgftransformyshift{\fp_to_dim:N \l__penrose_tmpa_fp}
 }
 %    \end{macrocode}
@@ -987,8 +1209,22 @@ and the derived files            penrose.ins
   \pgftransformyshift{-\fp_to_dim:N \l__penrose_tmpa_fp}
   \fp_set:Nn \l__penrose_tmpa_fp {\l__penrose_step_dim/(1cm)}
   \pgftransformscale{\fp_use:N \l__penrose_tmpa_fp}
-\tl_set:Nx \l__penrose_tmpc_tl {{\int_use:N  \l__penrose_tile_int} { \int_use:N \l__penrose_tiles_int}}
-  \UsePenroseTile[every~ Penrose~ tile/.try, every~ pentagon/.try, every~ \seq_item:Nn  \l__penrose_pentagon_parity_seq { \l__penrose_pentagon_parity_int}\space pentagon/.try, every~ pentagon~ 5/.try, Penrose~ tile~ \int_use:N \l__penrose_tile_int/.try, Penrose~ tile/.try/.expand~ once=\l__penrose_tmpc_tl ]{pentagon~5}
+  \tl_set:Nx \l__penrose_tmpc_tl
+  {
+    {\int_use:N  \l__penrose_tile_int}
+    {\int_use:N \l__penrose_tiles_int}
+  }
+  \UsePenroseTile[
+    every~ Penrose~ tile/.try,
+    every~ pentagon/.try,
+    every~
+    \seq_item:Nn \l__penrose_pentagon_parity_seq
+    {\l__penrose_pentagon_parity_int}
+    \space pentagon/.try,
+    every~ pentagon~ 5/.try,
+    Penrose~ tile~ \int_use:N \l__penrose_tile_int/.try,
+    Penrose~ tile/.try/.expand~ once=\l__penrose_tmpc_tl
+  ]{pentagon~5}
   \group_end:
 }
 %    \end{macrocode}
@@ -1003,8 +1239,22 @@ and the derived files            penrose.ins
   \pgftransformyshift{-\fp_to_dim:N \l__penrose_tmpa_fp}
   \fp_set:Nn \l__penrose_tmpa_fp {\l__penrose_step_dim/(1cm)}
   \pgftransformscale{\fp_use:N \l__penrose_tmpa_fp}
-\tl_set:Nx \l__penrose_tmpc_tl {{\int_use:N  \l__penrose_tile_int} { \int_use:N \l__penrose_tiles_int}}
-  \UsePenroseTile[every~ Penrose~ tile/.try, every~ pentagon/.try, every~ \seq_item:Nn  \l__penrose_pentagon_parity_seq { \l__penrose_pentagon_parity_int}\space pentagon/.try, every~ pentagon~ 3/.try, Penrose~ tile~ \int_use:N \l__penrose_tile_int/.try, Penrose~ tile/.try/.expand~ once=\l__penrose_tmpc_tl ]{pentagon~3}
+  \tl_set:Nx \l__penrose_tmpc_tl
+  {
+    {\int_use:N  \l__penrose_tile_int}
+    {\int_use:N \l__penrose_tiles_int}
+  }
+  \UsePenroseTile[
+    every~ Penrose~ tile/.try,
+    every~ pentagon/.try,
+    every~
+    \seq_item:Nn \l__penrose_pentagon_parity_seq
+    {\l__penrose_pentagon_parity_int}
+    \space pentagon/.try,
+    every~ pentagon~ 3/.try,
+    Penrose~ tile~ \int_use:N \l__penrose_tile_int/.try,
+    Penrose~ tile/.try/.expand~ once=\l__penrose_tmpc_tl
+  ]{pentagon~3}
   \group_end:
 }
 %    \end{macrocode}
@@ -1019,8 +1269,22 @@ and the derived files            penrose.ins
   \pgftransformyshift{-\fp_to_dim:N \l__penrose_tmpa_fp}
   \fp_set:Nn \l__penrose_tmpa_fp {\l__penrose_step_dim/(1cm)}
   \pgftransformscale{\fp_use:N \l__penrose_tmpa_fp}
-\tl_set:Nx \l__penrose_tmpc_tl {{\int_use:N  \l__penrose_tile_int} { \int_use:N \l__penrose_tiles_int}}
-  \UsePenroseTile[every~ Penrose~ tile/.try, every~ pentagon/.try, every~ \seq_item:Nn  \l__penrose_pentagon_parity_seq { \l__penrose_pentagon_parity_int}\space pentagon/.try, every~ pentagon~ 2/.try, Penrose~ tile~ \int_use:N \l__penrose_tile_int/.try, Penrose~ tile/.try/.expand~ once=\l__penrose_tmpc_tl ]{pentagon~2}
+  \tl_set:Nx \l__penrose_tmpc_tl
+  {
+    {\int_use:N  \l__penrose_tile_int}
+    {\int_use:N \l__penrose_tiles_int}
+  }
+  \UsePenroseTile[
+    every~ Penrose~ tile/.try,
+    every~ pentagon/.try,
+    every~
+    \seq_item:Nn \l__penrose_pentagon_parity_seq
+    {\l__penrose_pentagon_parity_int}
+    \space pentagon/.try,
+    every~ pentagon~ 2/.try,
+    Penrose~ tile~ \int_use:N \l__penrose_tile_int/.try,
+    Penrose~ tile/.try/.expand~ once=\l__penrose_tmpc_tl
+  ]{pentagon~2}
   \group_end:
 }
 %    \end{macrocode}
@@ -1036,8 +1300,17 @@ and the derived files            penrose.ins
   \pgftransformyshift{\fp_to_dim:N \l__penrose_tmpa_fp}
   \fp_set:Nn \l__penrose_tmpa_fp {\l__penrose_step_dim/(1cm)}
   \pgftransformscale{\fp_use:N \l__penrose_tmpa_fp}
-\tl_set:Nx \l__penrose_tmpc_tl {{\int_use:N  \l__penrose_tile_int} { \int_use:N \l__penrose_tiles_int}}
-  \UsePenroseTile[every~ Penrose~ tile/.try, every~ pentagram/.try, Penrose~ tile~ \int_use:N \l__penrose_tile_int/.try, Penrose~ tile/.try/.expand~ once=\l__penrose_tmpc_tl ]{pentagram}
+  \tl_set:Nx \l__penrose_tmpc_tl
+  {
+    {\int_use:N  \l__penrose_tile_int}
+    {\int_use:N \l__penrose_tiles_int}
+  }
+  \UsePenroseTile[
+    every~ Penrose~ tile/.try,
+    every~ pentagram/.try,
+    Penrose~ tile~ \int_use:N \l__penrose_tile_int/.try,
+    Penrose~ tile/.try/.expand~ once=\l__penrose_tmpc_tl
+  ]{pentagram}
   \group_end:
 }
 %    \end{macrocode}
@@ -1053,8 +1326,17 @@ and the derived files            penrose.ins
   \pgftransformyshift{\fp_to_dim:N \l__penrose_tmpa_fp}
   \fp_set:Nn \l__penrose_tmpa_fp {\l__penrose_step_dim/(1cm)}
   \pgftransformscale{\fp_use:N \l__penrose_tmpa_fp}
-\tl_set:Nx \l__penrose_tmpc_tl {{\int_use:N  \l__penrose_tile_int} { \int_use:N \l__penrose_tiles_int}}
-  \UsePenroseTile[every~ Penrose~ tile/.try, every~ boat/.try, Penrose~ tile~ \int_use:N \l__penrose_tile_int/.try, Penrose~ tile/.try/.expand~ once=\l__penrose_tmpc_tl ]{boat}
+  \tl_set:Nx \l__penrose_tmpc_tl
+  {
+    {\int_use:N  \l__penrose_tile_int}
+    {\int_use:N \l__penrose_tiles_int}
+  }
+  \UsePenroseTile[
+    every~ Penrose~ tile/.try,
+    every~ boat/.try,
+    Penrose~ tile~ \int_use:N \l__penrose_tile_int/.try,
+    Penrose~ tile/.try/.expand~ once=\l__penrose_tmpc_tl
+  ]{boat}
   \group_end:
 }
 %    \end{macrocode}
@@ -1068,8 +1350,17 @@ and the derived files            penrose.ins
   \pgftransformxshift{-\fp_to_dim:N \l__penrose_tmpa_fp}
   \fp_set:Nn \l__penrose_tmpa_fp {\l__penrose_step_dim/(1cm)}
   \pgftransformscale{\fp_use:N \l__penrose_tmpa_fp}
-\tl_set:Nx \l__penrose_tmpc_tl {{\int_use:N  \l__penrose_tile_int} { \int_use:N \l__penrose_tiles_int}}
-  \UsePenroseTile[every~ Penrose~ tile/.try, every~ diamond/.try, Penrose~ tile~ \int_use:N \l__penrose_tile_int/.try, Penrose~ tile/.try/.expand~ once=\l__penrose_tmpc_tl ]{diamond}
+  \tl_set:Nx \l__penrose_tmpc_tl
+  {
+    {\int_use:N  \l__penrose_tile_int}
+    {\int_use:N \l__penrose_tiles_int}
+  }
+  \UsePenroseTile[
+    every~ Penrose~ tile/.try,
+    every~ diamond/.try,
+    Penrose~ tile~ \int_use:N \l__penrose_tile_int/.try,
+    Penrose~ tile/.try/.expand~ once=\l__penrose_tmpc_tl
+  ]{diamond}
   \group_end:
 }
 %    \end{macrocode}
@@ -1107,7 +1398,8 @@ and the derived files            penrose.ins
 %    \begin{macrocode}
       \prop_if_in:cnTF {g__penrose_#2_lms_rule_prop} {##1}
       {
-        \tl_put_right:Nx \l__penrose_tmpb_tl {\prop_item:cn {g__penrose_#2_lms_rule_prop} {##1} }
+        \tl_put_right:Nx \l__penrose_tmpb_tl
+        {\prop_item:cn {g__penrose_#2_lms_rule_prop} {##1} }
       }
       {
 %    \end{macrocode}
@@ -1334,10 +1626,12 @@ and the derived files            penrose.ins
 % As \Verb+pic+ sets the node prefix, we have to temporarily suspend that (hence working in a group).
 %    \begin{macrocode}
     \tikzset{name prefix ..}%
-    \tikz@scan@one@point\pgfutil@firstofone(\prloc-edge \pgfkeysvalueof{/tikz/Penrose/alignment edge} start)%
+    \tikz@scan@one@point\pgfutil@firstofone%
+    (\prloc-edge \pgfkeysvalueof{/tikz/Penrose/alignment edge} start)%
     \global\pgf@xa=\pgf@x
     \global\pgf@ya=\pgf@y
-    \tikz@scan@one@point\pgfutil@firstofone(\prloc-edge \pgfkeysvalueof{/tikz/Penrose/alignment edge} end)%
+    \tikz@scan@one@point\pgfutil@firstofone%
+    (\prloc-edge \pgfkeysvalueof{/tikz/Penrose/alignment edge} end)%
     \global\pgf@xb=\pgf@x
     \global\pgf@yb=\pgf@y
     \endgroup
@@ -1359,7 +1653,10 @@ and the derived files            penrose.ins
 %    \end{macrocode}
 % Now rotate so that the \(x\)--axis lies along the edge.
 %    \begin{macrocode}
-\pgftransformtriangle{\pgfpoint{0pt}{0pt}}{\pgfpoint{\pgf@xb}{\pgf@yb}}{\pgfpoint{-\pgf@yb}{\pgf@xb}}
+    \pgftransformtriangle%
+    {\pgfpoint{0pt}{0pt}}%
+    {\pgfpoint{\pgf@xb}{\pgf@yb}}%
+    {\pgfpoint{-\pgf@yb}{\pgf@xb}}
 %    \end{macrocode}
 % The next job is to shift and rotate the current tile so that the correct edge ends up against the receiving tile.
 %    \begin{macrocode}
@@ -1385,15 +1682,25 @@ and the derived files            penrose.ins
 % If we didn't do this, drawing the tile would result in overlaps which can look a bit ugly.
 % On the other hand, tight clipping can lead to ``gaps'' between the tiles so we make this optional by enclosing it in a style.
 %    \begin{macrocode}
-    \UsePenroseTile[every Penrose tile clip/.try, every thin rhombus clip/.try]{thin rhombus}
-    \UsePenroseTile[every Penrose tile/.try, every thin rhombus/.try, pic actions]{thin rhombus}
+    \UsePenroseTile[
+      every Penrose tile clip/.try,
+      every thin rhombus clip/.try
+    ]{thin rhombus}
+    \UsePenroseTile[
+      every Penrose tile/.try,
+      every thin rhombus/.try,
+      pic actions
+    ]{thin rhombus}
 %    \end{macrocode}
 % These draw the arcs that designate the joining rules.
 % We draw full circles so that it doesn't matter what shape the tiles are.
 %    \begin{macrocode}
-    \UsePenroseTile[every Penrose arc clip/.try, every thin rhombus arc clip/.try]{thin rhombus}
-\path[every circle arc/.try] (18:1) circle[radius=1/4];
-\path[every long arc/.try] (-18:1) circle[radius=1/4];
+    \UsePenroseTile[
+      every Penrose arc clip/.try,
+      every thin rhombus arc clip/.try
+    ]{thin rhombus}
+    \path[every circle arc/.try] (18:1) circle[radius=1/4];
+    \path[every long arc/.try] (-18:1) circle[radius=1/4];
 %    \end{macrocode}
 % Lastly, we put coordinates at each vertex, labelled by which edge they are.
 %    \begin{macrocode}
@@ -1424,10 +1731,12 @@ and the derived files            penrose.ins
     \else
     \begingroup
     \tikzset{name prefix ..}%
-    \tikz@scan@one@point\pgfutil@firstofone(\prloc-edge \pgfkeysvalueof{/tikz/Penrose/alignment edge} start)%
+    \tikz@scan@one@point\pgfutil@firstofone%
+    (\prloc-edge \pgfkeysvalueof{/tikz/Penrose/alignment edge} start)%
     \global\pgf@xa=\pgf@x
     \global\pgf@ya=\pgf@y
-    \tikz@scan@one@point\pgfutil@firstofone(\prloc-edge \pgfkeysvalueof{/tikz/Penrose/alignment edge} end)%
+    \tikz@scan@one@point\pgfutil@firstofone%
+    (\prloc-edge \pgfkeysvalueof{/tikz/Penrose/alignment edge} end)%
     \global\pgf@xb=\pgf@x
     \global\pgf@yb=\pgf@y
     \endgroup
@@ -1437,7 +1746,10 @@ and the derived files            penrose.ins
     \pgfpointnormalised{\pgfpoint{\pgf@xb}{\pgf@yb}}
     \pgf@xb=\pgf@x
     \pgf@yb=\pgf@y
-\pgftransformtriangle{\pgfpoint{0pt}{0pt}}{\pgfpoint{\pgf@xb}{\pgf@yb}}{\pgfpoint{-\pgf@yb}{\pgf@xb}}
+    \pgftransformtriangle%
+    {\pgfpoint{0pt}{0pt}}%
+    {\pgfpoint{\pgf@xb}{\pgf@yb}}%
+    {\pgfpoint{-\pgf@yb}{\pgf@xb}}
     \if\pgfkeysvalueof{/tikz/Penrose/alignment edge}b\relax
     \pgftransformrotate{144}%
     \pgftransformshift{\pgfpoint{-\pr@cphi cm}{-\pr@sphi cm}}%
@@ -1454,9 +1766,19 @@ and the derived files            penrose.ins
     \pgftransformshift{\pgfpoint{-2*\pr@cphi cm}{0 cm}}%
     \fi\fi\fi\fi
     \fi
-    \UsePenroseTile[every Penrose tile clip/.try, every thick rhombus clip/.try]{thick rhombus}
-    \UsePenroseTile[every Penrose tile/.try, every thick rhombus/.try, pic actions]{thick rhombus}
-    \UsePenroseTile[every Penrose arc clip/.try, every thick rhombus arc clip/.try]{thick rhombus}
+    \UsePenroseTile[
+      every Penrose tile clip/.try,
+      every thick rhombus clip/.try
+    ]{thick rhombus}
+    \UsePenroseTile[
+      every Penrose tile/.try,
+      every thick rhombus/.try,
+      pic actions
+    ]{thick rhombus}
+    \UsePenroseTile[
+      every Penrose arc clip/.try,
+      every thick rhombus arc clip/.try
+    ]{thick rhombus}
 \path[every circle arc/.try] (2*\pr@cphi,0) circle[radius=1/4];
 \path[every long arc/.try] (0,0) circle[radius=3/4];
 \coordinate (-edge B start) at (0,0);
@@ -1483,10 +1805,12 @@ and the derived files            penrose.ins
     \else
     \begingroup
     \tikzset{name prefix ..}%
-    \tikz@scan@one@point\pgfutil@firstofone(\prloc-edge \pgfkeysvalueof{/tikz/Penrose/alignment edge} start)%
+    \tikz@scan@one@point\pgfutil@firstofone%
+    (\prloc-edge \pgfkeysvalueof{/tikz/Penrose/alignment edge} start)%
     \global\pgf@xa=\pgf@x
     \global\pgf@ya=\pgf@y
-    \tikz@scan@one@point\pgfutil@firstofone(\prloc-edge \pgfkeysvalueof{/tikz/Penrose/alignment edge} end)%
+    \tikz@scan@one@point\pgfutil@firstofone%
+    (\prloc-edge \pgfkeysvalueof{/tikz/Penrose/alignment edge} end)%
     \global\pgf@xb=\pgf@x
     \global\pgf@yb=\pgf@y
     \endgroup
@@ -1496,7 +1820,10 @@ and the derived files            penrose.ins
     \pgfpointnormalised{\pgfpoint{\pgf@xb}{\pgf@yb}}
     \pgf@xb=\pgf@x
     \pgf@yb=\pgf@y
-\pgftransformtriangle{\pgfpoint{0pt}{0pt}}{\pgfpoint{\pgf@xb}{\pgf@yb}}{\pgfpoint{-\pgf@yb}{\pgf@xb}}
+    \pgftransformtriangle%
+    {\pgfpoint{0pt}{0pt}}%
+    {\pgfpoint{\pgf@xb}{\pgf@yb}}%
+    {\pgfpoint{-\pgf@yb}{\pgf@xb}}%
     \if\pgfkeysvalueof{/tikz/Penrose/alignment edge}c\relax
     \pgftransformrotate{-72}%
     \pgftransformshift{\pgfpoint{-\pr@cphi cm}{\pr@sphi cm}}%
@@ -1513,9 +1840,19 @@ and the derived files            penrose.ins
     \pgftransformshift{\pgfpoint{-\pr@cphi cm}{-\pr@sphi cm}}%
     \fi\fi\fi\fi
     \fi
-    \UsePenroseTile[every Penrose tile clip/.try, every kite clip/.try]{kite}
-    \UsePenroseTile[every Penrose tile/.try, every kite/.try, pic actions]{kite}
-    \UsePenroseTile[every Penrose arc clip/.try, every kite arc clip/.try]{kite}
+    \UsePenroseTile[
+      every Penrose tile clip/.try,
+      every kite clip/.try
+    ]{kite}
+    \UsePenroseTile[
+      every Penrose tile/.try,
+      every kite/.try,
+      pic actions
+    ]{kite}
+    \UsePenroseTile[
+      every Penrose arc clip/.try,
+      every kite arc clip/.try
+    ]{kite}
 \path[every circle arc/.try] (0,0) circle[radius=\pr@invphi];
 \path[every long arc/.try] (1,0) circle[radius=\pr@invphisq];
 \coordinate (-edge a start) at (0,0);
@@ -1538,10 +1875,12 @@ and the derived files            penrose.ins
     \else
     \begingroup
     \tikzset{name prefix ..}%
-    \tikz@scan@one@point\pgfutil@firstofone(\prloc-edge \pgfkeysvalueof{/tikz/Penrose/alignment edge} start)%
+    \tikz@scan@one@point\pgfutil@firstofone%
+    (\prloc-edge \pgfkeysvalueof{/tikz/Penrose/alignment edge} start)%
     \global\pgf@xa=\pgf@x
     \global\pgf@ya=\pgf@y
-    \tikz@scan@one@point\pgfutil@firstofone(\prloc-edge \pgfkeysvalueof{/tikz/Penrose/alignment edge} end)%
+    \tikz@scan@one@point\pgfutil@firstofone%
+    (\prloc-edge \pgfkeysvalueof{/tikz/Penrose/alignment edge} end)%
     \global\pgf@xb=\pgf@x
     \global\pgf@yb=\pgf@y
     \endgroup
@@ -1551,26 +1890,41 @@ and the derived files            penrose.ins
     \pgfpointnormalised{\pgfpoint{\pgf@xb}{\pgf@yb}}
     \pgf@xb=\pgf@x
     \pgf@yb=\pgf@y
-\pgftransformtriangle{\pgfpoint{0pt}{0pt}}{\pgfpoint{\pgf@xb}{\pgf@yb}}{\pgfpoint{-\pgf@yb}{\pgf@xb}}
+    \pgftransformtriangle%
+    {\pgfpoint{0pt}{0pt}}%
+    {\pgfpoint{\pgf@xb}{\pgf@yb}}%
+    {\pgfpoint{-\pgf@yb}{\pgf@xb}}%
     \if\pgfkeysvalueof{/tikz/Penrose/alignment edge}c\relax
     \pgftransformrotate{108}%
     \else
     \if\pgfkeysvalueof{/tikz/Penrose/alignment edge}C\relax
     \pgftransformrotate{72}%
-    \pgftransformshift{\pgfpoint{\pr@invphi*\pr@shphi cm}{-\pr@invphi*\pr@chphi cm}}%
+    \pgftransformshift%
+    {\pgfpoint{\pr@invphi*\pr@shphi cm}{-\pr@invphi*\pr@chphi cm}}%
     \else
     \if\pgfkeysvalueof{/tikz/Penrose/alignment edge}a\relax
     \pgftransformrotate{-36}%
-    \pgftransformshift{\pgfpoint{\pr@invphi*\pr@shphi cm}{\pr@invphi*\pr@chphi cm}}%
+    \pgftransformshift%
+    {\pgfpoint{\pr@invphi*\pr@shphi cm}{\pr@invphi*\pr@chphi cm}}%
     \else
     \if\pgfkeysvalueof{/tikz/Penrose/alignment edge}A\relax
     \pgftransformrotate{216}%
     \pgftransformshift{\pgfpoint{-\pr@invphi cm}{0 cm}}%
     \fi\fi\fi\fi
     \fi
-    \UsePenroseTile[every Penrose tile clip/.try, every dart clip/.try]{dart}
-    \UsePenroseTile[every Penrose tile/.try, every dart/.try, pic actions]{dart}
-    \UsePenroseTile[every Penrose arc clip/.try, every dart arc clip/.try]{dart}
+    \UsePenroseTile[
+      every Penrose tile clip/.try,
+      every dart clip/.try
+    ]{dart}
+    \UsePenroseTile[
+      every Penrose tile/.try,
+      every dart/.try,
+      pic actions
+    ]{dart}
+    \UsePenroseTile[
+      every Penrose arc clip/.try,
+      every dart arc clip/.try
+    ]{dart}
 \path[every circle arc/.try] (\pr@invphi,0) circle[radius=\pr@ominvphi];
 \path[every long arc/.try] (0,0) circle[radius=\pr@ominvphisq];
 \coordinate (-edge c start) at (0,0);
@@ -1601,10 +1955,12 @@ and the derived files            penrose.ins
     \else
     \begingroup
     \tikzset{name prefix ..}%
-    \tikz@scan@one@point\pgfutil@firstofone(\prloc-edge \pgfkeysvalueof{/tikz/Penrose/alignment edge} start)%
+    \tikz@scan@one@point\pgfutil@firstofone%
+    (\prloc-edge \pgfkeysvalueof{/tikz/Penrose/alignment edge} start)%
     \global\pgf@xa=\pgf@x
     \global\pgf@ya=\pgf@y
-    \tikz@scan@one@point\pgfutil@firstofone(\prloc-edge \pgfkeysvalueof{/tikz/Penrose/alignment edge} end)%
+    \tikz@scan@one@point\pgfutil@firstofone%
+    (\prloc-edge \pgfkeysvalueof{/tikz/Penrose/alignment edge} end)%
     \global\pgf@xb=\pgf@x
     \global\pgf@yb=\pgf@y
     \endgroup
@@ -1614,7 +1970,10 @@ and the derived files            penrose.ins
     \pgfpointnormalised{\pgfpoint{\pgf@xb}{\pgf@yb}}
     \pgf@xb=\pgf@x
     \pgf@yb=\pgf@y
-\pgftransformtriangle{\pgfpoint{0pt}{0pt}}{\pgfpoint{\pgf@xb}{\pgf@yb}}{\pgfpoint{-\pgf@yb}{\pgf@xb}}
+    \pgftransformtriangle%
+    {\pgfpoint{0pt}{0pt}}%
+    {\pgfpoint{\pgf@xb}{\pgf@yb}}%
+    {\pgfpoint{-\pgf@yb}{\pgf@xb}}%
     \if\pgfkeysvalueof{/tikz/Penrose/alignment edge}B\relax
     \pgftransformrotate{18}%
     \else
@@ -1627,8 +1986,15 @@ and the derived files            penrose.ins
     \pgftransformshift{\pgfpoint{-\pr@chphi cm}{-\pr@shphi cm}}%
     \fi\fi\fi
     \fi
-    \UsePenroseTile[every Penrose tile clip/.try, every golden triangle clip/.try]{golden triangle}
-    \UsePenroseTile[every Penrose tile/.try, every golden triangle/.try, pic actions]{golden triangle}
+    \UsePenroseTile[
+      every Penrose tile clip/.try,
+      every golden triangle clip/.try
+    ]{golden triangle}
+    \UsePenroseTile[
+      every Penrose tile/.try,
+      every golden triangle/.try,
+      pic actions
+    ]{golden triangle}
 \coordinate (-edge a start) at (0,0);
 \coordinate (-edge a end) at (18:1);
 \coordinate (-edge c start) at (18:1);
@@ -1651,10 +2017,12 @@ and the derived files            penrose.ins
     \else
     \begingroup
     \tikzset{name prefix ..}%
-    \tikz@scan@one@point\pgfutil@firstofone(\prloc-edge \pgfkeysvalueof{/tikz/Penrose/alignment edge} start)%
+    \tikz@scan@one@point\pgfutil@firstofone%
+    (\prloc-edge \pgfkeysvalueof{/tikz/Penrose/alignment edge} start)%
     \global\pgf@xa=\pgf@x
     \global\pgf@ya=\pgf@y
-    \tikz@scan@one@point\pgfutil@firstofone(\prloc-edge \pgfkeysvalueof{/tikz/Penrose/alignment edge} end)%
+    \tikz@scan@one@point\pgfutil@firstofone%
+    (\prloc-edge \pgfkeysvalueof{/tikz/Penrose/alignment edge} end)%
     \global\pgf@xb=\pgf@x
     \global\pgf@yb=\pgf@y
     \endgroup
@@ -1664,7 +2032,10 @@ and the derived files            penrose.ins
     \pgfpointnormalised{\pgfpoint{\pgf@xb}{\pgf@yb}}
     \pgf@xb=\pgf@x
     \pgf@yb=\pgf@y
-\pgftransformtriangle{\pgfpoint{0pt}{0pt}}{\pgfpoint{\pgf@xb}{\pgf@yb}}{\pgfpoint{-\pgf@yb}{\pgf@xb}}
+    \pgftransformtriangle%
+    {\pgfpoint{0pt}{0pt}}%
+    {\pgfpoint{\pgf@xb}{\pgf@yb}}%
+    {\pgfpoint{-\pgf@yb}{\pgf@xb}}%
     \if\pgfkeysvalueof{/tikz/Penrose/alignment edge}b\relax
     \pgftransformrotate{162}%
     \pgftransformshift{\pgfpoint{-\pr@chphi cm}{-\pr@shphi cm}}%
@@ -1677,8 +2048,15 @@ and the derived files            penrose.ins
     \pgftransformrotate{18}%
     \fi\fi\fi
     \fi
-    \UsePenroseTile[every Penrose tile clip/.try, every reverse golden triangle clip/.try]{reverse golden triangle}
-    \UsePenroseTile[every Penrose tile/.try, every reverse golden triangle/.try, pic actions]{reverse golden triangle}
+    \UsePenroseTile[
+      every Penrose tile clip/.try,
+      every reverse golden triangle clip/.try
+    ]{reverse golden triangle}
+    \UsePenroseTile[
+      every Penrose tile/.try,
+      every reverse golden triangle/.try,
+      pic actions
+    ]{reverse golden triangle}
 \coordinate (-edge B start) at (0,0);
 \coordinate (-edge B end) at (18:1);
 \coordinate (-edge C start) at (18:1);
@@ -1701,10 +2079,12 @@ and the derived files            penrose.ins
     \else
     \begingroup
     \tikzset{name prefix ..}%
-    \tikz@scan@one@point\pgfutil@firstofone(\prloc-edge \pgfkeysvalueof{/tikz/Penrose/alignment edge} start)%
+    \tikz@scan@one@point\pgfutil@firstofone%
+    (\prloc-edge \pgfkeysvalueof{/tikz/Penrose/alignment edge} start)%
     \global\pgf@xa=\pgf@x
     \global\pgf@ya=\pgf@y
-    \tikz@scan@one@point\pgfutil@firstofone(\prloc-edge \pgfkeysvalueof{/tikz/Penrose/alignment edge} end)%
+    \tikz@scan@one@point\pgfutil@firstofone%
+    (\prloc-edge \pgfkeysvalueof{/tikz/Penrose/alignment edge} end)%
     \global\pgf@xb=\pgf@x
     \global\pgf@yb=\pgf@y
     \endgroup
@@ -1714,7 +2094,10 @@ and the derived files            penrose.ins
     \pgfpointnormalised{\pgfpoint{\pgf@xb}{\pgf@yb}}
     \pgf@xb=\pgf@x
     \pgf@yb=\pgf@y
-\pgftransformtriangle{\pgfpoint{0pt}{0pt}}{\pgfpoint{\pgf@xb}{\pgf@yb}}{\pgfpoint{-\pgf@yb}{\pgf@xb}}
+    \pgftransformtriangle%
+    {\pgfpoint{0pt}{0pt}}%
+    {\pgfpoint{\pgf@xb}{\pgf@yb}}%
+    {\pgfpoint{-\pgf@yb}{\pgf@xb}}%
     \if\pgfkeysvalueof{/tikz/Penrose/alignment edge}c\relax
     \pgftransformrotate{144}%
     \pgftransformshift{\pgfpoint{-\pr@cphi cm}{-\pr@sphi cm}}%
@@ -1726,8 +2109,15 @@ and the derived files            penrose.ins
     \if\pgfkeysvalueof{/tikz/Penrose/alignment edge}a\relax
     \fi\fi\fi
     \fi
-    \UsePenroseTile[every Penrose tile clip/.try, every golden gnomon clip/.try]{golden gnomon}
-    \UsePenroseTile[every Penrose tile/.try, every golden gnomon/.try, pic actions]{golden gnomon}
+    \UsePenroseTile[
+      every Penrose tile clip/.try,
+      every golden gnomon clip/.try
+    ]{golden gnomon}
+    \UsePenroseTile[
+      every Penrose tile/.try,
+      every golden gnomon/.try,
+      pic actions
+    ]{golden gnomon}
 \coordinate (-edge C start) at (0,0);
 \coordinate (-edge C end) at (36:1);
 \coordinate (-edge b start) at (36:1);
@@ -1750,10 +2140,12 @@ and the derived files            penrose.ins
     \else
     \begingroup
     \tikzset{name prefix ..}%
-    \tikz@scan@one@point\pgfutil@firstofone(\prloc-edge \pgfkeysvalueof{/tikz/Penrose/alignment edge} start)%
+    \tikz@scan@one@point\pgfutil@firstofone%
+    (\prloc-edge \pgfkeysvalueof{/tikz/Penrose/alignment edge} start)%
     \global\pgf@xa=\pgf@x
     \global\pgf@ya=\pgf@y
-    \tikz@scan@one@point\pgfutil@firstofone(\prloc-edge \pgfkeysvalueof{/tikz/Penrose/alignment edge} end)%
+    \tikz@scan@one@point\pgfutil@firstofone%
+    (\prloc-edge \pgfkeysvalueof{/tikz/Penrose/alignment edge} end)%
     \global\pgf@xb=\pgf@x
     \global\pgf@yb=\pgf@y
     \endgroup
@@ -1763,7 +2155,10 @@ and the derived files            penrose.ins
     \pgfpointnormalised{\pgfpoint{\pgf@xb}{\pgf@yb}}
     \pgf@xb=\pgf@x
     \pgf@yb=\pgf@y
-\pgftransformtriangle{\pgfpoint{0pt}{0pt}}{\pgfpoint{\pgf@xb}{\pgf@yb}}{\pgfpoint{-\pgf@yb}{\pgf@xb}}
+    \pgftransformtriangle%
+    {\pgfpoint{0pt}{0pt}}%
+    {\pgfpoint{\pgf@xb}{\pgf@yb}}%
+    {\pgfpoint{-\pgf@yb}{\pgf@xb}}%
     \if\pgfkeysvalueof{/tikz/Penrose/alignment edge}C\relax
     \pgftransformrotate{36}%
     \else
@@ -1776,8 +2171,15 @@ and the derived files            penrose.ins
     \pgftransformshift{\pgfpoint{-2*\pr@cphi cm}{0 cm}}%
     \fi\fi\fi
     \fi
-    \UsePenroseTile[every Penrose tile clip/.try, every reverse golden gnomon clip/.try]{reverse golden gnomon}
-    \UsePenroseTile[every Penrose tile/.try, every reverse golden gnomon/.try, pic actions]{reverse golden gnomon}
+    \UsePenroseTile[
+      every Penrose tile clip/.try,
+      every reverse golden gnomon clip/.try
+    ]{reverse golden gnomon}
+    \UsePenroseTile[
+      every Penrose tile/.try,
+      every reverse golden gnomon/.try,
+      pic actions
+    ]{reverse golden gnomon}
 \coordinate (-edge a start) at (0,0);
 \coordinate (-edge a end) at (2*\pr@cphi,0);
 \coordinate (-edge B start) at (2*\pr@cphi,0);
@@ -1800,10 +2202,12 @@ and the derived files            penrose.ins
     \else
     \begingroup
     \tikzset{name prefix ..}%
-    \tikz@scan@one@point\pgfutil@firstofone(\prloc-edge \pgfkeysvalueof{/tikz/Penrose/alignment edge} start)%
+    \tikz@scan@one@point\pgfutil@firstofone%
+    (\prloc-edge \pgfkeysvalueof{/tikz/Penrose/alignment edge} start)%
     \global\pgf@xa=\pgf@x
     \global\pgf@ya=\pgf@y
-    \tikz@scan@one@point\pgfutil@firstofone(\prloc-edge \pgfkeysvalueof{/tikz/Penrose/alignment edge} end)%
+    \tikz@scan@one@point\pgfutil@firstofone%
+    (\prloc-edge \pgfkeysvalueof{/tikz/Penrose/alignment edge} end)%
     \global\pgf@xb=\pgf@x
     \global\pgf@yb=\pgf@y
     \endgroup
@@ -1813,7 +2217,10 @@ and the derived files            penrose.ins
     \pgfpointnormalised{\pgfpoint{\pgf@xb}{\pgf@yb}}
     \pgf@xb=\pgf@x
     \pgf@yb=\pgf@y
-\pgftransformtriangle{\pgfpoint{0pt}{0pt}}{\pgfpoint{\pgf@xb}{\pgf@yb}}{\pgfpoint{-\pgf@yb}{\pgf@xb}}
+    \pgftransformtriangle%
+    {\pgfpoint{0pt}{0pt}}%
+    {\pgfpoint{\pgf@xb}{\pgf@yb}}%
+    {\pgfpoint{-\pgf@yb}{\pgf@xb}}%
     \test@newedge{1}%
     \if@newedge
     \pgftransformrotate{180}%
@@ -1827,7 +2234,8 @@ and the derived files            penrose.ins
     \else
     \test@newedge{3}%
     \if@newedge
-    \pgftransformshift{\pgfpoint{\pr@phi * \pr@shphi cm}{- \pr@phi * \pr@chphi cm}}%
+    \pgftransformshift%
+    {\pgfpoint{\pr@phi * \pr@shphi cm}{- \pr@phi * \pr@chphi cm}}%
     \pgftransformrotate{36}%
     \else
     \test@newedge{4}%
@@ -1840,8 +2248,17 @@ and the derived files            penrose.ins
     \pgftransformrotate{-108}%
     \fi\fi\fi\fi\fi
     \fi
-    \UsePenroseTile[every Penrose tile clip/.try, every pentagon clip/.try, every pentagon 5 clip/.try]{pentagon 5}
-    \UsePenroseTile[every Penrose tile/.try, every pentagon/.try, every pentagon 5/.try, pic actions]{pentagon 5}
+    \UsePenroseTile[
+      every Penrose tile clip/.try,
+      every pentagon clip/.try,
+      every pentagon 5 clip/.try
+    ]{pentagon 5}
+    \UsePenroseTile[
+      every Penrose tile/.try,
+      every pentagon/.try,
+      every pentagon 5/.try,
+      pic actions
+    ]{pentagon 5}
 \coordinate (-edge a1 start) at (0,0);
 \coordinate (-edge a1 end) at (1,0);
 \coordinate (-edge a2 start) at (1,0);
@@ -1868,10 +2285,12 @@ and the derived files            penrose.ins
     \else
     \begingroup
     \tikzset{name prefix ..}%
-    \tikz@scan@one@point\pgfutil@firstofone(\prloc-edge \pgfkeysvalueof{/tikz/Penrose/alignment edge} start)%
+    \tikz@scan@one@point\pgfutil@firstofone%
+    (\prloc-edge \pgfkeysvalueof{/tikz/Penrose/alignment edge} start)%
     \global\pgf@xa=\pgf@x
     \global\pgf@ya=\pgf@y
-    \tikz@scan@one@point\pgfutil@firstofone(\prloc-edge \pgfkeysvalueof{/tikz/Penrose/alignment edge} end)%
+    \tikz@scan@one@point\pgfutil@firstofone%
+    (\prloc-edge \pgfkeysvalueof{/tikz/Penrose/alignment edge} end)%
     \global\pgf@xb=\pgf@x
     \global\pgf@yb=\pgf@y
     \endgroup
@@ -1881,7 +2300,10 @@ and the derived files            penrose.ins
     \pgfpointnormalised{\pgfpoint{\pgf@xb}{\pgf@yb}}
     \pgf@xb=\pgf@x
     \pgf@yb=\pgf@y
-\pgftransformtriangle{\pgfpoint{0pt}{0pt}}{\pgfpoint{\pgf@xb}{\pgf@yb}}{\pgfpoint{-\pgf@yb}{\pgf@xb}}
+    \pgftransformtriangle%
+    {\pgfpoint{0pt}{0pt}}%
+    {\pgfpoint{\pgf@xb}{\pgf@yb}}%
+    {\pgfpoint{-\pgf@yb}{\pgf@xb}}%
     \test@edgealign{a}%
     \if@edgealign
     \pgftransformrotate{180}%
@@ -1900,15 +2322,25 @@ and the derived files            penrose.ins
     \else
     \test@newedge{1}%
     \if@newedge
-    \pgftransformshift{\pgfpoint{\pr@phi * \pr@shphi cm}{- \pr@phi * \pr@chphi cm}}%
+    \pgftransformshift%
+    {\pgfpoint{\pr@phi * \pr@shphi cm}{- \pr@phi * \pr@chphi cm}}%
     \pgftransformrotate{36}%
     \else
     \pgftransformshift{\pgfpoint{- \pr@shphi cm}{-\pr@chphi cm}}%
     \pgftransformrotate{-36}%
     \fi\fi\fi
     \fi
-    \UsePenroseTile[every Penrose tile clip/.try, every pentagon clip/.try, every pentagon 3 clip/.try]{pentagon 3}
-    \UsePenroseTile[every Penrose tile/.try, every pentagon/.try, every pentagon 3/.try, pic actions]{pentagon 3}
+    \UsePenroseTile[
+      every Penrose tile clip/.try,
+      every pentagon clip/.try,
+      every pentagon 3 clip/.try
+    ]{pentagon 3}
+    \UsePenroseTile[
+      every Penrose tile/.try,
+      every pentagon/.try,
+      every pentagon 3/.try,
+      pic actions
+    ]{pentagon 3}
 \coordinate (-edge A start) at (0,0);
 \coordinate (-edge A end) at (1,0);
 \coordinate (-edge b1 start) at (1,0);
@@ -1935,10 +2367,12 @@ and the derived files            penrose.ins
     \else
     \begingroup
     \tikzset{name prefix ..}%
-    \tikz@scan@one@point\pgfutil@firstofone(\prloc-edge \pgfkeysvalueof{/tikz/Penrose/alignment edge} start)%
+    \tikz@scan@one@point\pgfutil@firstofone%
+    (\prloc-edge \pgfkeysvalueof{/tikz/Penrose/alignment edge} start)%
     \global\pgf@xa=\pgf@x
     \global\pgf@ya=\pgf@y
-    \tikz@scan@one@point\pgfutil@firstofone(\prloc-edge \pgfkeysvalueof{/tikz/Penrose/alignment edge} end)%
+    \tikz@scan@one@point\pgfutil@firstofone%
+    (\prloc-edge \pgfkeysvalueof{/tikz/Penrose/alignment edge} end)%
     \global\pgf@xb=\pgf@x
     \global\pgf@yb=\pgf@y
     \endgroup
@@ -1948,7 +2382,10 @@ and the derived files            penrose.ins
     \pgfpointnormalised{\pgfpoint{\pgf@xb}{\pgf@yb}}
     \pgf@xb=\pgf@x
     \pgf@yb=\pgf@y
-\pgftransformtriangle{\pgfpoint{0pt}{0pt}}{\pgfpoint{\pgf@xb}{\pgf@yb}}{\pgfpoint{-\pgf@yb}{\pgf@xb}}
+    \pgftransformtriangle%
+    {\pgfpoint{0pt}{0pt}}%
+    {\pgfpoint{\pgf@xb}{\pgf@yb}}%
+    {\pgfpoint{-\pgf@yb}{\pgf@xb}}%
     \test@edgealign{D}%
     \if@edgealign
     \pgftransformrotate{180}%
@@ -1967,15 +2404,25 @@ and the derived files            penrose.ins
     \else
     \test@newedge{1}%
     \if@newedge
-    \pgftransformshift{\pgfpoint{\pr@phi * \pr@shphi cm}{- \pr@phi * \pr@chphi cm}}%
+    \pgftransformshift%
+    {\pgfpoint{\pr@phi * \pr@shphi cm}{- \pr@phi * \pr@chphi cm}}%
     \pgftransformrotate{36}%
     \else
     \pgftransformshift{\pgfpoint{- \pr@shphi cm}{-\pr@chphi cm}}%
     \pgftransformrotate{-36}%
     \fi\fi\fi
     \fi
-    \UsePenroseTile[every Penrose tile clip/.try, every pentagon clip/.try, every pentagon 2 clip/.try]{pentagon 2}
-    \UsePenroseTile[every Penrose tile/.try, every pentagon/.try, every pentagon 2/.try, pic actions]{pentagon 2}
+    \UsePenroseTile[
+      every Penrose tile clip/.try,
+      every pentagon clip/.try,
+      every pentagon 2 clip/.try
+    ]{pentagon 2}
+    \UsePenroseTile[
+      every Penrose tile/.try,
+      every pentagon/.try,
+      every pentagon 2/.try,
+      pic actions
+    ]{pentagon 2}
 \coordinate (-edge d start) at (0,0);
 \coordinate (-edge d end) at (1,0);
 \coordinate (-edge A1 start) at (1,0);
@@ -2002,10 +2449,12 @@ and the derived files            penrose.ins
     \else
     \begingroup
     \tikzset{name prefix ..}%
-    \tikz@scan@one@point\pgfutil@firstofone(\prloc-edge \pgfkeysvalueof{/tikz/Penrose/alignment edge} start)%
+    \tikz@scan@one@point\pgfutil@firstofone%
+    (\prloc-edge \pgfkeysvalueof{/tikz/Penrose/alignment edge} start)%
     \global\pgf@xa=\pgf@x
     \global\pgf@ya=\pgf@y
-    \tikz@scan@one@point\pgfutil@firstofone(\prloc-edge \pgfkeysvalueof{/tikz/Penrose/alignment edge} end)%
+    \tikz@scan@one@point\pgfutil@firstofone%
+    (\prloc-edge \pgfkeysvalueof{/tikz/Penrose/alignment edge} end)%
     \global\pgf@xb=\pgf@x
     \global\pgf@yb=\pgf@y
     \endgroup
@@ -2015,7 +2464,10 @@ and the derived files            penrose.ins
     \pgfpointnormalised{\pgfpoint{\pgf@xb}{\pgf@yb}}
     \pgf@xb=\pgf@x
     \pgf@yb=\pgf@y
-\pgftransformtriangle{\pgfpoint{0pt}{0pt}}{\pgfpoint{\pgf@xb}{\pgf@yb}}{\pgfpoint{-\pgf@yb}{\pgf@xb}}
+    \pgftransformtriangle%
+    {\pgfpoint{0pt}{0pt}}%
+    {\pgfpoint{\pgf@xb}{\pgf@yb}}%
+    {\pgfpoint{-\pgf@yb}{\pgf@xb}}%
     \test@newedge{2}%
     \if@newedge
     \pgftransformshift{\pgfpoint{1 cm}{0 cm}}%
@@ -2064,8 +2516,15 @@ and the derived files            penrose.ins
     \else
     \fi\fi\fi\fi\fi\fi\fi\fi\fi
     \fi
-    \UsePenroseTile[every Penrose tile clip/.try, every pentagram clip/.try]{pentagram}
-    \UsePenroseTile[every Penrose tile/.try, every pentagram/.try, pic actions]{pentagram}
+    \UsePenroseTile[
+      every Penrose tile clip/.try,
+      every pentagram clip/.try
+    ]{pentagram}
+    \UsePenroseTile[
+      every Penrose tile/.try,
+      every pentagram/.try,
+      pic actions
+    ]{pentagram}
 \coordinate (-edge C1 start) at (1,0);
 \coordinate (-edge C1 end) at (0,0);
 \coordinate (-edge C2 start) at (0,0);
@@ -2102,10 +2561,12 @@ and the derived files            penrose.ins
     \else
     \begingroup
     \tikzset{name prefix ..}%
-    \tikz@scan@one@point\pgfutil@firstofone(\prloc-edge \pgfkeysvalueof{/tikz/Penrose/alignment edge} start)%
+    \tikz@scan@one@point\pgfutil@firstofone%
+    (\prloc-edge \pgfkeysvalueof{/tikz/Penrose/alignment edge} start)%
     \global\pgf@xa=\pgf@x
     \global\pgf@ya=\pgf@y
-    \tikz@scan@one@point\pgfutil@firstofone(\prloc-edge \pgfkeysvalueof{/tikz/Penrose/alignment edge} end)%
+    \tikz@scan@one@point\pgfutil@firstofone%
+    (\prloc-edge \pgfkeysvalueof{/tikz/Penrose/alignment edge} end)%
     \global\pgf@xb=\pgf@x
     \global\pgf@yb=\pgf@y
     \endgroup
@@ -2115,7 +2576,10 @@ and the derived files            penrose.ins
     \pgfpointnormalised{\pgfpoint{\pgf@xb}{\pgf@yb}}
     \pgf@xb=\pgf@x
     \pgf@yb=\pgf@y
-\pgftransformtriangle{\pgfpoint{0pt}{0pt}}{\pgfpoint{\pgf@xb}{\pgf@yb}}{\pgfpoint{-\pgf@yb}{\pgf@xb}}
+    \pgftransformtriangle%
+    {\pgfpoint{0pt}{0pt}}%
+    {\pgfpoint{\pgf@xb}{\pgf@yb}}%
+    {\pgfpoint{-\pgf@yb}{\pgf@xb}}%
     \test@edgealign{d}%
     \if@edgealign
     \pgftransformrotate{180}%
@@ -2150,8 +2614,15 @@ and the derived files            penrose.ins
     \else
     \fi\fi\fi\fi\fi\fi
     \fi
-    \UsePenroseTile[every Penrose tile clip/.try, every boat clip/.try]{boat}
-    \UsePenroseTile[every Penrose tile/.try, every boat/.try, pic actions]{boat}
+    \UsePenroseTile[
+      every Penrose tile clip/.try,
+      every boat clip/.try
+    ]{boat}
+    \UsePenroseTile[
+      every Penrose tile/.try,
+      every boat/.try,
+      pic actions
+    ]{boat}
 \coordinate (-edge C1 start) at (1,0);
 \coordinate (-edge C1 end) at (0,0);
 \coordinate (-edge C2 start) at (0,0);
@@ -2182,10 +2653,12 @@ and the derived files            penrose.ins
     \else
     \begingroup
     \tikzset{name prefix ..}%
-    \tikz@scan@one@point\pgfutil@firstofone(\prloc-edge \pgfkeysvalueof{/tikz/Penrose/alignment edge} start)%
+    \tikz@scan@one@point\pgfutil@firstofone%
+    (\prloc-edge \pgfkeysvalueof{/tikz/Penrose/alignment edge} start)%
     \global\pgf@xa=\pgf@x
     \global\pgf@ya=\pgf@y
-    \tikz@scan@one@point\pgfutil@firstofone(\prloc-edge \pgfkeysvalueof{/tikz/Penrose/alignment edge} end)%
+    \tikz@scan@one@point\pgfutil@firstofone%
+    (\prloc-edge \pgfkeysvalueof{/tikz/Penrose/alignment edge} end)%
     \global\pgf@xb=\pgf@x
     \global\pgf@yb=\pgf@y
     \endgroup
@@ -2195,7 +2668,10 @@ and the derived files            penrose.ins
     \pgfpointnormalised{\pgfpoint{\pgf@xb}{\pgf@yb}}
     \pgf@xb=\pgf@x
     \pgf@yb=\pgf@y
-\pgftransformtriangle{\pgfpoint{0pt}{0pt}}{\pgfpoint{\pgf@xb}{\pgf@yb}}{\pgfpoint{-\pgf@yb}{\pgf@xb}}
+    \pgftransformtriangle%
+    {\pgfpoint{0pt}{0pt}}%
+    {\pgfpoint{\pgf@xb}{\pgf@yb}}%
+    {\pgfpoint{-\pgf@yb}{\pgf@xb}}%
     \test@edgealign{d}%
     \if@edgealign%
     \test@newedge{2}%
@@ -2215,8 +2691,15 @@ and the derived files            penrose.ins
     \pgftransformrotate{18}%
     \fi\fi
     \fi
-    \UsePenroseTile[every Penrose tile clip/.try, every diamond clip/.try]{diamond}
-    \UsePenroseTile[every Penrose tile/.try, every diamond/.try, pic actions]{diamond}
+    \UsePenroseTile[
+      every Penrose tile clip/.try,
+      every diamond clip/.try
+    ]{diamond}
+    \UsePenroseTile[
+      every Penrose tile/.try,
+      every diamond/.try,
+      pic actions
+    ]{diamond}
 \coordinate (-edge D1 start) at (0,0);
 \coordinate (-edge D1 end) at (\pr@chphi,\pr@shphi);
 \coordinate (-edge B1 start) at (\pr@chphi,\pr@shphi);
