@@ -1,5 +1,7 @@
 *~
 CTAN
+*.md5
+*.dpth
 *.pdf
 *.aux
 *.log
