@@ -1,4 +1,4 @@
-\immediate\write18{tex penrose_code.dtx}
+%\immediate\write18{tex penrose_code.dtx}
 \documentclass{ltxdoc}
 \usepackage[T1]{fontenc}
 \usepackage{trace}
@@ -6,14 +6,15 @@
 \usepackage{morefloats}
 \usepackage[svgnames]{xcolor}
 \usepackage{tikz}
-\usetikzlibrary{penrose}
+\usetikzlibrary{penrose,external}
 \usepackage[numbered]{hypdoc}
 \definecolor{lstbgcolor}{rgb}{0.9,0.9,0.9} 
  
 \usepackage{listings}
 \lstloadlanguages{[LaTeX]TeX}
 \lstset{breakatwhitespace=true,breaklines=true,language=TeX}
- 
+
+\tikzexternalize
 \usepackage{fancyvrb}
 
 \newenvironment{example}
@@ -76,15 +77,17 @@
 
 \title{The \textsf{Penrose} Package: Documentation}
 \author{Andrew Stacey\texorpdfstring{\\ \url{loopspace@mathforge.org}}{}}
-\date{1.0~from 2018/07/10}
+\date{1.2~from 2019/02/23}
 
 \begin{document}
 \maketitle
 
+\tableofcontents
+  
 \section{Introduction}
 
 The \textsf{Penrose} package is a TikZ library for drawing Penrose tiles.
-It currently supports the kite/dart, rhombus, and pentagon tile sets.
+It currently supports natively the kite/dart, rhombus, and pentagon tile sets, but has provision for defining new tiles.
 There are two main methods for their placement: one that automatically generates a tiling, and one that allows for ``by hand'' placement.
 Furthermore, the tiles themselves can be deformed and will still (hopefully!) fit together in the correct fashion.
 
@@ -356,7 +359,7 @@ There are no constraints on the size of the path as all paths are scaled and tra
 Once the edge paths have been specified, they are welded together into the tiles using the following command:
 %
 \begin{verbatim}
-\MakePenroseTile{<name>}
+\BakePenroseTile{<name>}
 \end{verbatim}
 %
 Here, \Verb+<name>+ is one of the names of the tiles.
@@ -370,6 +373,9 @@ The internal name for a tile path is \Verb+Penrosepathtile<name>+ (no spaces) so
 %
 and restored with the same command (but names switched).
 
+The initial version of this package used \Verb!\MakePenroseTile! for this command.
+That command is still available for backwards compatibility.
+
 \begin{example}
 \begin{tikzpicture}
 \pic[draw,dart,name=dart];
@@ -379,8 +385,8 @@ and restored with the same command (but names switched).
 \CloneSPath{Penrosepathtiledart}{Original dart}
 \path[save Penrose path=a] (0,0) to[out=-30,in=100] (1,0);
 \path[save Penrose path=c] (0,0) to[out=-40,in=140] (1,0);
-\MakePenroseTile{kite}
-\MakePenroseTile{dart}
+\BakePenroseTile{kite}
+\BakePenroseTile{dart}
 \pic[xshift=2cm,draw,dart,name=dart];
 \pic[draw,kite,align with=dart along c];
 \pic[draw,kite,align with=dart along C];
@@ -394,6 +400,57 @@ and restored with the same command (but names switched).
 
 With deformed tiles, there is no guarantee that the inner arcs will match up perfectly.
 
+\section{Defining New Tiles}
+
+This package includes the capability to define new tiles.
+The command to do this is:
+%
+\begin{verbatim}
+\DefineTile{<name>}{<sides>}{<coordinates>}
+\end{verbatim}
+%
+For example,
+%
+\begin{verbatim}
+\DefineTile {square}{a A a A}
+{
+  {0,0}
+  {1,0}
+  {1,1}
+  {0,1}
+}
+\end{verbatim}
+%
+The \Verb!<sides>! is a list of sides for matching rules.
+Each letter used matches against its opposite case.
+These are also used in path replacing, both a letter and its opposite case are replaced by the corresponding path (but in opposite directions) when the tile is ``baked''.
+The coordinates are passed to the \Verb!fp! module of \LaTeX3 so can involve complicated expressions.
+Note that the trigonometric functions for angles in degrees are \Verb!cosd!, \Verb!sind!, and \Verb!tand!.
+
+Note that the tile must be baked via the command \Verb!\BakePenroseTile! before it can be used.
+
+The new tile can be used with all the same features as the pre-defined Penrose tiles, except for the Lindenmayer systems. 
+
+\begin{example}
+\DefineTile {square}{a A a A}
+{
+  {0,0}
+  {1,0}
+  {1,1}
+  {0,1}
+}
+\begin{tikzpicture}
+\path[save Penrose path=a] (0,0) to[out=45,in=135] (1,0);
+\BakePenroseTile{square}
+\pic[square,name=A,fill=green];
+\pic[square,align with=A along a1 using 2,name=B,fill=red];
+\pic[square,align with=A along A1 using 2,fill=red];
+\pic[square,align with=A along A2 using 1,fill=red];
+\pic[square,align with=B along a1 using 2,fill=green];
+\pic[square,align with=B along a2 using 1,fill=green];
+\end{tikzpicture}
+\end{example}
+
 \section{More Examples}
 
 Let's set some aesthetically pleasing shapes.
@@ -403,14 +460,14 @@ Let's set some aesthetically pleasing shapes.
 \path[save Penrose path=a] (0,0) to[out=-30,in=100] (1,0);
 \path[save Penrose path=b] (0,0) to[out=0,in=140] (1,0);
 \path[save Penrose path=c] (0,0) to[out=-40,in=140] (1,0);
-\MakePenroseTile{thin rhombus}
-\MakePenroseTile{thick rhombus}
-\MakePenroseTile{golden triangle}
-\MakePenroseTile{reverse golden triangle}
-\MakePenroseTile{golden gnomon}
-\MakePenroseTile{reverse golden gnomon}
-\MakePenroseTile{kite}
-\MakePenroseTile{dart}
+\BakePenroseTile{thin rhombus}
+\BakePenroseTile{thick rhombus}
+\BakePenroseTile{golden triangle}
+\BakePenroseTile{reverse golden triangle}
+\BakePenroseTile{golden gnomon}
+\BakePenroseTile{reverse golden gnomon}
+\BakePenroseTile{kite}
+\BakePenroseTile{dart}
 \end{tikzpicture}
 \end{justexample}
 
@@ -418,14 +475,14 @@ Let's set some aesthetically pleasing shapes.
 \path[save Penrose path=a] (0,0) to[out=-30,in=100] (1,0);
 \path[save Penrose path=b] (0,0) to[out=0,in=140] (1,0);
 \path[save Penrose path=c] (0,0) to[out=-40,in=140] (1,0);
-\MakePenroseTile{thin rhombus}
-\MakePenroseTile{thick rhombus}
-\MakePenroseTile{golden triangle}
-\MakePenroseTile{reverse golden triangle}
-\MakePenroseTile{golden gnomon}
-\MakePenroseTile{reverse golden gnomon}
-\MakePenroseTile{kite}
-\MakePenroseTile{dart}
+\BakePenroseTile{thin rhombus}
+\BakePenroseTile{thick rhombus}
+\BakePenroseTile{golden triangle}
+\BakePenroseTile{reverse golden triangle}
+\BakePenroseTile{golden gnomon}
+\BakePenroseTile{reverse golden gnomon}
+\BakePenroseTile{kite}
+\BakePenroseTile{dart}
 \end{tikzpicture}
 
 
@@ -676,14 +733,14 @@ Lastly, here's an example that generates full page patterns.
 \path[save Penrose path=a] (0,0) -- (1,0);
 \path[save Penrose path=b] (0,0) -- (1,0);
 \path[save Penrose path=c] (0,0) -- (1,0);
-\MakePenroseTile{thin rhombus}
-\MakePenroseTile{thick rhombus}
-\MakePenroseTile{golden triangle}
-\MakePenroseTile{reverse golden triangle}
-\MakePenroseTile{golden gnomon}
-\MakePenroseTile{reverse golden gnomon}
-\MakePenroseTile{kite}
-\MakePenroseTile{dart}
+\BakePenroseTile{thin rhombus}
+\BakePenroseTile{thick rhombus}
+\BakePenroseTile{golden triangle}
+\BakePenroseTile{reverse golden triangle}
+\BakePenroseTile{golden gnomon}
+\BakePenroseTile{reverse golden gnomon}
+\BakePenroseTile{kite}
+\BakePenroseTile{dart}
 \end{tikzpicture}
 
 \newpage
