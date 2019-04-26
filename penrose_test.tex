@@ -1,0 +1,34 @@
+\RequirePackage{shellesc}
+\immediate\write18{tex penrose_code.dtx}
+\immediate\write18{cd ../spath3-git; tex spath3.dtx}
+\documentclass{article}
+
+\usepackage{tikz}
+\usetikzlibrary{penrose}
+
+\tikzset{
+  every Penrose pic/.style={draw,ultra thick},
+  every circle arc/.style={draw,thin},
+  every long arc/.style={draw,thin},
+}
+
+\begin{document}
+
+\begin{tikzpicture}
+\path[save Penrose path=a] (0,0) to[out=-30,in=100] (1,0);
+\path[save Penrose path=b] (0,0) to[out=-30,in=100] (1,0);
+\path[save Penrose path=c] (0,0) to[out=-30,in=100] (1,0);
+\end{tikzpicture}
+
+\BakePenroseTile{kite}
+\BakePenroseTile{dart}
+
+
+\begin{tikzpicture}
+\pic[kite,name=tile];
+\pic[dart,align with=tile along c];
+\pic[pentagon 5,name=ptile,at={(3,0)}];
+\pic[pentagon 3,align with=ptile along a1 using 2];
+\end{tikzpicture}
+
+\end{document}
