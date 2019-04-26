@@ -321,9 +321,10 @@ and the derived files            penrose.ins
 \NewDocumentCommand \SetPenrosePath { m }
 {
   \pgfsyssoftpath@getcurrentpath\l_@@_tmpa_tl
-  \spath_clear_new:n {Penrose path #1}
-  \spath_put:nnV {Penrose path #1} {path} \l_@@_tmpa_tl
+  \spath_gclear_new:n {Penrose path #1}
+  \spath_gput:nnV {Penrose path #1} {path} \l_@@_tmpa_tl
   \@@_normalise_path:n {Penrose path #1}
+  \spath_globalise:n {Penrose path #1}
 }
 %    \end{macrocode}
 % \end{function}
@@ -356,8 +357,8 @@ and the derived files            penrose.ins
   {
     {\dim_use:N \pgf@x}{\dim_use:N \pgf@y}
   }
-  \spath_clear_new:n {Penrose path tile #1}
-  \spath_put:nnV {Penrose path tile #1} {path} \l_@@_tmpa_tl
+  \spath_gclear_new:n {Penrose path tile #1}
+  \spath_gput:nnV {Penrose path tile #1} {path} \l_@@_tmpa_tl
 %    \end{macrocode}
 % Now we have our path initialised, we can start appending the side paths according to the specification in the second argument.
 %
@@ -373,7 +374,7 @@ and the derived files            penrose.ins
 % Clone the path for this side.
 %    \begin{macrocode}
     \tl_set:Nx \l_@@_tmpc_tl {\tl_head:n {##1}}
-    \spath_clone:nn {Penrose path \tl_use:N \l_@@_tmpc_tl}
+    \spath_gclone:nn {Penrose path \tl_use:N \l_@@_tmpc_tl}
     {Penrose path tmpa}
 %    \end{macrocode}
 % Strip off the next coordinate, and convert it to a point.
@@ -422,6 +423,7 @@ and the derived files            penrose.ins
 % At the end we close the path.
 %    \begin{macrocode}
   \spath_close_path:n {Penrose path tile #1}
+  \spath_globalise:n {Penrose path tile #1}
 }
 %    \end{macrocode}
 % \end{macro}
@@ -705,8 +707,8 @@ and the derived files            penrose.ins
 %    \end{macrocode}
 % Clear the receiving path, and store the current path in it.
 %    \begin{macrocode}
-      \spath_clear_new:n {Penrose path #1}
-      \spath_put:nnV {Penrose path #1} {path} \l_@@_tmpa_tl
+      \spath_gclear_new:n {Penrose path #1}
+      \spath_gput:nnV {Penrose path #1} {path} \l_@@_tmpa_tl
 %    \end{macrocode}
 % Normalise the path.
 %    \begin{macrocode}
@@ -719,7 +721,7 @@ and the derived files            penrose.ins
 %    \end{macrocode}
 % Clone the path.
 %    \begin{macrocode}
-      \spath_clone:nn {Penrose path #1}
+      \spath_gclone:nn {Penrose path #1}
       {Penrose path \tl_use:N \l_@@_tmpa_tl }
 %    \end{macrocode}
 % Reverse it.
@@ -730,6 +732,8 @@ and the derived files            penrose.ins
 %    \begin{macrocode}
       \spath_transform:nnnnnnn {Penrose path \tl_use:N \l_@@_tmpa_tl}
       {-1} {0} {0} {-1} {1} {0}
+      \spath_globalise:n {Penrose path #1}
+      \spath_globalise:n {Penrose path \tl_use:N \l_@@_tmpa_tl}
     }
   },
   expand~ key/.code={
