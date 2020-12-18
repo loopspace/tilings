@@ -422,7 +422,7 @@ For example,
 \end{verbatim}
 %
 The \Verb!<sides>! is a list of sides for matching rules.
-Each letter used matches against its opposite case.
+Each letter used matches against its opposite case (so it is possible to create a side that matches against itself by using a symbol that \TeX\ regards as having the same upper as lower case; not all symbols work, I've used \Verb+!+ successfully).
 These are also used in path replacing, both a letter and its opposite case are replaced by the corresponding path (but in opposite directions) when the tile is ``baked''.
 The coordinates are passed to the \Verb!fp! module of \LaTeX3 so can involve complicated expressions.
 Note that the trigonometric functions for angles in degrees are \Verb!cosd!, \Verb!sind!, and \Verb!tand!.
