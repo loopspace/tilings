@@ -191,6 +191,7 @@ and the derived files            penrose.ins
 %    \begin{macrocode}
 \ProvidesFile{tikzlibrarypenrose.code.tex}[v1.2]
 \RequirePackage{spath3}
+\usetikzlibrary{spath3}
 %    \end{macrocode}
 % Now we move in to the realm of \LaTeX3.
 %    \begin{macrocode}
@@ -198,38 +199,33 @@ and the derived files            penrose.ins
 %    \end{macrocode}
 %
 % Start with some basic paths (lines) for the sides of the tiles so that we know that we have well-defined tiles at the outset.
+% These are globally defined as we will frequently want to define them in one tikzpicture and use them in another.
 %
 %    \begin{macrocode}
-\spath_clear_new:n {Penrose path a}
-\spath_put:nnn {Penrose path a} {path}
+\tl_new:N \g_@@_side_a_tl
+\tl_new:N \g_@@_side_b_tl
+\tl_new:N \g_@@_side_c_tl
+\tl_new:N \g_@@_side_d_tl
+\tl_new:N \g_@@_side_e_tl
+\tl_new:N \g_@@_side_A_tl
+\tl_new:N \g_@@_side_B_tl
+\tl_new:N \g_@@_side_C_tl
+\tl_new:N \g_@@_side_D_tl
+\tl_new:N \g_@@_side_E_tl
+\tl_set:Nn \g_@@_side_a_tl
 {
   \pgfsyssoftpath@movetotoken{0pt}{0pt}
   \pgfsyssoftpath@linetotoken{1pt}{0pt}
 }
-\spath_generate_all:n {Penrose path a}
-%    \end{macrocode}
-%
-% \begin{macro}[internal]{\@@_clone_side:nn}
-% Clone the path for one side to another.
-%    \begin{macrocode}
-\cs_new_protected_nopar:Npn \@@_clone_side:nn #1#2
-{
-  \spath_clone:nn {Penrose path #1} {Penrose path #2}
-}
-%    \end{macrocode}
-% \end{macro}
-%
-% Now we initialise a whole load of sides.
-%    \begin{macrocode}
-\@@_clone_side:nn {a}{b}
-\@@_clone_side:nn {a}{c}
-\@@_clone_side:nn {a}{d}
-\@@_clone_side:nn {a}{e}
-\@@_clone_side:nn {a}{A}
-\@@_clone_side:nn {a}{B}
-\@@_clone_side:nn {a}{C}
-\@@_clone_side:nn {a}{D}
-\@@_clone_side:nn {a}{E}
+\tl_set_eq:NN \g_@@_side_b_tl \g_@@_side_a_tl
+\tl_set_eq:NN \g_@@_side_c_tl \g_@@_side_a_tl
+\tl_set_eq:NN \g_@@_side_d_tl \g_@@_side_a_tl
+\tl_set_eq:NN \g_@@_side_e_tl \g_@@_side_a_tl
+\tl_set_eq:NN \g_@@_side_A_tl \g_@@_side_a_tl
+\tl_set_eq:NN \g_@@_side_B_tl \g_@@_side_a_tl
+\tl_set_eq:NN \g_@@_side_C_tl \g_@@_side_a_tl
+\tl_set_eq:NN \g_@@_side_D_tl \g_@@_side_a_tl
+\tl_set_eq:NN \g_@@_side_E_tl \g_@@_side_a_tl
 %    \end{macrocode}
 %
 % \begin{variable}{\l_@@_tmpa_fp, \l_@@_tmpb_fp, \l_@@_tmpc_fp, \l_@@_tmpa_tl, \l_@@_tmpb_tl, \l_@@_tmpc_tl, \l_@@_tmpd_tl, \l_@@_tmpa_int, \l_@@_tmpb_int, \l_@@_xa_dim, \l_@@_ya_dim, \l_@@_xb_dim, \l_@@_yb_dim, \l_@@_tmpa_prop}
@@ -243,6 +239,8 @@ and the derived files            penrose.ins
 \tl_new:N \l_@@_tmpb_tl
 \tl_new:N \l_@@_tmpc_tl
 \tl_new:N \l_@@_tmpd_tl
+\tl_new:N \l_@@_tmp_tile_path_tl
+\tl_new:N \g_@@_smuggle_tl
 \int_new:N \l_@@_tmpa_int
 \int_new:N \l_@@_tmpb_int
 \dim_new:N \l_@@_xa_dim
@@ -255,15 +253,16 @@ and the derived files            penrose.ins
 %
 % \subsection{Creating the Tiles}
 %
-% \begin{macro}[internal]{\@@_normalise_path:n}
+% \begin{macro}[internal]{\@@_normalise_path:Nn}
 % When defining the path for a side, we normalise so that it starts at the origin and ends at \Verb+(1pt,0pt)+.
 %    \begin{macrocode}
-\cs_new_nopar:Npn \@@_normalise_path:n #1
+\cs_new_nopar:Npn \@@_normalise_path:Nn #1#2
 {
 %    \end{macrocode}
 % Get the initial point of the path and convert to floating point.
 %    \begin{macrocode}
-  \spath_get:nnN {#1} {initial point} \l_@@_tmpa_tl
+  \group_begin:
+  \spath_initialpoint:Nn \l_@@_tmpa_tl {#2}
   \fp_set:Nn \l_@@_tmpa_fp {\tl_head:N \l_@@_tmpa_tl}
   \tl_set:Nx \l_@@_tmpa_tl {\tl_tail:N \l_@@_tmpa_tl}
   \fp_set:Nn \l_@@_tmpb_fp {\tl_head:N \l_@@_tmpa_tl}
@@ -279,7 +278,7 @@ and the derived files            penrose.ins
 % \]
 %
 %    \begin{macrocode}
-  \spath_get:nnN {#1} {final point} \l_@@_tmpa_tl
+  \spath_finalpoint:Nn \l_@@_tmpa_tl {#2}
   \fp_set:Nn \l_@@_tmpa_fp
   {\tl_head:N \l_@@_tmpa_tl - \l_@@_tmpa_fp}
   \tl_set:Nx \l_@@_tmpa_tl {\tl_tail:N \l_@@_tmpa_tl}
@@ -299,14 +298,14 @@ and the derived files            penrose.ins
   \tl_set:Nx \l_@@_tmpb_tl
   {
     {\fp_use:N \l_@@_tmpa_fp}
-    {\fp_use:N \l_@@_tmpb_fp}
-    {\fp_use:N \l_@@_tmpc_fp}
+    {\fp_use:N \l_@@_tmpc_fp} % swapped
+    {\fp_use:N \l_@@_tmpb_fp} % swapped
     {\fp_use:N \l_@@_tmpa_fp}
   }
 %    \end{macrocode}
 % Get the initial point back again for the translation part.
 %    \begin{macrocode}
-  \spath_get:nnN {#1} {initial point} \l_@@_tmpa_tl
+  \spath_initialpoint:Nn \l_@@_tmpa_tl {#2}
 %    \end{macrocode}
 % But we need to premultiply by the matrix because of how the transformations are applied.
 %    \begin{macrocode}
@@ -327,8 +326,18 @@ and the derived files            penrose.ins
     {\fp_to_dim:N \l_@@_tmpa_fp}
     {\fp_to_dim:N \l_@@_tmpb_fp}
   }
-  \spath_transform:nV {#1} \l_@@_tmpb_tl
+  \spath_transform:NnV \l_@@_tmpa_tl {#2} \l_@@_tmpb_tl
+  \tl_gset_eq:NN \g_@@_smuggle_tl \l_@@_tmpa_tl
+  \group_end:
+  \tl_set_eq:NN #1 \g_@@_smuggle_tl
+  \tl_gclear:N \g_@@_smuggle_tl
 }
+\cs_generate_variant:Nn \@@_normalise_path:Nn {NV, cn, cV}
+\cs_new_protected_nopar:Npn \@@_normalise_path:N #1
+{
+  \@@_normalise_path:NV #1#1
+}
+\cs_generate_variant:Nn \@@_normalise_path:N {c}
 %    \end{macrocode}
 % \end{macro}
 %
@@ -338,10 +347,8 @@ and the derived files            penrose.ins
 \NewDocumentCommand \SetPenrosePath { m }
 {
   \pgfsyssoftpath@getcurrentpath\l_@@_tmpa_tl
-  \spath_gclear_new:n {Penrose path #1}
-  \spath_gput:nnV {Penrose path #1} {path} \l_@@_tmpa_tl
-  \@@_normalise_path:n {Penrose path #1}
-  \spath_globalise:n {Penrose path #1}
+  \@@_normalise_path:N \l_@@_tmpa_tl
+  \tl_gset_eq:cN {g_@@_side_#1_tl} \l_@@_tmpa_tl
 }
 %    \end{macrocode}
 % \end{function}
@@ -366,6 +373,7 @@ and the derived files            penrose.ins
 %    \end{macrocode}
 % Get the first coordinate and initialise the path with a move to this point.
 %    \begin{macrocode}
+  \group_begin:
   \tl_set:Nn \l_@@_tmpa_tl {#3}
   \tl_set:Nx \l_@@_tmpb_tl {\tl_head:N \l_@@_tmpa_tl}
   \tl_set:Nn \l_@@_tmpa_tl {\pgfsyssoftpath@movetotoken}
@@ -374,8 +382,7 @@ and the derived files            penrose.ins
   {
     {\dim_use:N \pgf@x}{\dim_use:N \pgf@y}
   }
-  \spath_gclear_new:n {Penrose path tile #1}
-  \spath_gput:nnV {Penrose path tile #1} {path} \l_@@_tmpa_tl
+  \tl_set_eq:NN \l_@@_tmp_tile_path_tl \l_@@_tmpa_tl
 %    \end{macrocode}
 % Now we have our path initialised, we can start appending the side paths according to the specification in the second argument.
 %
@@ -391,8 +398,7 @@ and the derived files            penrose.ins
 % Clone the path for this side.
 %    \begin{macrocode}
     \tl_set:Nx \l_@@_tmpc_tl {\tl_head:n {##1}}
-    \spath_gclone:nn {Penrose path \tl_use:N \l_@@_tmpc_tl}
-    {Penrose path tmpa}
+    \tl_set_eq:Nc \l_@@_tmpd_tl {g_@@_side_ \tl_use:N \l_@@_tmpc_tl _tl}
 %    \end{macrocode}
 % Strip off the next coordinate, and convert it to a point.
 %    \begin{macrocode}
@@ -421,8 +427,8 @@ and the derived files            penrose.ins
     \tl_set:Nx \l_@@_tmpb_tl
     {
       {\fp_use:N \l_@@_tmpa_fp}
-      {\fp_use:N \l_@@_tmpc_fp}
-      {\fp_use:N \l_@@_tmpb_fp}
+      {\fp_use:N \l_@@_tmpb_fp} % not swapped
+      {\fp_use:N \l_@@_tmpc_fp} % not swapped
       {\fp_use:N \l_@@_tmpa_fp}
       {0}
       {0}
@@ -430,17 +436,20 @@ and the derived files            penrose.ins
 %    \end{macrocode}
 % The transformation is applied to the cloned path.
 %    \begin{macrocode}
-    \spath_transform:nV {Penrose path tmpa} \l_@@_tmpb_tl
+    \spath_transform:NV \l_@@_tmpd_tl \l_@@_tmpb_tl
 %    \end{macrocode}
 % And this is welded to the tile path.
 %    \begin{macrocode}
-    \spath_weld:nn {Penrose path tile #1} {Penrose path tmpa}
+    \spath_weld:NV \l_@@_tmp_tile_path_tl \l_@@_tmpd_tl
   }
 %    \end{macrocode}
 % At the end we close the path.
 %    \begin{macrocode}
-  \spath_close_path:n {Penrose path tile #1}
-  \spath_globalise:n {Penrose path tile #1}
+  \spath_close:N \l_@@_tmp_tile_path_tl
+  \tl_gset_eq:NN \g_@@_smuggle_tl \l_@@_tmp_tile_path_tl
+  \group_end:
+  \tl_gset_eq:cN {g_@@_tile_#1_tl} \g_@@_smuggle_tl
+  \tl_gclear:N \g_@@_smuggle_tl
 }
 %    \end{macrocode}
 % \end{macro}
@@ -680,32 +689,31 @@ and the derived files            penrose.ins
 % We need to transform the tile to correspond to the current transformation matrix.
 % To ensure that we only transform the current tile, we clone it first.
 %    \begin{macrocode}
-  \spath_clone:nn {Penrose path tile #2} {Penrose path tmpa}
+  \tl_set_eq:Nc \l_@@_tmp_tile_path_tl {g_@@_tile_#2_tl}
 %    \end{macrocode}
 % The transformation matrix returned by PGF appears to be transposed from what it should be.
 % (This needs a little more investigation, it might be that I've implemented the multiplication incorrectly here.)
 %    \begin{macrocode}
   \pgfgettransform \l_@@_tmpa_tl
-  \tl_clear:N \l_@@_tmpb_tl
-  \tl_set:Nx \l_@@_tmpb_tl {{\tl_head:N \l_@@_tmpa_tl}}
-  \tl_set:Nx \l_@@_tmpa_tl {\tl_tail:N \l_@@_tmpa_tl}
-  \tl_put_right:Nx \l_@@_tmpb_tl
-  {
-    {\tl_item:Nn \l_@@_tmpa_tl {2}}
-  }
-  \tl_put_right:Nx \l_@@_tmpb_tl
-  {
-    {\tl_item:Nn \l_@@_tmpa_tl {1}}
-  }
-  \tl_set:Nx \l_@@_tmpa_tl {\tl_tail:N \l_@@_tmpa_tl}
-  \tl_set:Nx \l_@@_tmpa_tl {\tl_tail:N \l_@@_tmpa_tl}
-  \tl_put_right:NV \l_@@_tmpb_tl \l_@@_tmpa_tl
+%  \tl_clear:N \l_@@_tmpb_tl
+%  \tl_set:Nx \l_@@_tmpb_tl {{\tl_head:N \l_@@_tmpa_tl}}
+%  \tl_set:Nx \l_@@_tmpa_tl {\tl_tail:N \l_@@_tmpa_tl}
+%  \tl_put_right:Nx \l_@@_tmpb_tl
+%  {
+%    {\tl_item:Nn \l_@@_tmpa_tl {1}}
+%  }
+%  \tl_put_right:Nx \l_@@_tmpb_tl
+%  {
+%    {\tl_item:Nn \l_@@_tmpa_tl {2}}
+%  }
+%  \tl_set:Nx \l_@@_tmpa_tl {\tl_tail:N \l_@@_tmpa_tl}
+%  \tl_set:Nx \l_@@_tmpa_tl {\tl_tail:N \l_@@_tmpa_tl}
+%  \tl_put_right:NV \l_@@_tmpb_tl \l_@@_tmpa_tl
 %    \end{macrocode}
 % Apply the transformation, protocol the path, and render it.
 %    \begin{macrocode}
-  \spath_transform:nV {Penrose path tmpa} \l_@@_tmpb_tl
-  \spath_protocol_path:n {Penrose path tmpa}
-  \spath_tikz_path:nn {#1}{Penrose path tmpa}
+  \spath_transform:NV \l_@@_tmp_tile_path_tl \l_@@_tmpa_tl
+  \spath_tikz_path:nV {#1} \l_@@_tmp_tile_path_tl
 }
 %    \end{macrocode}
 % \end{function}
@@ -722,36 +730,32 @@ and the derived files            penrose.ins
 %    \begin{macrocode}
       \pgfsyssoftpath@getcurrentpath\l_@@_tmpa_tl
 %    \end{macrocode}
-% Clear the receiving path, and store the current path in it.
+% Normalise the path and save.
 %    \begin{macrocode}
-      \spath_gclear_new:n {Penrose path #1}
-      \spath_gput:nnV {Penrose path #1} {path} \l_@@_tmpa_tl
-%    \end{macrocode}
-% Normalise the path.
-%    \begin{macrocode}
-      \@@_normalise_path:n {Penrose path #1}
+      \@@_normalise_path:N \l_@@_tmpa_tl
+      \tl_gset_eq:cN {g_@@_side_#1_tl} \l_@@_tmpa_tl
 %    \end{macrocode}
 % Now create the reverse path.
 % The name is the upper case version.
 %    \begin{macrocode}
-      \tex_uppercase:D {\tl_set:Nx \l_@@_tmpa_tl {#1}}
+      \tex_uppercase:D {\tl_set:Nx \l_@@_tmpb_tl {#1}}
 %    \end{macrocode}
-% Clone the path.
+% Reverse the path, and relocate to the interval \([0,1]\).
 %    \begin{macrocode}
-      \spath_gclone:nn {Penrose path #1}
-      {Penrose path \tl_use:N \l_@@_tmpa_tl }
-%    \end{macrocode}
-% Reverse it.
-%    \begin{macrocode}
-      \spath_reverse:n {Penrose path \tl_use:N \l_@@_tmpa_tl}
-%    \end{macrocode}
-% Swap the start and end.
-%    \begin{macrocode}
-      \spath_transform:nnnnnnn {Penrose path \tl_use:N \l_@@_tmpa_tl}
-      {-1} {0} {0} {-1} {1} {0}
-      \spath_globalise:n {Penrose path #1}
-      \spath_globalise:n {Penrose path \tl_use:N \l_@@_tmpa_tl}
+      \spath_reverse:N \l_@@_tmpa_tl
+      \spath_transform:Nnnnnnn \l_@@_tmpa_tl {-1} {0} {0} {-1} {1} {0}
+      \tl_gset_eq:cN {g_@@_side_ \tl_use:N \l_@@_tmpb_tl _tl} \l_@@_tmpa_tl
     }
+  },
+  clone~ Penrose~ tile~ path/.style~ 2~ args={
+    spath/set~ name=Penrose,
+    spath/clone={#1}{#2}
+  },
+  spath/prefix/Penrose/.style={
+    spath/set~ prefix=g_@@_side_,
+  },
+  spath/suffix/Penrose/.style={
+    spath/set~ suffix=_tl,
   },
   expand~ key/.code={
     \exp_args:NV \pgfkeysalso #1
