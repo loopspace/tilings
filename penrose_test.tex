@@ -2,6 +2,10 @@
 \immediate\write18{tex penrose_code.dtx}
 \immediate\write18{cd ../spath3-git; tex spath3_code.dtx}
 \documentclass{article}
+\RequirePackage[enable-debug]{expl3}
+\ExplSyntaxOn
+\debug_on:n {check-declarations, deprecation}
+\ExplSyntaxOff
 
 \usepackage[svgnames]{xcolor}
 \usepackage{tikz}
@@ -68,11 +72,15 @@
 \foreach[count=\k] \pth in {a,b,c,d,e}
 {
   \node[left] at (0, \k) {\pth};
-  \draw[spath/set name=Penrose, spath/transform={\pth}{yshift=\k cm, scale=1cm/1pt}, spath/restore=\pth];
+  \draw[spath/set name=Penrose, spath/transform global={\pth}{yshift=\k cm, scale=1cm/1pt}, spath/restore=\pth];
 }
 \foreach[count=\k] \pth in {A,B,C,D,E}
 {
-  \draw[spath/set name=Penrose, spath/transform={\pth}{yshift=\k cm, xshift= 1cm, scale=1cm/1pt}, spath/restore=\pth];
+  \draw[
+    spath/set name=Penrose,
+    spath/transform global={\pth}{yshift=\k cm, xshift= 1cm, scale=1cm/1pt},
+    spath/restore=\pth
+  ];
 }
 \end{tikzpicture}
 
