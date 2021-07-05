@@ -6,15 +6,21 @@
 \usepackage{morefloats}
 \usepackage[svgnames]{xcolor}
 \usepackage{tikz}
-\usetikzlibrary{penrose,external}
+\usetikzlibrary{penrose}
 \usepackage[numbered]{hypdoc}
 \definecolor{lstbgcolor}{rgb}{0.9,0.9,0.9} 
  
 \usepackage{listings}
 \lstloadlanguages{[LaTeX]TeX}
-\lstset{breakatwhitespace=true,breaklines=true,language=TeX}
+\lstset{
+  breakatwhitespace=true,
+  breaklines=true,
+  language=[LaTeX]TeX,
+  basicstyle=\small\ttfamily,
+  keepspaces=true,
+  columns=fullflexible
+}
 
-\tikzexternalize
 \usepackage{fancyvrb}
 
 \newenvironment{example}
@@ -24,7 +30,6 @@
    \begin{center}
    \setlength{\parindent}{0pt}
    \fbox{\begin{minipage}{.9\linewidth}
-     \lstset{breakatwhitespace=true,breaklines=true,language=TeX,basicstyle=\small}
      \lstinputlisting[]{example.out}
    \end{minipage}}
 
@@ -42,7 +47,6 @@
    \begin{center}
    \setlength{\parindent}{0pt}
    \fbox{\begin{minipage}{.9\linewidth}
-     \lstset{breakatwhitespace=true,breaklines=true,language=TeX,basicstyle=\small}
      \lstinputlisting[]{example.out}
    \end{minipage}}
 \end{center}
@@ -74,10 +78,11 @@
 \makeatother
 
 \providecommand*{\url}{\texttt}
+\GetFileInfo{tikzlibrarypenrose.code.tex}
 
 \title{The \textsf{Penrose} Package: Documentation}
 \author{Andrew Stacey\texorpdfstring{\\ \url{loopspace@mathforge.org}}{}}
-\date{1.2~from 2019/02/23}
+ \date{\fileversion~from \filedate}
 
 \begin{document}
 \maketitle
@@ -151,7 +156,7 @@ If the shortcut keys are used to specify the tiles, this can be put in the \Verb
 
 TikZ \Verb+pic+s can be named, using the \Verb+name=<name>+ key.
 When a Penrose tile has been named then it can be used for positioning other tiles.
-Each edge is assigned a label from \Verb+a b c A B C+ and a new tile can be aligned with an old one along a matching edge (\Verb+a+ matches with \Verb+A+ and so on).
+Each edge is assigned a label from \Verb+a b c d e A B C D E+ and a new tile can be aligned with an old one along a matching edge (\Verb+a+ matches with \Verb+A+ and so on).
 
 The edge labels are as follows.
 For the \Verb+pentagon 5+, for example, the edges are all the same and the numbers are used to distinguish between them.
@@ -276,7 +281,7 @@ In practical terms, this means that if drawn then the line width is half that wh
 There is a way to specify a Penrose tiling using \emph{Lindenmayer systems}.
 In brief, this takes a golden triangle or gnomon (or one of the reverse ones) and repeatedly decomposes it into smaller triangles and gnomon.
 Once a desired level has been reached, the resulting triangles and gnomon are glued together in pairs to create either darts and kites or rhombuses (of both types).
-This library contains an implementation of this both for each of the tilings.
+This library contains an implementation of this for each of the tilings.
 
 The user command is:
 %
@@ -354,7 +359,7 @@ Indeed, by using asymmetric paths, the matching rules can be enforced without th
 
 Internally, the \Verb+penrose+ library uses the \Verb+spath3+ package for storing and manipulating the paths.
 
-To create a new edge path, use the key \Verb+save Penrose path=<edge>+ where \Verb+<edge>+ is one of \Verb+a+, \Verb+b+, \Verb+c+, or \Verb+d+.
+To create a new edge path, use the key \Verb+save Penrose path=<edge>+ where \Verb+<edge>+ is a symbol used in the edge description of a tile.
 There are no constraints on the size of the path as all paths are scaled and transformed to fit the tiles.
 Once the edge paths have been specified, they are welded together into the tiles using the following command:
 %
@@ -364,11 +369,11 @@ Once the edge paths have been specified, they are welded together into the tiles
 %
 Here, \Verb+<name>+ is one of the names of the tiles.
 This has global effect, as does the definition of the edge paths.
-Internally, the tile paths are stored as \Verb+spath+ objects (from the \Verb+spath3+ package) so the commands of that package can be used to, for example, make a copy of a tile.
-The internal name for a tile path is \Verb+Penrosepathtile<name>+ (no spaces) so can be cloned via:
+Paths, both sides and tiles, can be cloned via:
 %
 \begin{verbatim}
-\CloneSPath{Penrosepathtile<name>}{My Amazing Penrose Tile}
+\tikzset{clone Penrose side path={target}{source}
+\tikzset{clone Penrose tile path={target}{source}
 \end{verbatim}
 %
 and restored with the same command (but names switched).
@@ -381,8 +386,8 @@ That command is still available for backwards compatibility.
 \pic[draw,dart,name=dart];
 \pic[draw,kite,align with=dart along c];
 \pic[draw,kite,align with=dart along C];
-\CloneSPath{Penrosepathtilekite}{Original kite}
-\CloneSPath{Penrosepathtiledart}{Original dart}
+\tikzset{clone Penrose tile path={original kite}{kite}}
+\tikzset{clone Penrose tile path={original dart}{dart}}
 \path[save Penrose path=a] (0,0) to[out=-30,in=100] (1,0);
 \path[save Penrose path=c] (0,0) to[out=-40,in=140] (1,0);
 \BakePenroseTile{kite}
@@ -390,8 +395,8 @@ That command is still available for backwards compatibility.
 \pic[xshift=2cm,draw,dart,name=dart];
 \pic[draw,kite,align with=dart along c];
 \pic[draw,kite,align with=dart along C];
-\CloneSPath{Original kite}{Penrosepathtilekite}
-\CloneSPath{Original dart}{Penrosepathtiledart}
+\tikzset{clone Penrose tile path={kite}{original kite}}
+\tikzset{clone Penrose tile path={dart}{original dart}}
 \pic[xshift=4cm,draw,dart,name=dart];
 \pic[draw,kite,align with=dart along c];
 \pic[draw,kite,align with=dart along C];
@@ -439,6 +444,7 @@ The new tile can be used with all the same features as the pre-defined Penrose t
   {1,1}
   {0,1}
 }
+
 \begin{tikzpicture}
 \path[save Penrose path=a] (0,0) to[out=45,in=135] (1,0);
 \BakePenroseTile{square}
