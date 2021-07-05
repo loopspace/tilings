@@ -140,6 +140,7 @@ and the derived files            penrose.ins
 %
 % \changes{1.0}{2014/05/07}{Converted to DTX file}
 % \changes{1.2}{2019/02/23}{Added general tile creation code}
+% \changes{1.4}{2021/01/22}{Adapted to latest version of spath3}
 %
 % \DoNotIndex
 %   {
@@ -150,10 +151,12 @@ and the derived files            penrose.ins
 %     \endcsname,
 %   }%
 %
+%
 % \providecommand*{\url}{\texttt}
+% \GetFileInfo{tikzlibrarypenrose.code.tex}
 % \title{The \textsf{Penrose} package}
 % \author{Andrew Stacey\texorpdfstring{\\ \url{loopspace@mathforge.org}}{}}
-% \date{1.2 from 2019/02/23}
+% \date{\fileversion~from \filedate}
 %
 %
 % \maketitle
@@ -189,7 +192,7 @@ and the derived files            penrose.ins
 % We use the \Verb+spath3+ library for manipulating the paths that will make up the tiles.
 %
 %    \begin{macrocode}
-\ProvidesFile{tikzlibrarypenrose.code.tex}[v1.2]
+\ProvidesExplFile {tikzlibrarypenrose.code.tex} {2021/01/22} {1.4} {TikZ pics for Penrose and other tiles}
 \RequirePackage{spath3}
 \usetikzlibrary{spath3}
 %    \end{macrocode}
@@ -235,6 +238,8 @@ and the derived files            penrose.ins
 \fp_new:N \l_@@_tmpa_fp
 \fp_new:N \l_@@_tmpb_fp
 \fp_new:N \l_@@_tmpc_fp
+\str_new:N \l_@@_tmpa_str
+\str_new:N \l_@@_tmpb_str
 \tl_new:N \l_@@_tmpa_tl
 \tl_new:N \l_@@_tmpb_tl
 \tl_new:N \l_@@_tmpc_tl
@@ -734,6 +739,7 @@ and the derived files            penrose.ins
 % Normalise the path and save.
 %    \begin{macrocode}
       \@@_normalise_path:N \l_@@_tmpa_tl
+      \tl_gclear_new:c {g_@@_side_#1_tl}
       \tl_gset_eq:cN {g_@@_side_#1_tl} \l_@@_tmpa_tl
 %    \end{macrocode}
 % Now create the reverse path.
@@ -745,17 +751,28 @@ and the derived files            penrose.ins
 %    \begin{macrocode}
       \spath_reverse:N \l_@@_tmpa_tl
       \spath_transform:Nnnnnnn \l_@@_tmpa_tl {-1} {0} {0} {-1} {1} {0}
+      \tl_gclear_new:c {g_@@_side_ \tl_use:N \l_@@_tmpb_tl _tl}
       \tl_gset_eq:cN {g_@@_side_ \tl_use:N \l_@@_tmpb_tl _tl} \l_@@_tmpa_tl
     }
   },
-  clone~ Penrose~ tile~ path/.style~ 2~ args={
-    spath/set~ name=Penrose,
-    spath/clone={#1}{#2}
+  clone~ Penrose~ side~ path/.style~ 2~ args={
+    spath/set~ name=Penrose~side,
+    spath/clone~ global={#1}{#2}
   },
-  spath/prefix/Penrose/.style={
+  spath/prefix/Penrose~side/.style={
     spath/set~ prefix=g_@@_side_,
   },
-  spath/suffix/Penrose/.style={
+  spath/suffix/Penrose~side/.style={
+    spath/set~ suffix=_tl,
+  },
+  clone~ Penrose~ tile~ path/.style~ 2~ args={
+    spath/set~ name=Penrose~tile,
+    spath/clone~ global={#1}{#2}
+  },
+  spath/prefix/Penrose~tile/.style={
+    spath/set~ prefix=g_@@_tile_,
+  },
+  spath/suffix/Penrose~tile/.style={
     spath/set~ suffix=_tl,
   },
   expand~ key/.code={
@@ -816,7 +833,7 @@ and the derived files            penrose.ins
 % Iterate through the path type list, looking for the requested path.
 %    \begin{macrocode}
   \tl_map_inline:Nn \l_@@_tmpc_tl {
-    \tl_if_eq:nnT {##1} {#2} {
+    \str_if_eq:nnT {##1} {#2} {
       \tl_map_break:
     }
     \int_incr:N \l_@@_tmpb_int
@@ -1025,7 +1042,7 @@ and the derived files            penrose.ins
 % We get the locations of the start and end of the receiving tile.
 % As \Verb+pic+ sets the node prefix, we have to temporarily suspend that (hence working in a group).
 %    \begin{macrocode}
-    \tikzset{name~ prefix~ ..}%
+      \tikzset{name~ prefix~ ..}%
       \tikz@scan@one@point\pgfutil@firstofone%
     (\prloc-edge~ \pgfkeysvalueof{/tikz/Penrose/alignment~ edge}~ start)%
     \global\pgf@xa=\pgf@x
@@ -1060,19 +1077,19 @@ and the derived files            penrose.ins
 %    \end{macrocode}
 % The next job is to shift and rotate the current tile so that the correct edge ends up against the receiving tile.
 %    \begin{macrocode}
-    \tl_set:Nx \l_@@_tmpa_tl
+    \str_set:Nx \l_@@_tmpa_str
     {\pgfkeysvalueof{/tikz/Penrose/alignment~ edge}}
-    \tl_set:Nx \l_@@_tmpa_tl {\tl_head:N \l_@@_tmpa_tl}
-    \tl_put_right:Nx \l_@@_tmpa_tl
+    \str_set:Nx \l_@@_tmpa_str {\str_head:N \l_@@_tmpa_str}
+    \str_put_right:Nx \l_@@_tmpa_str
     {\pgfkeysvalueof{/tikz/Penrose/alignment~ new~ edge}}
-    \tl_set:Nx \l_@@_tmpb_tl {\str_lowercase:f { \l_@@_tmpa_tl}}
-    \tl_if_eq:NNT \l_@@_tmpa_tl \l_@@_tmpb_tl
+    \str_set:Nx \l_@@_tmpb_str {\str_lowercase:f { \l_@@_tmpa_str}}
+    \str_if_eq:NNT \l_@@_tmpa_str \l_@@_tmpb_str
     {
-      \tl_set:Nx \l_@@_tmpb_tl
-      {\str_uppercase:f { \l_@@_tmpa_tl}}
+      \str_set:Nx \l_@@_tmpb_str
+      {\str_uppercase:f { \l_@@_tmpa_str}}
     }
 
-    \@@_transform_side:nV {#1} \l_@@_tmpb_tl
+    \@@_transform_side:nV {#1} \l_@@_tmpb_str
     \fi
 %    \end{macrocode}
 % Now that the transformation is finalised, we can render the tile.
