@@ -34,7 +34,7 @@ See http://www.latex-project.org/lppl.txt
 \endpreamble
 \postamble
 
-Copyright (C) 2014-2019 by Andrew Stacey <loopspace@mathforge.org>
+Copyright (C) 2014-2022 by Andrew Stacey <loopspace@mathforge.org>
 
 This work may be distributed and/or modified under the
 conditions of the LaTeX Project Public License (LPPL), either
@@ -229,9 +229,12 @@ and the derived files            penrose.ins
 \tl_gset_eq:NN \g_@@_side_C_tl \g_@@_side_a_tl
 \tl_gset_eq:NN \g_@@_side_D_tl \g_@@_side_a_tl
 \tl_gset_eq:NN \g_@@_side_E_tl \g_@@_side_a_tl
+\tl_gset_eq:cN {g_@@_side_1_tl} \g_@@_side_a_tl
+\tl_gset_eq:cN {g_@@_side_2_tl} \g_@@_side_a_tl
+\tl_gset_eq:cN {g_@@_side_3_tl} \g_@@_side_a_tl
 %    \end{macrocode}
 %
-% \begin{variable}{\l_@@_tmpa_fp, \l_@@_tmpb_fp, \l_@@_tmpc_fp, \l_@@_tmpa_tl, \l_@@_tmpb_tl, \l_@@_tmpc_tl, \l_@@_tmpd_tl, \l_@@_tmpa_int, \l_@@_tmpb_int, \l_@@_xa_dim, \l_@@_ya_dim, \l_@@_xb_dim, \l_@@_yb_dim, \l_@@_tmpa_prop}
+% \begin{variable}{\l_@@_tmpa_fp, \l_@@_tmpb_fp, \l_@@_tmpc_fp, \l_@@_tmpa_tl, \l_@@_tmpb_tl, \l_@@_tmpc_tl, \l_@@_tmpd_tl, \l_@@_tmpa_int, \l_@@_tmpb_int, \l_@@_xa_dim, \l_@@_ya_dim, \l_@@_xb_dim, \l_@@_yb_dim, \l_@@_tmpa_prop, \l_@@_cw_bool}
 % We need a few temporary variables to hold intermediate calculations.
 %
 %    \begin{macrocode}
@@ -253,6 +256,7 @@ and the derived files            penrose.ins
 \dim_new:N \l_@@_xb_dim
 \dim_new:N \l_@@_yb_dim
 \prop_new:N \l_@@_tmpa_prop
+\bool_new:N \l_@@_cw_bool
 %    \end{macrocode}
 % \end{variable}
 %
@@ -806,16 +810,16 @@ and the derived files            penrose.ins
 % The commands in this section are for enabling a user to define their own tile.
 %
 %
-% \begin{macro}[internal]{\@@_transform_side:nn}
+% \begin{macro}[internal]{\@@_transform_side:Nnn}
 % Apply a transformation to make a given side lie on the x-axis.
-% First argument is the tile, second is the side.
+% Second argument is the tile, third is the side, first is whether to reverse the side.
 %    \begin{macrocode}
-\cs_new_nopar:Npn \@@_transform_side:nn #1#2
+\cs_new_nopar:Npn \@@_transform_side:Nnn #1#2#3
 {
 %    \end{macrocode}
 % Get our tile data.
 %    \begin{macrocode}
-  \prop_get:NnN \g_@@_tiles_prop {#1} \l_@@_tmpa_tl
+  \prop_get:NnN \g_@@_tiles_prop {#2} \l_@@_tmpa_tl
 %    \end{macrocode}
 % Start with the edge list.
 %
@@ -833,7 +837,7 @@ and the derived files            penrose.ins
 % Iterate through the path type list, looking for the requested path.
 %    \begin{macrocode}
   \tl_map_inline:Nn \l_@@_tmpc_tl {
-    \str_if_eq:nnT {##1} {#2} {
+    \str_if_eq:nnT {##1} {#3} {
       \tl_map_break:
     }
     \int_incr:N \l_@@_tmpb_int
@@ -858,6 +862,15 @@ and the derived files            penrose.ins
   {\tl_item:Nn \l_@@_tmpc_tl {\int_use:N \l_@@_tmpb_int}}
   \tl_set:Nx \l_@@_tmpb_tl
   {\tl_item:Nn \l_@@_tmpc_tl {\int_use:N \l_@@_tmpb_int + 1}}
+%    \end{macrocode}
+% Possibly swap the ends.
+%    \begin{macrocode}
+  \bool_if:NT #1
+  {
+    \tl_set:NV \l_@@_tmpc_tl \l_@@_tmpa_tl
+    \tl_set:NV \l_@@_tmpa_tl \l_@@_tmpb_tl
+    \tl_set:NV \l_@@_tmpb_tl \l_@@_tmpc_tl
+  }
 %    \end{macrocode}
 % Translate second to origin.
 %    \begin{macrocode}
@@ -895,15 +908,25 @@ and the derived files            penrose.ins
 %
 %    \begin{macrocode}
 \cs_generate_variant:Nn \tl_if_eq:nnT {nVT}
-\cs_generate_variant:Nn \@@_transform_side:nn {nx,nV}
+\cs_generate_variant:Nn \@@_transform_side:Nnn {Nnx,NnV}
 %    \end{macrocode}
 %
 % \begin{macro}[internal]{\TransformAlongSide}
 % Make this available outside the \LaTeX3 environment.
 %    \begin{macrocode}
-\DeclareDocumentCommand \TransformAlongSide {m m}
+\DeclareDocumentCommand \TransformAlongSide {s m m}
 {
-  \@@_transform_side:nx {#1}{#2}
+%    \end{macrocode}
+% Store the star
+%    \begin{macrocode}
+  \IfBooleanTF {#1}
+  {
+    \bool_set_true:N \l_@@_cw_bool
+  }
+  {
+    \bool_set_false:N \l_@@_cw_bool
+  }
+  \@@_transform_side:Nnx \l_@@_cw_bool {#1}{#2}
 }
 %    \end{macrocode}
 % \end{macro}
@@ -974,7 +997,7 @@ and the derived files            penrose.ins
 % \begin{function}{\DefineTile}
 % This is the user function for defining a tile.
 %    \begin{macrocode}
-\DeclareDocumentCommand \DefineTile { m m m }
+\DeclareDocumentCommand \DefineTile { s m m m }
 {
 %    \end{macrocode}
 % Clear the temporary variable.
@@ -983,14 +1006,14 @@ and the derived files            penrose.ins
 %    \end{macrocode}
 % The 3rd parameter is a list of coordinates at vertices, iterate through them and add them to the list.
 %    \begin{macrocode}  
-  \tl_map_inline:nn {#3} {
+  \tl_map_inline:nn {#4} {
     \@@_add_coordinate:w \l_@@_tmpa_tl ##1 \q_stop
   }
 %    \end{macrocode}
 % Now we make a list of the edge types (from the 2nd parameter), using a prop to keep track of whether an edge is repeated.
 %    \begin{macrocode}
   \prop_clear:N \l_@@_tmpa_prop
-  \tl_map_inline:nn {#2} {
+  \tl_map_inline:nn {#3} {
     \prop_if_in:NnTF \l_@@_tmpa_prop {##1}
     {
       \prop_put:Nnn \l_@@_tmpa_prop {##1} {1}
@@ -1003,7 +1026,7 @@ and the derived files            penrose.ins
 % Having established their multiplicity, we now create the edges with their names, appending numbers to their names if used more than once.
 %    \begin{macrocode}
   \tl_clear:N \l_@@_tmpb_tl
-  \tl_map_inline:nn {#2}
+  \tl_map_inline:nn {#3}
   {
     \tl_clear:N \l_@@_tmpc_tl
     \tl_put_right:Nn \l_@@_tmpc_tl {##1}
@@ -1018,13 +1041,13 @@ and the derived files            penrose.ins
 %    \end{macrocode}
 % Finally, we can create our tile and add it to the global tile prop.
 %    \begin{macrocode}
-  \prop_gput:Nnx \g_@@_tiles_prop {#1}
+  \prop_gput:Nnx \g_@@_tiles_prop {#2}
   {{\tl_use:N \l_@@_tmpb_tl} {\tl_use:N \l_@@_tmpa_tl}}
 %    \end{macrocode}
 % Having created the tile, we make a TikZ pic to place it on the page.
 %    \begin{macrocode}
   \tikzset{
-    #1/.pic={
+    #2/.pic={
       \begin{scope}
 %    \end{macrocode}
 % Were we given a tile to align ourselves against?
@@ -1089,7 +1112,14 @@ and the derived files            penrose.ins
       {\str_uppercase:f { \l_@@_tmpa_str}}
     }
 
-    \@@_transform_side:nV {#1} \l_@@_tmpb_str
+    \IfBooleanTF {#1}
+    {
+      \bool_set_true:N \l_@@_cw_bool
+    }
+    {
+      \bool_set_false:N \l_@@_cw_bool
+    }
+    \@@_transform_side:NnV \l_@@_cw_bool {#2} \l_@@_tmpb_str
     \fi
 %    \end{macrocode}
 % Now that the transformation is finalised, we can render the tile.
@@ -1099,29 +1129,72 @@ and the derived files            penrose.ins
 %    \begin{macrocode}
     \UsePenroseTile[
       every~ Penrose~ tile~ clip/.try,
-      every~ #1~ clip/.try
-    ]{#1}
+      every~ #2~ clip/.try
+    ]{#2}
     \UsePenroseTile[
       every~ Penrose~ tile/.try,
-      every~ #1/.try,
+      every~ #2/.try,
       pic~ actions
-    ]{#1}
+    ]{#2}
 % Lastly, we put coordinates at each vertex, labelled by which edge they are.
 %    \begin{macrocode}
-    \@@_coordinates_at_vertices:n {#1}
+    \@@_coordinates_at_vertices:n {#2}
     \end{scope}
     },
 %    \end{macrocode}
 % This is a shortcut for installing the \Verb+pic+ type.
 %    \begin{macrocode}
-  #1/.style={
+  #2/.style={
     every~ Penrose~ pic/.try,
-    pic~ type=#1,
+    pic~ type=#2,
     },
   }
 }
 %    \end{macrocode}
 % \end{function}
+%
+%
+% \begin{itemize}
+% \item Aperiodical Hat.
+%    \begin{macrocode}
+\DefineTile{right~ aperiodical~ hat}{1 2 2 2 2 1 1 2 2 1 1 2 2 1}
+{
+{ -1 , 0 }
+{ -1.75 , -sqrt(3)/4 }
+{ -1.5 , -sqrt(3)/2 }
+{ -1 , -sqrt(3)/2 }
+{ -.5 , -sqrt(3)/2 }
+{ -.25 , -sqrt(3)/4 }
+{  .5 , -sqrt(3)/2 }
+{ 1.25 , -sqrt(3)/4 }
+{ 1 , 0 }
+{ .5 , 0 }
+{ .5 , sqrt(3)/2 }
+{ -.25 , 3*sqrt(3)/4 }
+{ -.5 , sqrt(3)/2 }
+{ -1 , sqrt(3)/2 }
+}
+\DefineTile*{left~ aperiodical~ hat}{1 2 2 2 2 1 1 2 2 1 1 2 2 1}
+{
+{ 1 , 0 }
+{ 1.75 , -sqrt(3)/4 }
+{ 1.5 , -sqrt(3)/2 }
+{ 1 , -sqrt(3)/2 }
+{ .5 , -sqrt(3)/2 }
+{ .25 , -sqrt(3)/4 }
+{ -.5 , -sqrt(3)/2 }
+{ -1.25 , -sqrt(3)/4 }
+{ -1 , 0 }
+{ -.5 , 0 }
+{ -.5 , sqrt(3)/2 }
+{ .25 , 3*sqrt(3)/4 }
+{ .5 , sqrt(3)/2 }
+{ 1 , sqrt(3)/2 }
+}
+\BakePenroseTile{right~ aperiodical~ hat}
+\BakePenroseTile{left~ aperiodical~ hat}
+%    \end{macrocode}
+% \end{itemize}
 %
 %
 % \subsection{Lindenmayer System}
@@ -1936,6 +2009,7 @@ and the derived files            penrose.ins
 \pgfmathsetmacro\pr@invphisq{\pr@invphi*\pr@invphi}
 \pgfmathsetmacro\pr@ominvphisq{\pr@invphi - \pr@invphisq}
 \pgfmathsetmacro\pr@ominvphi{1 - \pr@invphi}
+\pgfmathsetmacro\pr@sqthree{sqrt(3)}
 %    \end{macrocode}
 %
 %    \begin{macrocode}
@@ -1977,7 +2051,7 @@ and the derived files            penrose.ins
 % For those, use \Verb+align with=<tile> along <edge> using <number>+. 
 %    \begin{macrocode}
   align with/.code args={#1 along #2}{%
-    \pgfutil@in@{ using }{#2}
+    \pgfutil@in@{ using }{#2}%
     \ifpgfutil@in@%
     \tikzset{
       Penrose/alignment location=#1,
@@ -1994,7 +2068,7 @@ and the derived files            penrose.ins
     \tikzset{
       Penrose/alignment edge=#1,
       Penrose/alignment new edge=#2
-    },
+    }%
   },
   Penrose/alignment location/.initial={},
   Penrose/alignment edge/.initial=a,
@@ -3114,6 +3188,7 @@ and the derived files            penrose.ins
     pic type=diamond,
   },
 }
+
 %    \end{macrocode}
 %
 %    \begin{macrocode}
