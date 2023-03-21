@@ -763,6 +763,12 @@ and the derived files            penrose.ins
     spath/set~ name=Penrose~side,
     spath/clone~ global={#1}{#2}
   },
+  flip~ Penrose~ tile/.code={
+    \tl_set:Nn \l_@@_tmpa_tl {#1}
+    \tl_set:Nn \l_@@_tmpb_tl {true}
+    \bool_set:Nn \l_@@_cw_bool {\tl_if_eq_p:NN \l_@@_tmpa_tl \l_@@_tmpb_tl}
+  },
+  flip~ Penrose~ tile/.default={true},
   spath/prefix/Penrose~side/.style={
     spath/set~ prefix=g_@@_side_,
   },
@@ -913,6 +919,7 @@ and the derived files            penrose.ins
 %
 % \begin{macro}[internal]{\TransformAlongSide}
 % Make this available outside the \LaTeX3 environment.
+% The starred version allows for reversing the side.
 %    \begin{macrocode}
 \DeclareDocumentCommand \TransformAlongSide {s m m}
 {
@@ -1112,12 +1119,13 @@ and the derived files            penrose.ins
       {\str_uppercase:f { \l_@@_tmpa_str}}
     }
 
-    \IfBooleanTF {#1}
+    \IfBooleanT {#1}
     {
-      \bool_set_true:N \l_@@_cw_bool
+      \bool_set:Nn \l_@@_cw_bool {!\l_@@_cw_bool}
     }
+    \bool_if:NT \l_@@_cw_bool
     {
-      \bool_set_false:N \l_@@_cw_bool
+      \pgftransformyscale {-1}
     }
     \@@_transform_side:NnV \l_@@_cw_bool {#2} \l_@@_tmpb_str
     \fi
@@ -1157,7 +1165,7 @@ and the derived files            penrose.ins
 % \begin{itemize}
 % \item Aperiodical Hat.
 %    \begin{macrocode}
-\DefineTile{right~ aperiodical~ hat}{1 2 2 2 2 1 1 2 2 1 1 2 2 1}
+\DefineTile{aperiodical~ hat}{1 2 2 2 2 1 1 2 2 1 1 2 2 1}
 {
 { -1 , 0 }
 { -1.75 , -sqrt(3)/4 }
@@ -1174,25 +1182,7 @@ and the derived files            penrose.ins
 { -.5 , sqrt(3)/2 }
 { -1 , sqrt(3)/2 }
 }
-\DefineTile*{left~ aperiodical~ hat}{1 2 2 2 2 1 1 2 2 1 1 2 2 1}
-{
-{ 1 , 0 }
-{ 1.75 , -sqrt(3)/4 }
-{ 1.5 , -sqrt(3)/2 }
-{ 1 , -sqrt(3)/2 }
-{ .5 , -sqrt(3)/2 }
-{ .25 , -sqrt(3)/4 }
-{ -.5 , -sqrt(3)/2 }
-{ -1.25 , -sqrt(3)/4 }
-{ -1 , 0 }
-{ -.5 , 0 }
-{ -.5 , sqrt(3)/2 }
-{ .25 , 3*sqrt(3)/4 }
-{ .5 , sqrt(3)/2 }
-{ 1 , sqrt(3)/2 }
-}
-\BakePenroseTile{right~ aperiodical~ hat}
-\BakePenroseTile{left~ aperiodical~ hat}
+\BakePenroseTile{aperiodical~ hat}
 %    \end{macrocode}
 % \end{itemize}
 %
