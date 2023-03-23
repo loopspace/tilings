@@ -4,7 +4,7 @@
 %</internal>
 %<*readme>
 ----------------------------------------------------------------
-penrose --- TikZ library for producing Penrose tilings
+penrose --- TikZ library for producing tiling patterns
 E-mail: loopspace@mathforge.org
 Released under the LaTeX Project Public License v1.3c or later
 See http://www.latex-project.org/lppl.txt
@@ -25,7 +25,7 @@ This package is for the creation of Penrose tilings using either kite-and-dart o
 \askforoverwritefalse
 \preamble
 ----------------------------------------------------------------
-penrose --- TikZ library for producing Penrose tilings
+tilings --- TikZ library for producing tilings
 E-mail: loopspace@mathforge.org
 Released under the LaTeX Project Public License v1.3c or later
 See http://www.latex-project.org/lppl.txt
@@ -34,7 +34,7 @@ See http://www.latex-project.org/lppl.txt
 \endpreamble
 \postamble
 
-Copyright (C) 2014-2022 by Andrew Stacey <loopspace@mathforge.org>
+Copyright (C) 2014-2023 by Andrew Stacey <loopspace@mathforge.org>
 
 This work may be distributed and/or modified under the
 conditions of the LaTeX Project Public License (LPPL), either
@@ -51,13 +51,17 @@ This work consists of the files  penrose_code.dtx
 and the derived files            penrose.ins
                                  penrose_code.pdf
                                  penrose.pdf
+                                 tikzlibrarytilings.code.tex
                                  tikzlibrarypenrose.code.tex
                                  README.txt
 
 \endpostamble
 \usedir{tex/latex/penrose}
 \generate{
-  \file{tikzlibrarypenrose.code.tex}{\from{\jobname.dtx}{package}}
+  \file{tikzlibrarytilings.code.tex}{\from{\jobname.dtx}{tilings}}
+}
+\generate{
+  \file{tikzlibrarypenrose.code.tex}{\from{\jobname.dtx}{penrose}}
 }
 %</install>
 %<install>\endbatchfile
@@ -141,6 +145,7 @@ and the derived files            penrose.ins
 % \changes{1.0}{2014/05/07}{Converted to DTX file}
 % \changes{1.2}{2019/02/23}{Added general tile creation code}
 % \changes{1.4}{2021/01/22}{Adapted to latest version of spath3}
+% \changes{1.6}{2023/03/22}{Included aperiodical hat}
 %
 % \DoNotIndex
 %   {
@@ -179,11 +184,13 @@ and the derived files            penrose.ins
 %
 % \section{Implementation}
 %
+% 
+% \iffalse
+%<*tilings>
+% \fi
+%
 %    \begin{macrocode}
-%<*package>
-%    \end{macrocode}
-%    \begin{macrocode}
-%<@@=penrose>
+%<@@=tilings>
 %    \end{macrocode}
 %
 % \subsection{Initialisation}
@@ -192,8 +199,8 @@ and the derived files            penrose.ins
 % We use the \Verb+spath3+ library for manipulating the paths that will make up the tiles.
 %
 %    \begin{macrocode}
-\ProvidesExplFile {tikzlibrarypenrose.code.tex} {2021/01/22} {1.4} {TikZ pics for Penrose and other tiles}
-\RequirePackage{spath3}
+\ProvidesExplFile {tikzlibrarytilings.code.tex} {2023/03/22} {1.6} {TikZ pics for tilings such as Penrose tiles}
+\RequirePackage{tikz}
 \usetikzlibrary{spath3}
 %    \end{macrocode}
 % Now we move in to the realm of \LaTeX3.
@@ -215,6 +222,9 @@ and the derived files            penrose.ins
 \tl_new:N \g_@@_side_C_tl
 \tl_new:N \g_@@_side_D_tl
 \tl_new:N \g_@@_side_E_tl
+\tl_new:c {g_@@_side_1_tl}
+\tl_new:c {g_@@_side_2_tl}
+\tl_new:c {g_@@_side_3_tl}
 \tl_gset:Nn \g_@@_side_a_tl
 {
   \pgfsyssoftpath@movetotoken{0pt}{0pt}
@@ -234,7 +244,7 @@ and the derived files            penrose.ins
 \tl_gset_eq:cN {g_@@_side_3_tl} \g_@@_side_a_tl
 %    \end{macrocode}
 %
-% \begin{variable}{\l_@@_tmpa_fp, \l_@@_tmpb_fp, \l_@@_tmpc_fp, \l_@@_tmpa_tl, \l_@@_tmpb_tl, \l_@@_tmpc_tl, \l_@@_tmpd_tl, \l_@@_tmpa_int, \l_@@_tmpb_int, \l_@@_xa_dim, \l_@@_ya_dim, \l_@@_xb_dim, \l_@@_yb_dim, \l_@@_tmpa_prop, \l_@@_cw_bool}
+% \begin{variable}{\l_@@_tmpa_fp, \l_@@_tmpb_fp, \l_@@_tmpc_fp, \l_@@_tmpa_tl, \l_@@_tmpb_tl, \l_@@_tmpc_tl, \l_@@_tmpd_tl, \l_@@_tmpa_int, \l_@@_tmpb_int, \l_@@_xa_dim, \l_@@_ya_dim, \l_@@_xb_dim, \l_@@_yb_dim, \g_@@_xa_dim, \g_@@_ya_dim, \g_@@_xb_dim, \g_@@_yb_dim, \l_@@_tmpa_prop, \l_@@_cw_bool}
 % We need a few temporary variables to hold intermediate calculations.
 %
 %    \begin{macrocode}
@@ -255,6 +265,10 @@ and the derived files            penrose.ins
 \dim_new:N \l_@@_ya_dim
 \dim_new:N \l_@@_xb_dim
 \dim_new:N \l_@@_yb_dim
+\dim_new:N \g_@@_xa_dim
+\dim_new:N \g_@@_ya_dim
+\dim_new:N \g_@@_xb_dim
+\dim_new:N \g_@@_yb_dim
 \prop_new:N \l_@@_tmpa_prop
 \bool_new:N \l_@@_cw_bool
 %    \end{macrocode}
@@ -350,10 +364,10 @@ and the derived files            penrose.ins
 %    \end{macrocode}
 % \end{macro}
 %
-% \begin{function}{\SetPenrosePath}
+% \begin{function}{\SetTilingPath}
 % This sets the path corresponding to a particular side to the current path, and normalises it.
 %    \begin{macrocode}
-\NewDocumentCommand \SetPenrosePath { m }
+\NewDocumentCommand \SetTilingPath { m }
 {
   \pgfsyssoftpath@getcurrentpath\l_@@_tmpa_tl
   \@@_normalise_path:N \l_@@_tmpa_tl
@@ -502,319 +516,6 @@ and the derived files            penrose.ins
 }
 %    \end{macrocode}
 % \end{macro}
-%
-% Now we specify the tiles.
-% The specification is a clockwise list of the vertices together with the labels of the corresponding sides.
-% There are three basic paths, \Verb+a+, \Verb+b+, \Verb+c+, and their complements (which are capitalised).
-%
-% \begin{itemize}
-% \item Thin Rhombus.
-%    \begin{macrocode}
-\tl_clear:N \l_@@_tmpa_tl
-\@@_add_coordinate:Nnn \l_@@_tmpa_tl {0}{0}
-\@@_add_coordinate:Nnn \l_@@_tmpa_tl {cosd(18)}{sind(18)}
-\@@_add_coordinate:Nnn \l_@@_tmpa_tl {2*cosd(18)}{0}
-\@@_add_coordinate:Nnn \l_@@_tmpa_tl {cosd(18)}{-sind(18)}
-
-\prop_gput:Nnx \g_@@_tiles_prop {thin~ rhombus}
-{{a A B b} {\tl_use:N \l_@@_tmpa_tl}}
-%    \end{macrocode}
-%
-% \item Thick Rhombus.
-%    \begin{macrocode}
-\tl_clear:N \l_@@_tmpa_tl
-\@@_add_coordinate:Nnn \l_@@_tmpa_tl {0}{0}
-\@@_add_coordinate:Nnn \l_@@_tmpa_tl {cosd(36)}{sind(36)}
-\@@_add_coordinate:Nnn \l_@@_tmpa_tl {2*cosd(36)}{0}
-\@@_add_coordinate:Nnn \l_@@_tmpa_tl {cosd(36)}{-sind(36)}
-
-\prop_gput:Nnx \g_@@_tiles_prop {thick~ rhombus}
-{{B a A b} {\tl_use:N \l_@@_tmpa_tl}}
-%    \end{macrocode}
-%
-% \item Dart.
-%    \begin{macrocode}
-\tl_clear:N \l_@@_tmpa_tl
-\@@_add_coordinate:Nnn \l_@@_tmpa_tl {0}{0}
-\@@_add_coordinate:Nnn \l_@@_tmpa_tl
-{2*sind(18)*cosd(108)}{2*sind(18)*sind(108)}
-\@@_add_coordinate:Nnn \l_@@_tmpa_tl {2*sind(18)}{0}
-\@@_add_coordinate:Nnn \l_@@_tmpa_tl
-{2*sind(18)*cosd(108)}{-2*sind(18)*sind(108)}
-
-\prop_gput:Nnx \g_@@_tiles_prop {dart}
-{{c a A C} {\tl_use:N \l_@@_tmpa_tl}}
-%    \end{macrocode}
-%
-% \item Kite.
-%    \begin{macrocode}
-\tl_clear:N \l_@@_tmpa_tl
-\@@_add_coordinate:Nnn \l_@@_tmpa_tl {0}{0}
-\@@_add_coordinate:Nnn \l_@@_tmpa_tl {cosd(36)}{sind(36)}
-\@@_add_coordinate:Nnn \l_@@_tmpa_tl {1}{0}
-\@@_add_coordinate:Nnn \l_@@_tmpa_tl {cosd(36)}{-sind(36)}
-
-\prop_gput:Nnx \g_@@_tiles_prop {kite}
-{{a c C A} {\tl_use:N \l_@@_tmpa_tl}}
-%    \end{macrocode}
-%
-% \item Golden Triangle.
-%    \begin{macrocode}
-\tl_clear:N \l_@@_tmpa_tl
-\@@_add_coordinate:Nnn \l_@@_tmpa_tl {0}{0}
-\@@_add_coordinate:Nnn \l_@@_tmpa_tl {cosd(18)}{sind(18)}
-\@@_add_coordinate:Nnn \l_@@_tmpa_tl {cosd(18)}{-sind(18)}
-
-\prop_gput:Nnx \g_@@_tiles_prop {golden~ triangle}
-{{a c b} {\tl_use:N \l_@@_tmpa_tl}}
-%    \end{macrocode}
-%
-% \item Reverse Golden Triangle.
-%    \begin{macrocode}
-\tl_clear:N \l_@@_tmpa_tl
-\@@_add_coordinate:Nnn \l_@@_tmpa_tl {0}{0}
-\@@_add_coordinate:Nnn \l_@@_tmpa_tl {cosd(18)}{sind(18)}
-\@@_add_coordinate:Nnn \l_@@_tmpa_tl {cosd(18)}{-sind(18)}
-
-\prop_gput:Nnx \g_@@_tiles_prop {reverse~ golden~ triangle}
-{{B C A} {\tl_use:N \l_@@_tmpa_tl}}
-%    \end{macrocode}
-%
-% \item Golden Gnomon
-%    \begin{macrocode}
-\tl_clear:N \l_@@_tmpa_tl
-\@@_add_coordinate:Nnn \l_@@_tmpa_tl {0}{0}
-\@@_add_coordinate:Nnn \l_@@_tmpa_tl {cosd(36)}{sind(36)}
-\@@_add_coordinate:Nnn \l_@@_tmpa_tl {2*cosd(36)}{0}
-
-\prop_gput:Nnx \g_@@_tiles_prop {golden~ gnomon}
-{{C b A} {\tl_use:N \l_@@_tmpa_tl}}
-%    \end{macrocode}
-%
-% \item Reverse Golden Gnomon
-%    \begin{macrocode}
-\tl_clear:N \l_@@_tmpa_tl
-\@@_add_coordinate:Nnn \l_@@_tmpa_tl {0}{0}
-\@@_add_coordinate:Nnn \l_@@_tmpa_tl {2*cosd(36)}{0}
-\@@_add_coordinate:Nnn \l_@@_tmpa_tl {cosd(36)}{-sind(36)}
-\prop_gput:Nnx \g_@@_tiles_prop {reverse~ golden~ gnomon}
-{{a B c} {\tl_use:N \l_@@_tmpa_tl}}
-%    \end{macrocode}
-%
-% \item Primary Pentagon (pentagon 5)
-%    \begin{macrocode}
-\tl_clear:N \l_@@_tmpa_tl
-\@@_add_coordinate:Nnn \l_@@_tmpa_tl {0}{0}
-\@@_add_coordinate:Nnn \l_@@_tmpa_tl {cosd(108)}{sind(108)}
-\@@_add_coordinate:Nnn \l_@@_tmpa_tl
-{1+cosd(72)+cosd(144)}{sind(72)+sind(144)}
-\@@_add_coordinate:Nnn \l_@@_tmpa_tl {1+cosd(72)}{sind(72)}
-\@@_add_coordinate:Nnn \l_@@_tmpa_tl {1}{0}
-\prop_gput:Nnx \g_@@_tiles_prop {pentagon~ 5}
-{{a a a a a} {\tl_use:N \l_@@_tmpa_tl}}
-%    \end{macrocode}
-%
-% \item Secondary Pentagon (pentagon 3)
-%    \begin{macrocode}
-\prop_gput:Nnx \g_@@_tiles_prop {pentagon~ 3}
-{{A b a a b} {\tl_use:N \l_@@_tmpa_tl}}
-%    \end{macrocode}
-%
-% \item Tertiary Pentagon (pentagon 2)
-%    \begin{macrocode}
-\prop_gput:Nnx \g_@@_tiles_prop {pentagon~ 2}
-{{d A e c A} {\tl_use:N \l_@@_tmpa_tl}}
-%    \end{macrocode}
-%
-% \item Pentagram
-%    \begin{macrocode}
-\tl_clear:N \l_@@_tmpa_tl
-\@@_add_coordinate:Nnn \l_@@_tmpa_tl {1}{0}
-\@@_add_coordinate:Nnn \l_@@_tmpa_tl {1-cosd(36)}{-sind(36)}
-\@@_add_coordinate:Nnn \l_@@_tmpa_tl
-{1-cosd(36)-cosd(108)}{-sind(36)-sind(108)}
-\@@_add_coordinate:Nnn \l_@@_tmpa_tl {cosd(108)}{-sind(108)}
-\@@_add_coordinate:Nnn \l_@@_tmpa_tl
-{-1+3*cosd(108)+cosd(36)}{-sind(36)-sind(108)}
-\@@_add_coordinate:Nnn \l_@@_tmpa_tl
-{-1+2*cosd(108)+cosd(36)}{-sind(36)}
-\@@_add_coordinate:Nnn \l_@@_tmpa_tl {-1+2*cosd(108)}{0}
-\@@_add_coordinate:Nnn \l_@@_tmpa_tl {2*cosd(108)}{0}
-\@@_add_coordinate:Nnn \l_@@_tmpa_tl {cosd(108)}{sind(108)}
-\@@_add_coordinate:Nnn \l_@@_tmpa_tl {0}{0}
-\prop_gput:Nnx \g_@@_tiles_prop {pentagram}
-{{C E C E C E C E C E} {\tl_use:N \l_@@_tmpa_tl}}
-%    \end{macrocode}
-%
-% \item Boat
-%    \begin{macrocode}
-\tl_clear:N \l_@@_tmpa_tl
-\@@_add_coordinate:Nnn \l_@@_tmpa_tl {-1+2*cosd(108)}{0}
-\@@_add_coordinate:Nnn \l_@@_tmpa_tl {2*cosd(108)}{0}
-\@@_add_coordinate:Nnn \l_@@_tmpa_tl {cosd(108)}{sind(108)}
-\@@_add_coordinate:Nnn \l_@@_tmpa_tl {0}{0}
-\@@_add_coordinate:Nnn \l_@@_tmpa_tl {1}{0}
-\@@_add_coordinate:Nnn \l_@@_tmpa_tl {1-cosd(36)}{-sind(36)}
-\@@_add_coordinate:Nnn \l_@@_tmpa_tl
-{-1+2*cosd(108)+cosd(36)}{-sind(36)}
-\prop_gput:Nnx \g_@@_tiles_prop {boat}
-{{C E C E B D B} {\tl_use:N \l_@@_tmpa_tl}}
-%    \end{macrocode}
-%
-% \item Diamond.
-%    \begin{macrocode}
-\tl_clear:N \l_@@_tmpa_tl
-\@@_add_coordinate:Nnn \l_@@_tmpa_tl {0}{0}
-\@@_add_coordinate:Nnn \l_@@_tmpa_tl {cosd(18)}{sind(18)}
-\@@_add_coordinate:Nnn \l_@@_tmpa_tl {2*cosd(18)}{0}
-\@@_add_coordinate:Nnn \l_@@_tmpa_tl {cosd(18)}{-sind(18)}
-\prop_gput:Nnx \g_@@_tiles_prop {diamond}
-{{D B B D} {\tl_use:N \l_@@_tmpa_tl}}
-%    \end{macrocode}
-%
-% \end{itemize}
-%
-% \begin{function}{\BakePenroseTile}
-% This is the user wrapper around the tile creation macros.
-%    \begin{macrocode}
-\NewDocumentCommand \BakePenroseTile {m}
-{
-  \prop_get:NnN \g_@@_tiles_prop {#1} \l_@@_tmpa_tl
-  \@@_make_tile:nV {#1} \l_@@_tmpa_tl
-}
-%    \end{macrocode}
-% For backwards compatibility.
-%    \begin{macrocode}
-\cs_set_eq:NN \MakePenroseTile \BakePenroseTile
-%    \end{macrocode}
-% \end{function}
-%
-% \begin{function}{\UsePenroseTile}
-% This is the command that actually places a tile on the page.
-% The first argument is optional and is for styling.
-%    \begin{macrocode}
-\NewDocumentCommand \UsePenroseTile {O{} m} 
-{
-%    \end{macrocode}
-% We need to transform the tile to correspond to the current transformation matrix.
-% To ensure that we only transform the current tile, we clone it first.
-%    \begin{macrocode}
-  \tl_set_eq:Nc \l_@@_tmp_tile_path_tl {g_@@_tile_#2_tl}
-%    \end{macrocode}
-% The transformation matrix returned by PGF appears to be transposed from what it should be.
-% (This needs a little more investigation, it might be that I've implemented the multiplication incorrectly here.)
-%    \begin{macrocode}
-  \pgfgettransform \l_@@_tmpa_tl
-%  \tl_clear:N \l_@@_tmpb_tl
-%  \tl_set:Nx \l_@@_tmpb_tl {{\tl_head:N \l_@@_tmpa_tl}}
-%  \tl_set:Nx \l_@@_tmpa_tl {\tl_tail:N \l_@@_tmpa_tl}
-%  \tl_put_right:Nx \l_@@_tmpb_tl
-%  {
-%    {\tl_item:Nn \l_@@_tmpa_tl {1}}
-%  }
-%  \tl_put_right:Nx \l_@@_tmpb_tl
-%  {
-%    {\tl_item:Nn \l_@@_tmpa_tl {2}}
-%  }
-%  \tl_set:Nx \l_@@_tmpa_tl {\tl_tail:N \l_@@_tmpa_tl}
-%  \tl_set:Nx \l_@@_tmpa_tl {\tl_tail:N \l_@@_tmpa_tl}
-%  \tl_put_right:NV \l_@@_tmpb_tl \l_@@_tmpa_tl
-%    \end{macrocode}
-% Apply the transformation, protocol the path, and render it.
-%    \begin{macrocode}
-  \spath_transform:NV \l_@@_tmp_tile_path_tl \l_@@_tmpa_tl
-  \spath_tikz_path:nV {#1} \l_@@_tmp_tile_path_tl
-}
-%    \end{macrocode}
-% \end{function}
-%
-% \begin{macro}{save Penrose path}
-% This is a style for a user to take a path and make it into the path for one of the sides.
-% It needs to store both that side and the reverse.
-%    \begin{macrocode}
-\tikzset{
-  save~ Penrose~ path/.code={
-    \tikz@addmode{
-%    \end{macrocode}
-% Get the current path.
-%    \begin{macrocode}
-      \pgfsyssoftpath@getcurrentpath\l_@@_tmpa_tl
-%    \end{macrocode}
-% Normalise the path and save.
-%    \begin{macrocode}
-      \@@_normalise_path:N \l_@@_tmpa_tl
-      \tl_gclear_new:c {g_@@_side_#1_tl}
-      \tl_gset_eq:cN {g_@@_side_#1_tl} \l_@@_tmpa_tl
-%    \end{macrocode}
-% Now create the reverse path.
-% The name is the upper case version.
-%    \begin{macrocode}
-      \tl_set:Nx \l_@@_tmpb_tl {\str_uppercase:n {#1}}
-%    \end{macrocode}
-% Reverse the path, and relocate to the interval \([0,1]\).
-%    \begin{macrocode}
-      \spath_reverse:N \l_@@_tmpa_tl
-      \spath_transform:Nnnnnnn \l_@@_tmpa_tl {-1} {0} {0} {-1} {1} {0}
-      \tl_gclear_new:c {g_@@_side_ \tl_use:N \l_@@_tmpb_tl _tl}
-      \tl_gset_eq:cN {g_@@_side_ \tl_use:N \l_@@_tmpb_tl _tl} \l_@@_tmpa_tl
-    }
-  },
-  clone~ Penrose~ side~ path/.style~ 2~ args={
-    spath/set~ name=Penrose~side,
-    spath/clone~ global={#1}{#2}
-  },
-  flip~ Penrose~ tile/.code={
-    \tl_set:Nn \l_@@_tmpa_tl {#1}
-    \tl_set:Nn \l_@@_tmpb_tl {true}
-    \bool_set:Nn \l_@@_cw_bool {\tl_if_eq_p:NN \l_@@_tmpa_tl \l_@@_tmpb_tl}
-  },
-  flip~ Penrose~ tile/.default={true},
-  spath/prefix/Penrose~side/.style={
-    spath/set~ prefix=g_@@_side_,
-  },
-  spath/suffix/Penrose~side/.style={
-    spath/set~ suffix=_tl,
-  },
-  clone~ Penrose~ tile~ path/.style~ 2~ args={
-    spath/set~ name=Penrose~tile,
-    spath/clone~ global={#1}{#2}
-  },
-  spath/prefix/Penrose~tile/.style={
-    spath/set~ prefix=g_@@_tile_,
-  },
-  spath/suffix/Penrose~tile/.style={
-    spath/set~ suffix=_tl,
-  },
-  expand~ key/.code={
-    \exp_args:NV \pgfkeysalso #1
-  }
-}
-%    \end{macrocode}
-% \end{macro}
-%
-% Create the basic tile shapes.
-%    \begin{macrocode}
-\BakePenroseTile {thin~ rhombus}
-\BakePenroseTile {thick~ rhombus} 
-\BakePenroseTile {dart}
-\BakePenroseTile {kite}
-\BakePenroseTile {golden~ triangle}
-\BakePenroseTile {reverse~ golden~ triangle}
-\BakePenroseTile {golden~ gnomon}
-\BakePenroseTile {reverse~ golden~ gnomon}
-\BakePenroseTile {pentagon~ 5}
-\BakePenroseTile {pentagon~ 3}
-\BakePenroseTile {pentagon~ 2}
-\BakePenroseTile {pentagram}
-\BakePenroseTile {boat}
-\BakePenroseTile {diamond}
-%    \end{macrocode}
-%
-%
-% \subsection{User-Definable Tiles}
-%
-% The commands in this section are for enabling a user to define their own tile.
-%
 %
 % \begin{macro}[internal]{\@@_transform_side:Nnn}
 % Apply a transformation to make a given side lie on the x-axis.
@@ -1001,6 +702,57 @@ and the derived files            penrose.ins
 %    \end{macrocode}
 % \end{macro}
 %
+%
+%    \begin{macrocode}
+\tikzset{
+  align~ with/.code~ args={#1~ along~ #2}{%
+    \tl_if_in:nnTF {#1} {back}
+    {
+      \tikzset{
+        tiling/alignment~ set~ location=#1,
+        tiling/alignment~ direction={backwards}
+      }
+    }
+    {
+      \tikzset{
+        tiling/alignment~ location=#1,
+        tiling/alignment~ direction={forewards}
+      }
+    }
+    \tl_if_in:nnTF {#2} {using}
+    {
+      \tikzset{
+        tiling/alignment~ set~ edges=#2,
+      }
+    }
+    {
+      \tikzset{
+        tiling/alignment~ edge=#2,
+      }
+    }
+  },
+  tiling/alignment~ set~ location/.code~ args={#1~ back}{
+    \tikzset{
+      tiling/alignment~ location=#1,
+    }
+  },
+  tiling/alignment~ set~ edges/.code~ args={#1~ using~ #2}{
+    \tikzset{
+      tiling/alignment~ edge=#1,
+      tiling/alignment~ new~ edge=#2
+    }
+  },
+  tiling/alignment~ location/.initial={},
+  tiling/alignment~ edge/.initial=a,
+  tiling/alignment~ new~ edge/.initial={},
+  tiling/alignment~ direction/.initial={forewards},
+%    \end{macrocode}
+% Default clipping style.
+%    \begin{macrocode}
+  every tile clip/.style={clip}
+}
+%    \end{macrocode}
+%
 % \begin{function}{\DefineTile}
 % This is the user function for defining a tile.
 %    \begin{macrocode}
@@ -1059,113 +811,423 @@ and the derived files            penrose.ins
 %    \end{macrocode}
 % Were we given a tile to align ourselves against?
 %    \begin{macrocode}
-      \pgfkeysgetvalue{/tikz/Penrose/alignment~ location}{\prloc}
-      \ifx\prloc\pgfutil@empty
-      \else
+      \pgfkeysgetvalue{/tikz/tiling/alignment~ location}{\l_@@_tmpa_tl}
+      \tl_if_empty:NF \l_@@_tmpa_tl
+      {
 %    \end{macrocode}
 % Yes, we were.
 % So we adjust our position accordingly.
 % The first job is to transform so that we're along the edge of the receiving tile.
 %    \begin{macrocode}
-    \begingroup
+        \group_begin:
 %    \end{macrocode}
 % We get the locations of the start and end of the receiving tile.
 % As \Verb+pic+ sets the node prefix, we have to temporarily suspend that (hence working in a group).
 %    \begin{macrocode}
-      \tikzset{name~ prefix~ ..}%
-      \tikz@scan@one@point\pgfutil@firstofone%
-    (\prloc-edge~ \pgfkeysvalueof{/tikz/Penrose/alignment~ edge}~ start)%
-    \global\pgf@xa=\pgf@x
-    \global\pgf@ya=\pgf@y
-    \tikz@scan@one@point\pgfutil@firstofone%
-    (\prloc-edge~ \pgfkeysvalueof{/tikz/Penrose/alignment~ edge}~ end)%
-    \global\pgf@xb=\pgf@x
-    \global\pgf@yb=\pgf@y
-      \endgroup
+        \tikzset{name~ prefix~ ..}
+        \tikz_scan_point:n {
+          (\l_@@_tmpa_tl -edge~ \pgfkeysvalueof{/tikz/tiling/alignment~ edge}~ start)
+        }
+        \dim_set_eq:Nc \l_@@_xa_dim {pgf@x}
+        \dim_set_eq:Nc \l_@@_ya_dim {pgf@y}
+        \tikz_scan_point:n {
+          (\l_@@_tmpa_tl -edge~ \pgfkeysvalueof{/tikz/tiling/alignment~ edge}~ end)
+        }
+        \dim_set_eq:Nc \l_@@_xb_dim {pgf@x}
+        \dim_set_eq:Nc \l_@@_yb_dim {pgf@y}
+        \pgfkeysgetvalue{/tikz/tiling/alignment~ direction}{\l_@@_tmpb_tl}
+        \tl_if_eq:NnTF \l_@@_tmpb_tl {forewards}
+        {
+          \dim_gset_eq:NN \g_@@_xa_dim \l_@@_xa_dim
+          \dim_gset_eq:NN \g_@@_ya_dim \l_@@_ya_dim
+          \dim_gset_eq:NN \g_@@_xb_dim \l_@@_xb_dim
+          \dim_gset_eq:NN \g_@@_yb_dim \l_@@_yb_dim
+        }
+        {
+          \dim_gset_eq:NN \g_@@_xa_dim \l_@@_xb_dim
+          \dim_gset_eq:NN \g_@@_ya_dim \l_@@_yb_dim
+          \dim_gset_eq:NN \g_@@_xb_dim \l_@@_xa_dim
+          \dim_gset_eq:NN \g_@@_yb_dim \l_@@_ya_dim
+        }
+        \group_end:
 %    \end{macrocode}
 % We store the initial points in \Verb+\pgf@xa+ and \Verb+\pgf@ya+ but we want \Verb+\pgf@xb+ and \Verb+\pgf@yb+ to be a vector along the edge.
 %    \begin{macrocode}
-    \advance\pgf@xb by -\pgf@xa
-    \advance\pgf@yb by -\pgf@ya
+        \dim_sub:Nn \g_@@_xb_dim {\g_@@_xa_dim}
+        \dim_sub:Nn \g_@@_yb_dim {\g_@@_ya_dim}
 %    \end{macrocode}
 % We shift to the start of the edge.
 %    \begin{macrocode}
-    \pgftransformshift{\pgfpoint{\pgf@xa}{\pgf@ya}}%
+        \pgftransformshift{\pgfpoint{\g_@@_xa_dim}{\g_@@_ya_dim}}
 %    \end{macrocode}
 % And normalise the vector along it.
 %    \begin{macrocode}
-    \pgfpointnormalised{\pgfpoint{\pgf@xb}{\pgf@yb}}
-    \pgf@xb=\pgf@x
-    \pgf@yb=\pgf@y
+        \pgfpointnormalised{\pgfpoint{\g_@@_xb_dim}{\g_@@_yb_dim}}
+        \dim_gset_eq:Nc \g_@@_xb_dim {pgf@x}
+        \dim_gset_eq:Nc \g_@@_yb_dim {pgf@y}
 %    \end{macrocode}
 % Now rotate so that the \(x\)--axis lies along the edge.
 %    \begin{macrocode}
-    \pgftransformtriangle%
-    {\pgfpoint{0pt}{0pt}}%
-    {\pgfpoint{\pgf@xb}{\pgf@yb}}%
-    {\pgfpoint{-\pgf@yb}{\pgf@xb}}
+        \pgftransformtriangle
+        {\pgfpoint{0pt}{0pt}}
+        {\pgfpoint{\g_@@_xb_dim}{\g_@@_yb_dim}}
+        {\pgfpoint{-\g_@@_yb_dim}{\g_@@_xb_dim}}
 %    \end{macrocode}
 % The next job is to shift and rotate the current tile so that the correct edge ends up against the receiving tile.
 %    \begin{macrocode}
-    \str_set:Nx \l_@@_tmpa_str
-    {\pgfkeysvalueof{/tikz/Penrose/alignment~ edge}}
-    \str_set:Nx \l_@@_tmpa_str {\str_head:N \l_@@_tmpa_str}
-    \str_put_right:Nx \l_@@_tmpa_str
-    {\pgfkeysvalueof{/tikz/Penrose/alignment~ new~ edge}}
-    \str_set:Nx \l_@@_tmpb_str {\str_lowercase:f { \l_@@_tmpa_str}}
-    \str_if_eq:NNT \l_@@_tmpa_str \l_@@_tmpb_str
-    {
-      \str_set:Nx \l_@@_tmpb_str
-      {\str_uppercase:f { \l_@@_tmpa_str}}
-    }
+        \str_set:Nx \l_@@_tmpa_str
+        {\pgfkeysvalueof{/tikz/tiling/alignment~ edge}}
+        \str_set:Nx \l_@@_tmpa_str {\str_head:N \l_@@_tmpa_str}
+        \str_put_right:Nx \l_@@_tmpa_str
+        {\pgfkeysvalueof{/tikz/tiling/alignment~ new~ edge}}
+        \str_set:Nx \l_@@_tmpb_str {\str_lowercase:f { \l_@@_tmpa_str}}
+        \str_if_eq:NNT \l_@@_tmpa_str \l_@@_tmpb_str
+        {
+          \str_set:Nx \l_@@_tmpb_str
+          {\str_uppercase:f { \l_@@_tmpa_str}}
+        }
 
-    \IfBooleanT {#1}
-    {
-      \bool_set:Nn \l_@@_cw_bool {!\l_@@_cw_bool}
-    }
-    \bool_if:NT \l_@@_cw_bool
-    {
-      \pgftransformyscale {-1}
-    }
-    \@@_transform_side:NnV \l_@@_cw_bool {#2} \l_@@_tmpb_str
-    \fi
+        \IfBooleanT {#1}
+        {
+          \bool_set:Nn \l_@@_cw_bool {!\l_@@_cw_bool}
+        }
+        \bool_if:NT \l_@@_cw_bool
+        {
+          \pgftransformyscale {-1}
+        }
+        \@@_transform_side:NnV \l_@@_cw_bool {#2} \l_@@_tmpb_str
+      }
 %    \end{macrocode}
 % Now that the transformation is finalised, we can render the tile.
 % We clip against the tile path so that the tiles don't ``bleed''.
 % If we didn't do this, drawing the tile would result in overlaps which can look a bit ugly.
 % On the other hand, tight clipping can lead to ``gaps'' between the tiles so we make this optional by enclosing it in a style.
 %    \begin{macrocode}
-    \UsePenroseTile[
-      every~ Penrose~ tile~ clip/.try,
-      every~ #2~ clip/.try
-    ]{#2}
-    \UsePenroseTile[
-      every~ Penrose~ tile/.try,
-      every~ #2/.try,
-      pic~ actions
-    ]{#2}
+      \UseTile[
+        every~ tile~ clip/.try,
+        every~ #2~ clip/.try
+      ]{#2}
+      \UseTile[
+        every~ tile/.try,
+        every~ #2/.try,
+        pic~ actions
+      ]{#2}
 % Lastly, we put coordinates at each vertex, labelled by which edge they are.
 %    \begin{macrocode}
-    \@@_coordinates_at_vertices:n {#2}
-    \end{scope}
+      \@@_coordinates_at_vertices:n {#2}
+      \end{scope}
     },
 %    \end{macrocode}
 % This is a shortcut for installing the \Verb+pic+ type.
 %    \begin{macrocode}
-  #2/.style={
-    every~ Penrose~ pic/.try,
-    pic~ type=#2,
-    },
+    #2/.style={
+      every~ tile~ pic/.try,
+      pic~ type=#2,
+    }
   }
 }
 %    \end{macrocode}
 % \end{function}
 %
+% \begin{function}{\BakeTile}
+% This is the user wrapper around the tile creation macros.
+%    \begin{macrocode}
+\NewDocumentCommand \BakeTile {m}
+{
+  \prop_get:NnN \g_@@_tiles_prop {#1} \l_@@_tmpa_tl
+  \@@_make_tile:nV {#1} \l_@@_tmpa_tl
+}
+%    \end{macrocode}
+% \end{function}
+%
+% \begin{function}{\UseTile}
+% This is the command that actually places a tile on the page.
+% The first argument is optional and is for styling.
+%    \begin{macrocode}
+\NewDocumentCommand \UseTile {O{} m} 
+{
+%    \end{macrocode}
+% We need to transform the tile to correspond to the current transformation matrix.
+% To ensure that we only transform the current tile, we clone it first.
+%    \begin{macrocode}
+  \tl_set_eq:Nc \l_@@_tmp_tile_path_tl {g_@@_tile_#2_tl}
+%    \end{macrocode}
+% The transformation matrix returned by PGF appears to be transposed from what it should be.
+% (This needs a little more investigation, it might be that I've implemented the multiplication incorrectly here.)
+%    \begin{macrocode}
+  \pgfgettransform \l_@@_tmpa_tl
+%  \tl_clear:N \l_@@_tmpb_tl
+%  \tl_set:Nx \l_@@_tmpb_tl {{\tl_head:N \l_@@_tmpa_tl}}
+%  \tl_set:Nx \l_@@_tmpa_tl {\tl_tail:N \l_@@_tmpa_tl}
+%  \tl_put_right:Nx \l_@@_tmpb_tl
+%  {
+%    {\tl_item:Nn \l_@@_tmpa_tl {1}}
+%  }
+%  \tl_put_right:Nx \l_@@_tmpb_tl
+%  {
+%    {\tl_item:Nn \l_@@_tmpa_tl {2}}
+%  }
+%  \tl_set:Nx \l_@@_tmpa_tl {\tl_tail:N \l_@@_tmpa_tl}
+%  \tl_set:Nx \l_@@_tmpa_tl {\tl_tail:N \l_@@_tmpa_tl}
+%  \tl_put_right:NV \l_@@_tmpb_tl \l_@@_tmpa_tl
+%    \end{macrocode}
+% Apply the transformation, protocol the path, and render it.
+%    \begin{macrocode}
+  \spath_transform:NV \l_@@_tmp_tile_path_tl \l_@@_tmpa_tl
+  \spath_tikz_path:nV {#1} \l_@@_tmp_tile_path_tl
+}
+%    \end{macrocode}
+% \end{function}
+%
+% \begin{macro}{save tiling path}
+% This is a style for a user to take a path and make it into the path for one of the sides.
+% It needs to store both that side and the reverse.
+%    \begin{macrocode}
+\tikzset{
+  save~ tiling~ path/.code={
+    \tikz@addmode{
+%    \end{macrocode}
+% Get the current path.
+%    \begin{macrocode}
+      \pgfsyssoftpath@getcurrentpath\l_@@_tmpa_tl
+%    \end{macrocode}
+% Normalise the path and save.
+%    \begin{macrocode}
+      \@@_normalise_path:N \l_@@_tmpa_tl
+      \tl_gclear_new:c {g_@@_side_#1_tl}
+      \tl_gset_eq:cN {g_@@_side_#1_tl} \l_@@_tmpa_tl
+%    \end{macrocode}
+% Now create the reverse path.
+% The name is the upper case version.
+%    \begin{macrocode}
+      \tl_set:Nx \l_@@_tmpb_tl {\str_uppercase:n {#1}}
+%    \end{macrocode}
+% Reverse the path, and relocate to the interval \([0,1]\).
+%    \begin{macrocode}
+      \spath_reverse:N \l_@@_tmpa_tl
+      \spath_transform:Nnnnnnn \l_@@_tmpa_tl {-1} {0} {0} {-1} {1} {0}
+      \tl_gclear_new:c {g_@@_side_ \tl_use:N \l_@@_tmpb_tl _tl}
+      \tl_gset_eq:cN {g_@@_side_ \tl_use:N \l_@@_tmpb_tl _tl} \l_@@_tmpa_tl
+    }
+  },
+  clone~ tiling~ side~ path/.style~ 2~ args={
+    spath/set~ name=tiling~ side,
+    spath/clone~ global={#1}{#2}
+  },
+  flip~ tile/.code={
+    \tl_set:Nn \l_@@_tmpa_tl {#1}
+    \tl_set:Nn \l_@@_tmpb_tl {true}
+    \bool_set:Nn \l_@@_cw_bool {\tl_if_eq_p:NN \l_@@_tmpa_tl \l_@@_tmpb_tl}
+  },
+  flip~ tile/.default={true},
+  spath/prefix/tiling~side/.style={
+    spath/set~ prefix=g_@@_side_,
+  },
+  spath/suffix/tiling~side/.style={
+    spath/set~ suffix=_tl,
+  },
+  clone~ tile~ path/.style~ 2~ args={
+    spath/set~ name=tiling~tile,
+    spath/clone~ global={#1}{#2}
+  },
+  spath/prefix/tiling~tile/.style={
+    spath/set~ prefix=g_@@_tile_,
+  },
+  spath/suffix/tiling~tile/.style={
+    spath/set~ suffix=_tl,
+  },
+  expand~ key/.code={
+    \exp_args:NV \pgfkeysalso #1
+  }
+}
+\ExplSyntaxOff
+%    \end{macrocode}
+% \end{macro}
+%
+% \iffalse
+%</tilings>
+% \fi
+%
+%
+% \iffalse
+%<*penrose>
+% \fi
+%
+%    \begin{macrocode}
+\ProvidesExplFile {tikzlibrarypenrose.code.tex} {2023/03/22} {1.6} {TikZ pics for Penrose tiles}
+\RequirePackage{tikz}
+\usetikzlibrary{tilings}
+%    \end{macrocode}
+%
+%
+% Create the pre-defined tile shapes.
 %
 % \begin{itemize}
+% \item Thin Rhombus.
+%    \begin{macrocode}
+\DefineTile{thin rhombus}{a A B b}
+{
+ {0 , 0}
+ {cosd(18) , sind(18)}
+ {2*cosd(18) , 0}
+ {cosd(18) , -sind(18)}
+}
+%    \end{macrocode}
+%
+% \item Thick Rhombus.
+%    \begin{macrocode}
+\DefineTile{thick rhombus}{B a A b}
+{
+ {0 , 0}
+ {cosd(36) , sind(36)}
+ {2*cosd(36) , 0}
+ {cosd(36) , -sind(36)}
+}
+%    \end{macrocode}
+%
+% \item Dart.
+%    \begin{macrocode}
+\DefineTile{dart}{c a A C}
+{
+ {0 , 0}
+ {2*sind(18)*cosd(108) , 2*sind(18)*sind(108)}
+ {2*sind(18) , 0}
+ {2*sind(18)*cosd(108) , -2*sind(18)*sind(108)}
+}
+%    \end{macrocode}
+%
+% \item Kite.
+%    \begin{macrocode}
+\DefineTile{kite}{a c C A}
+{
+ {0 , 0}
+ {cosd(36) , sind(36)}
+ {1 , 0}
+ {cosd(36) , -sind(36)}
+}
+%    \end{macrocode}
+%
+% \item Golden Triangle.
+%    \begin{macrocode}
+\DefineTile{golden triangle}{a c b}
+{
+ {0 , 0}
+ {cosd(18) , sind(18)}
+ {cosd(18) , -sind(18)}
+}
+%    \end{macrocode}
+%
+% \item Reverse Golden Triangle.
+%    \begin{macrocode}
+\DefineTile {reverse golden triangle}{B C A}
+{
+ {0 , 0}
+ {cosd(18) , sind(18)}
+ {cosd(18) , -sind(18)}
+}
+%    \end{macrocode}
+%
+% \item Golden Gnomon
+%    \begin{macrocode}
+\DefineTile {golden gnomon}{C b A}
+{
+ {0 , 0}
+ {cosd(36) , sind(36)}
+ {2*cosd(36) , 0}
+}
+%    \end{macrocode}
+%
+% \item Reverse Golden Gnomon
+%    \begin{macrocode}
+\DefineTile {reverse golden gnomon}{a B c}
+{
+ {0 , 0}
+ {2*cosd(36) , 0}
+ {cosd(36) , -sind(36)}
+}
+%    \end{macrocode}
+%
+% \item Primary Pentagon (pentagon 5)
+%    \begin{macrocode}
+\DefineTile {pentagon 5}{a a a a a}
+{
+ {0 , 0}
+ {cosd(108) , sind(108)}
+ {1+cosd(72)+cosd(144) , sind(72)+sind(144)}
+ {1+cosd(72) , sind(72)}
+ {1 , 0}
+}
+%    \end{macrocode}
+%
+% \item Secondary Pentagon (pentagon 3)
+%    \begin{macrocode}
+\DefineTile {pentagon 3}{A b a a b}
+{
+ {0 , 0}
+ {cosd(108) , sind(108)}
+ {1+cosd(72)+cosd(144) , sind(72)+sind(144)}
+ {1+cosd(72) , sind(72)}
+ {1 , 0}
+}
+%    \end{macrocode}
+%
+% \item Tertiary Pentagon (pentagon 2)
+%    \begin{macrocode}
+\DefineTile {pentagon 2}{d A e c A}
+{
+ {0 , 0}
+ {cosd(108) , sind(108)}
+ {1+cosd(72)+cosd(144) , sind(72)+sind(144)}
+ {1+cosd(72) , sind(72)}
+ {1 , 0}
+}
+%    \end{macrocode}
+%
+% \item Pentagram
+%    \begin{macrocode}
+\DefineTile {pentagram}{C E C E C E C E C E}
+{
+  {1 , 0}
+  {1-cosd(36) , -sind(36)}
+  {1-cosd(36)-cosd(108) , -sind(36)-sind(108)}
+  {cosd(108) , -sind(108)}
+  {-1+3*cosd(108)+cosd(36) , -sind(36)-sind(108)}
+  {-1+2*cosd(108)+cosd(36) , -sind(36)}
+  {-1+2*cosd(108) , 0}
+  {2*cosd(108) , 0}
+  {cosd(108) , sind(108)}
+  {0 , 0}
+}
+%    \end{macrocode}
+%
+% \item Boat
+%    \begin{macrocode}
+\DefineTile {boat}{C E C E B D B}
+{
+ {-1+2*cosd(108) , 0}
+ {2*cosd(108) , 0}
+ {cosd(108) , sind(108)}
+ {0 , 0}
+ {1 , 0}
+ {1-cosd(36) , -sind(36)}
+ {-1+2*cosd(108)+cosd(36) , -sind(36)}
+}
+%    \end{macrocode}
+%
+% \item Diamond.
+%    \begin{macrocode}
+\DefineTile {diamond}{D B B D}
+{
+ {0 , 0}
+ {cosd(18) , sind(18)}
+ {2*cosd(18) , 0}
+ {cosd(18) , -sind(18)}
+}
+%    \end{macrocode}
+%
 % \item Aperiodical Hat.
 %    \begin{macrocode}
-\DefineTile{aperiodical~ hat}{1 2 2 2 2 1 1 2 2 1 1 2 2 1}
+\DefineTile{aperiodical hat}{1 2 2 2 2 1 1 2 2 1 1 2 2 1}
 {
 { -1 , 0 }
 { -1.75 , -sqrt(3)/4 }
@@ -1182,13 +1244,36 @@ and the derived files            penrose.ins
 { -.5 , sqrt(3)/2 }
 { -1 , sqrt(3)/2 }
 }
-\BakePenroseTile{aperiodical~ hat}
 %    \end{macrocode}
 % \end{itemize}
 %
+% Now bake the tiles.
+%
+%    \begin{macrocode}
+\BakeTile {thin rhombus}
+\BakeTile {thick rhombus} 
+\BakeTile {dart}
+\BakeTile {kite}
+\BakeTile {golden triangle}
+\BakeTile {reverse golden triangle}
+\BakeTile {golden gnomon}
+\BakeTile {reverse golden gnomon}
+\BakeTile {pentagon 5}
+\BakeTile {pentagon 3}
+\BakeTile {pentagon 2}
+\BakeTile {pentagram}
+\BakeTile {boat}
+\BakeTile {diamond}
+\BakeTile {aperiodical hat}
+%    \end{macrocode}
+%
 %
 % \subsection{Lindenmayer System}
-% 
+%
+%    \begin{macrocode}
+\ExplSyntaxOn
+%    \end{macrocode}
+%
 % This is an implementation of the Lindenmayer System description of Penrose tilings as a way of generating tilings from a specific starting seed.
 %
 % The implementation uses \Verb+prop+s to store \emph{rules} and \emph{actions}.
@@ -1316,18 +1401,18 @@ and the derived files            penrose.ins
   \pgftransformscale{\fp_use:N \l_@@_tmpa_fp}
 %    \end{macrocode}
 % Now we draw the thin rhombus, applying every style we can possibly imagine.
-% The \Verb+Penrose tile+ style gets the current tile and total tile numbers passed to it.
+% The \Verb+tile+ style gets the current tile and total tile numbers passed to it.
 %    \begin{macrocode}
   \tl_set:Nx \l_@@_tmpc_tl
   {
     {\int_use:N  \g_@@_tile_int}
     {\int_use:N \g_@@_tiles_int}
   }
-  \UsePenroseTile[
-    every~ Penrose~ tile/.try,
+  \UseTile[
+    every~ tile/.try,
     every~ thin~ rhombus/.try,
-    Penrose~ tile~ \int_use:N \g_@@_tile_int/.try,
-    Penrose~ tile/.try/.expand~ once=\l_@@_tmpc_tl
+    tile~ \int_use:N \g_@@_tile_int/.try,
+    tile/.try/.expand~ once=\l_@@_tmpc_tl
   ]{thin~rhombus}
   \group_end:
 }
@@ -1345,11 +1430,11 @@ and the derived files            penrose.ins
     {\int_use:N  \g_@@_tile_int}
     {\int_use:N \g_@@_tiles_int}
   }
-  \UsePenroseTile[
-    every~ Penrose~ tile/.try,
+  \UseTile[
+    every~ tile/.try,
     every~ thick~ rhombus/.try,
-    Penrose~ tile~ \int_use:N \g_@@_tile_int/.try,
-    Penrose~ tile/.try/.expand~ once=\l_@@_tmpc_tl
+    tile~ \int_use:N \g_@@_tile_int/.try,
+    tile/.try/.expand~ once=\l_@@_tmpc_tl
   ]{thick~rhombus}
   \group_end:
 }
@@ -1382,11 +1467,11 @@ and the derived files            penrose.ins
     {\int_use:N  \g_@@_tile_int}
     {\int_use:N \g_@@_tiles_int}
   }
-  \UsePenroseTile[
-    every~ Penrose~ tile/.try,
+  \UseTile[
+    every~ tile/.try,
     every~ kite/.try,
-    Penrose~ tile~ \int_use:N \g_@@_tile_int/.try,
-    Penrose~ tile/.try/.expand~ once=\l_@@_tmpc_tl
+    tile~ \int_use:N \g_@@_tile_int/.try,
+    tile/.try/.expand~ once=\l_@@_tmpc_tl
   ]{kite}
   \group_end:
 }
@@ -1405,11 +1490,11 @@ and the derived files            penrose.ins
     {\int_use:N  \g_@@_tile_int}
     {\int_use:N \g_@@_tiles_int}
   }
-  \UsePenroseTile[
-    every~ Penrose~ tile/.try,
+  \UseTile[
+    every~ tile/.try,
     every~ dart/.try,
-    Penrose~ tile~ \int_use:N \g_@@_tile_int/.try,
-    Penrose~ tile/.try/.expand~ once=\l_@@_tmpc_tl
+    tile~ \int_use:N \g_@@_tile_int/.try,
+    tile/.try/.expand~ once=\l_@@_tmpc_tl
   ]{dart}
   \group_end:
 }
@@ -1428,11 +1513,11 @@ and the derived files            penrose.ins
     {\int_use:N  \g_@@_tile_int}
     {\int_use:N \g_@@_tiles_int}
   }
-  \UsePenroseTile[
-    every~ Penrose~ tile/.try,
+  \UseTile[
+    every~ tile/.try,
     every~ reverse~ golden~ triangle/.try,
-    Penrose~ tile~ \int_use:N \g_@@_tile_int/.try,
-    Penrose~ tile/.try/.expand~ once=\l_@@_tmpc_tl
+    tile~ \int_use:N \g_@@_tile_int/.try,
+    tile/.try/.expand~ once=\l_@@_tmpc_tl
   ]{reverse~ golden~ triangle}
   \group_end:
 }
@@ -1455,11 +1540,11 @@ and the derived files            penrose.ins
     {\int_use:N  \g_@@_tile_int}
     {\int_use:N \g_@@_tiles_int}
   }
-  \UsePenroseTile[
-    every~ Penrose~ tile/.try,
+  \UseTile[
+    every~ tile/.try,
     every~ golden~ triangle/.try,
-    Penrose~ tile~ \int_use:N \g_@@_tile_int/.try,
-    Penrose~ tile/.try/.expand~ once=\l_@@_tmpc_tl
+    tile~ \int_use:N \g_@@_tile_int/.try,
+    tile/.try/.expand~ once=\l_@@_tmpc_tl
   ]{golden~ triangle}
   \group_end:
 }
@@ -1478,11 +1563,11 @@ and the derived files            penrose.ins
     {\int_use:N  \g_@@_tile_int}
     {\int_use:N \g_@@_tiles_int}
   }
-  \UsePenroseTile[
-    every~ Penrose~ tile/.try,
+  \UseTile[
+    every~ tile/.try,
     every~ reverse~ golden~ gnomon/.try,
-    Penrose~ tile~ \int_use:N \g_@@_tile_int/.try,
-    Penrose~ tile/.try/.expand~ once=\l_@@_tmpc_tl
+    tile~ \int_use:N \g_@@_tile_int/.try,
+    tile/.try/.expand~ once=\l_@@_tmpc_tl
   ]{reverse~ golden~ gnomon}
   \group_end:
 }
@@ -1501,11 +1586,11 @@ and the derived files            penrose.ins
     {\int_use:N  \g_@@_tile_int}
     {\int_use:N \g_@@_tiles_int}
   }
-  \UsePenroseTile[
-    every~ Penrose~ tile/.try,
+  \UseTile[
+    every~ tile/.try,
     every~ golden~ gnomon/.try,
-    Penrose~ tile~ \int_use:N \g_@@_tile_int/.try,
-    Penrose~ tile/.try/.expand~ once=\l_@@_tmpc_tl
+    tile~ \int_use:N \g_@@_tile_int/.try,
+    tile/.try/.expand~ once=\l_@@_tmpc_tl
   ]{golden~ gnomon}
   \group_end:
 }
@@ -1523,11 +1608,11 @@ and the derived files            penrose.ins
     {\int_use:N  \g_@@_tile_int}
     {\int_use:N \g_@@_tiles_int}
   }
-  \UsePenroseTile[
-    every~ Penrose~ tile/.try,
+  \UseTile[
+    every~ tile/.try,
     every~ reverse~ golden~ triangle/.try,
-    Penrose~ tile~ \int_use:N \g_@@_tile_int/.try,
-    Penrose~ tile/.try/.expand~ once=\l_@@_tmpc_tl
+    tile~ \int_use:N \g_@@_tile_int/.try,
+    tile/.try/.expand~ once=\l_@@_tmpc_tl
   ]{reverse~ golden~ triangle}
   \group_end:
 }
@@ -1545,11 +1630,11 @@ and the derived files            penrose.ins
     {\int_use:N  \g_@@_tile_int}
     {\int_use:N \g_@@_tiles_int}
   }
-  \UsePenroseTile[
-    every~ Penrose~ tile/.try,
+  \UseTile[
+    every~ tile/.try,
     every~ golden~ triangle/.try,
-    Penrose~ tile~ \int_use:N \g_@@_tile_int/.try,
-    Penrose~ tile/.try/.expand~ once=\l_@@_tmpc_tl
+    tile~ \int_use:N \g_@@_tile_int/.try,
+    tile/.try/.expand~ once=\l_@@_tmpc_tl
   ]{golden~ triangle}
   \group_end:
 }
@@ -1568,11 +1653,11 @@ and the derived files            penrose.ins
     {\int_use:N  \g_@@_tile_int}
     {\int_use:N \g_@@_tiles_int}
   }
-  \UsePenroseTile[
-    every~ Penrose~ tile/.try,
+  \UseTile[
+    every~ tile/.try,
     every~ reverse~ golden~ gnomon/.try,
-    Penrose~ tile~ \int_use:N \g_@@_tile_int/.try,
-    Penrose~ tile/.try/.expand~ once=\l_@@_tmpc_tl
+    tile~ \int_use:N \g_@@_tile_int/.try,
+    tile/.try/.expand~ once=\l_@@_tmpc_tl
   ]{reverse~ golden~ gnomon}
   \group_end:
 }
@@ -1591,11 +1676,11 @@ and the derived files            penrose.ins
     {\int_use:N  \g_@@_tile_int}
     {\int_use:N \g_@@_tiles_int}
   }
-  \UsePenroseTile[
-    every~ Penrose~ tile/.try,
+  \UseTile[
+    every~ tile/.try,
     every~ golden~ gnomon/.try,
-    Penrose~ tile~ \int_use:N \g_@@_tile_int/.try,
-    Penrose~ tile/.try/.expand~ once=\l_@@_tmpc_tl
+    tile~ \int_use:N \g_@@_tile_int/.try,
+    tile/.try/.expand~ once=\l_@@_tmpc_tl
   ]{golden~ gnomon}
   \group_end:
 }
@@ -1676,16 +1761,16 @@ and the derived files            penrose.ins
     {\int_use:N  \g_@@_tile_int}
     {\int_use:N \g_@@_tiles_int}
   }
-  \UsePenroseTile[
-    every~ Penrose~ tile/.try,
+  \UseTile[
+    every~ tile/.try,
     every~ pentagon/.try,
     every~
     \seq_item:Nn \l_@@_pentagon_parity_seq
     {\l_@@_pentagon_parity_int}
     \space pentagon/.try,
     every~ pentagon~ 5/.try,
-    Penrose~ tile~ \int_use:N \g_@@_tile_int/.try,
-    Penrose~ tile/.try/.expand~ once=\l_@@_tmpc_tl
+    tile~ \int_use:N \g_@@_tile_int/.try,
+    tile/.try/.expand~ once=\l_@@_tmpc_tl
   ]{pentagon~5}
   \group_end:
 }
@@ -1706,16 +1791,16 @@ and the derived files            penrose.ins
     {\int_use:N  \g_@@_tile_int}
     {\int_use:N \g_@@_tiles_int}
   }
-  \UsePenroseTile[
-    every~ Penrose~ tile/.try,
+  \UseTile[
+    every~ tile/.try,
     every~ pentagon/.try,
     every~
     \seq_item:Nn \l_@@_pentagon_parity_seq
     {\l_@@_pentagon_parity_int}
     \space pentagon/.try,
     every~ pentagon~ 3/.try,
-    Penrose~ tile~ \int_use:N \g_@@_tile_int/.try,
-    Penrose~ tile/.try/.expand~ once=\l_@@_tmpc_tl
+    tile~ \int_use:N \g_@@_tile_int/.try,
+    tile/.try/.expand~ once=\l_@@_tmpc_tl
   ]{pentagon~3}
   \group_end:
 }
@@ -1736,16 +1821,16 @@ and the derived files            penrose.ins
     {\int_use:N  \g_@@_tile_int}
     {\int_use:N \g_@@_tiles_int}
   }
-  \UsePenroseTile[
-    every~ Penrose~ tile/.try,
+  \UseTile[
+    every~ tile/.try,
     every~ pentagon/.try,
     every~
     \seq_item:Nn \l_@@_pentagon_parity_seq
     {\l_@@_pentagon_parity_int}
     \space pentagon/.try,
     every~ pentagon~ 2/.try,
-    Penrose~ tile~ \int_use:N \g_@@_tile_int/.try,
-    Penrose~ tile/.try/.expand~ once=\l_@@_tmpc_tl
+    tile~ \int_use:N \g_@@_tile_int/.try,
+    tile/.try/.expand~ once=\l_@@_tmpc_tl
   ]{pentagon~2}
   \group_end:
 }
@@ -1767,11 +1852,11 @@ and the derived files            penrose.ins
     {\int_use:N  \g_@@_tile_int}
     {\int_use:N \g_@@_tiles_int}
   }
-  \UsePenroseTile[
-    every~ Penrose~ tile/.try,
+  \UseTile[
+    every~ tile/.try,
     every~ pentagram/.try,
-    Penrose~ tile~ \int_use:N \g_@@_tile_int/.try,
-    Penrose~ tile/.try/.expand~ once=\l_@@_tmpc_tl
+    tile~ \int_use:N \g_@@_tile_int/.try,
+    tile/.try/.expand~ once=\l_@@_tmpc_tl
   ]{pentagram}
   \group_end:
 }
@@ -1793,11 +1878,11 @@ and the derived files            penrose.ins
     {\int_use:N  \g_@@_tile_int}
     {\int_use:N \g_@@_tiles_int}
   }
-  \UsePenroseTile[
-    every~ Penrose~ tile/.try,
+  \UseTile[
+    every~ tile/.try,
     every~ boat/.try,
-    Penrose~ tile~ \int_use:N \g_@@_tile_int/.try,
-    Penrose~ tile/.try/.expand~ once=\l_@@_tmpc_tl
+    tile~ \int_use:N \g_@@_tile_int/.try,
+    tile/.try/.expand~ once=\l_@@_tmpc_tl
   ]{boat}
   \group_end:
 }
@@ -1817,11 +1902,11 @@ and the derived files            penrose.ins
     {\int_use:N  \g_@@_tile_int}
     {\int_use:N \g_@@_tiles_int}
   }
-  \UsePenroseTile[
-    every~ Penrose~ tile/.try,
+  \UseTile[
+    every~ tile/.try,
     every~ diamond/.try,
-    Penrose~ tile~ \int_use:N \g_@@_tile_int/.try,
-    Penrose~ tile/.try/.expand~ once=\l_@@_tmpc_tl
+    tile~ \int_use:N \g_@@_tile_int/.try,
+    tile/.try/.expand~ once=\l_@@_tmpc_tl
   ]{diamond}
   \group_end:
 }
@@ -1969,1223 +2054,17 @@ and the derived files            penrose.ins
 % This is a \Verb+\tikzset+ mechanism for setting the dimensions of the tiling.
 %    \begin{macrocode}
 \tikzset{
-  Penrose~ step/.code={
+  step/.code={
     \dim_set:Nn \l_@@_step_dim {#1}
   }
 }
-%    \end{macrocode}
-%
-% We're done with \LaTeX3, so turn off the syntax.
-%    \begin{macrocode}
 \ExplSyntaxOff
 %    \end{macrocode}
 %
-% \subsection{TikZ Pictures}
-%
-% New in TikZ3.0 is the ability to make pictures that can be reused.
-% Penrose tiles seems an obvious use for this.
-% These pictures can be placed alongside other tiles, matching by edge type.
-%
-% There are a variety of constants that are frequently used and reused, so we define them all here.
-% These are the PGF versions.
-%
-%    \begin{macrocode}
-\pgfmathsetmacro\pr@chphi{cos(18)}
-\pgfmathsetmacro\pr@shphi{sin(18)}
-\pgfmathsetmacro\pr@cphi{cos(36)}
-\pgfmathsetmacro\pr@sphi{sin(36)}
-\pgfmathsetmacro\pr@invphi{2/(sqrt(5)+1)}
-\pgfmathsetmacro\pr@phi{(sqrt(5)+1)/2}
-\pgfmathsetmacro\pr@invphisq{\pr@invphi*\pr@invphi}
-\pgfmathsetmacro\pr@ominvphisq{\pr@invphi - \pr@invphisq}
-\pgfmathsetmacro\pr@ominvphi{1 - \pr@invphi}
-\pgfmathsetmacro\pr@sqthree{sqrt(3)}
-%    \end{macrocode}
-%
-%    \begin{macrocode}
-\newif\if@edgealign
-\def\pr@getfirst#1#2\pr@stop{#1}%
-\def\test@edgealign#1{%
-  \pgfkeysgetvalue{/tikz/Penrose/alignment edge}{\@penrose@tmpa}%
-  \edef\@penrose@tmpb{#1}%
-  \edef\@penrose@tmpa{\expandafter\pr@getfirst\@penrose@tmpa.\pr@stop}%
-  \ifx\@penrose@tmpa\@penrose@tmpb
-  \@edgealigntrue
-  \else
-  \@edgealignfalse
-  \fi
-}%
-%    \end{macrocode}
-%
-%    \begin{macrocode}
-\newif\if@newedge
-\def\test@newedge#1{%
-  \pgfkeysgetvalue{/tikz/Penrose/alignment new edge}{\@penrose@tmpa}%
-  \edef\@penrose@tmpb{#1}%
-  \edef\@penrose@tmpa{\@penrose@tmpa}%
-  \ifx\@penrose@tmpa\@penrose@tmpb
-  \@newedgetrue
-  \else
-  \@newedgefalse
-  \fi
-}%
-%    \end{macrocode}
-%
-% The implementation is essentially the same for each, so only the first will be commented.
-%    \begin{macrocode}
-\tikzset{
-%    \end{macrocode}
-% The key \Verb+align with=<tile> along <edge>+ is used to set the parameters for placing a tile next to an existing one.
-% For most tiles, that's enough to specify how the new tile should be placed.
-% Some, though, need more information.
-% For those, use \Verb+align with=<tile> along <edge> using <number>+. 
-%    \begin{macrocode}
-  align with/.code args={#1 along #2}{%
-    \pgfutil@in@{ using }{#2}%
-    \ifpgfutil@in@%
-    \tikzset{
-      Penrose/alignment location=#1,
-      Penrose/alignment set edges=#2,
-    }%
-    \else
-    \tikzset{
-      Penrose/alignment location=#1,
-      Penrose/alignment edge=#2,
-    }%
-    \fi
-  },
-  Penrose/alignment set edges/.code args={#1 using #2}{%
-    \tikzset{
-      Penrose/alignment edge=#1,
-      Penrose/alignment new edge=#2
-    }%
-  },
-  Penrose/alignment location/.initial={},
-  Penrose/alignment edge/.initial=a,
-  Penrose/alignment new edge/.initial={},
-%    \end{macrocode}
-% Default clipping style.
-%    \begin{macrocode}
-  every Penrose tile clip/.style={clip},
-%    \end{macrocode}
-% This is the code for setting up a \Verb+pic+.
-%    \begin{macrocode}
-  thin rhombus/.pic={
-    \begin{scope}
-%    \end{macrocode}
-% Were we given a tile to align ourselves against?
-%    \begin{macrocode}
-    \pgfkeysgetvalue{/tikz/Penrose/alignment location}{\prloc}
-    \ifx\prloc\pgfutil@empty
-    \else
-%    \end{macrocode}
-% Yes, we were.
-% So we adjust our position accordingly.
-% The first job is to transform so that we're along the edge of the receiving tile.
-%    \begin{macrocode}
-    \begingroup
-%    \end{macrocode}
-% We get the locations of the start and end of the receiving tile.
-% As \Verb+pic+ sets the node prefix, we have to temporarily suspend that (hence working in a group).
-%    \begin{macrocode}
-    \tikzset{name prefix ..}%
-    \tikz@scan@one@point\pgfutil@firstofone%
-    (\prloc-edge \pgfkeysvalueof{/tikz/Penrose/alignment edge} start)%
-    \global\pgf@xa=\pgf@x
-    \global\pgf@ya=\pgf@y
-    \tikz@scan@one@point\pgfutil@firstofone%
-    (\prloc-edge \pgfkeysvalueof{/tikz/Penrose/alignment edge} end)%
-    \global\pgf@xb=\pgf@x
-    \global\pgf@yb=\pgf@y
-    \endgroup
-%    \end{macrocode}
-% We store the initial points in \Verb+\pgf@xa+ and \Verb+\pgf@ya+ but we want \Verb+\pgf@xb+ and \Verb+\pgf@yb+ to be a vector along the edge.
-%    \begin{macrocode}
-    \advance\pgf@xb by -\pgf@xa
-    \advance\pgf@yb by -\pgf@ya
-%    \end{macrocode}
-% We shift to the start of the edge.
-%    \begin{macrocode}
-    \pgftransformshift{\pgfpoint{\pgf@xa}{\pgf@ya}}%
-%    \end{macrocode}
-% And normalise the vector along it.
-%    \begin{macrocode}
-    \pgfpointnormalised{\pgfpoint{\pgf@xb}{\pgf@yb}}
-    \pgf@xb=\pgf@x
-    \pgf@yb=\pgf@y
-%    \end{macrocode}
-% Now rotate so that the \(x\)--axis lies along the edge.
-%    \begin{macrocode}
-    \pgftransformtriangle%
-    {\pgfpoint{0pt}{0pt}}%
-    {\pgfpoint{\pgf@xb}{\pgf@yb}}%
-    {\pgfpoint{-\pgf@yb}{\pgf@xb}}
-%    \end{macrocode}
-% The next job is to shift and rotate the current tile so that the correct edge ends up against the receiving tile.
-%    \begin{macrocode}
-    \if\pgfkeysvalueof{/tikz/Penrose/alignment edge}b\relax
-    \pgftransformrotate{-18}%
-    \pgftransformshift{\pgfpoint{-\pr@chphi cm}{\pr@shphi cm}}%
-    \else
-    \if\pgfkeysvalueof{/tikz/Penrose/alignment edge}B\relax
-    \pgftransformrotate{18}%
-    \else
-    \if\pgfkeysvalueof{/tikz/Penrose/alignment edge}a\relax
-    \pgftransformrotate{198}%
-    \pgftransformshift{\pgfpoint{-2*\pr@chphi cm}{0 cm}}%
-    \else
-    \if\pgfkeysvalueof{/tikz/Penrose/alignment edge}A\relax
-    \pgftransformrotate{162}%
-    \pgftransformshift{\pgfpoint{-\pr@chphi cm}{-\pr@shphi cm}}%
-    \fi\fi\fi\fi
-    \fi
-%    \end{macrocode}
-% Now that the transformation is finalised, we can render the tile.
-% We clip against the tile path so that the tiles don't ``bleed''.
-% If we didn't do this, drawing the tile would result in overlaps which can look a bit ugly.
-% On the other hand, tight clipping can lead to ``gaps'' between the tiles so we make this optional by enclosing it in a style.
-%    \begin{macrocode}
-    \UsePenroseTile[
-      every Penrose tile clip/.try,
-      every thin rhombus clip/.try
-    ]{thin rhombus}
-    \UsePenroseTile[
-      every Penrose tile/.try,
-      every thin rhombus/.try,
-      pic actions
-    ]{thin rhombus}
-%    \end{macrocode}
-% These draw the arcs that designate the joining rules.
-% We draw full circles so that it doesn't matter what shape the tiles are.
-%    \begin{macrocode}
-    \UsePenroseTile[
-      every Penrose arc clip/.try,
-      every thin rhombus arc clip/.try
-    ]{thin rhombus}
-    \path[every circle arc/.try] (18:1) circle[radius=1/4];
-    \path[every long arc/.try] (-18:1) circle[radius=1/4];
-%    \end{macrocode}
-% Lastly, we put coordinates at each vertex, labelled by which edge they are.
-%    \begin{macrocode}
-\coordinate (-edge a start) at (0,0);
-\coordinate (-edge a end) at (18:1);
-\coordinate (-edge A start) at (18:1);
-\coordinate (-edge A end) at (2*\pr@chphi,0);
-\coordinate (-edge B start) at (2*\pr@chphi,0);
-\coordinate (-edge B end) at (-18:1);
-\coordinate (-edge b start) at (-18:1);
-\coordinate (-edge b end) at (0,0);
-    \end{scope}
-  },
-%    \end{macrocode}
-% This is a shortcut for installing the \Verb+pic+ type.
-%    \begin{macrocode}
-  thin rhombus/.style={
-    every Penrose pic/.try,
-    pic type=thin rhombus,
-  },
-%    \end{macrocode}
-% Same again, but for the thick rhombus.
-%    \begin{macrocode}
-  thick rhombus/.pic={
-    \begin{scope}
-    \pgfkeysgetvalue{/tikz/Penrose/alignment location}{\prloc}
-    \ifx\prloc\pgfutil@empty
-    \else
-    \begingroup
-    \tikzset{name prefix ..}%
-    \tikz@scan@one@point\pgfutil@firstofone%
-    (\prloc-edge \pgfkeysvalueof{/tikz/Penrose/alignment edge} start)%
-    \global\pgf@xa=\pgf@x
-    \global\pgf@ya=\pgf@y
-    \tikz@scan@one@point\pgfutil@firstofone%
-    (\prloc-edge \pgfkeysvalueof{/tikz/Penrose/alignment edge} end)%
-    \global\pgf@xb=\pgf@x
-    \global\pgf@yb=\pgf@y
-    \endgroup
-    \advance\pgf@xb by -\pgf@xa
-    \advance\pgf@yb by -\pgf@ya
-    \pgftransformshift{\pgfpoint{\pgf@xa}{\pgf@ya}}%
-    \pgfpointnormalised{\pgfpoint{\pgf@xb}{\pgf@yb}}
-    \pgf@xb=\pgf@x
-    \pgf@yb=\pgf@y
-    \pgftransformtriangle%
-    {\pgfpoint{0pt}{0pt}}%
-    {\pgfpoint{\pgf@xb}{\pgf@yb}}%
-    {\pgfpoint{-\pgf@yb}{\pgf@xb}}
-    \if\pgfkeysvalueof{/tikz/Penrose/alignment edge}b\relax
-    \pgftransformrotate{144}%
-    \pgftransformshift{\pgfpoint{-\pr@cphi cm}{-\pr@sphi cm}}%
-    \else
-    \if\pgfkeysvalueof{/tikz/Penrose/alignment edge}B\relax
-    \pgftransformrotate{36}%
-    \else
-    \if\pgfkeysvalueof{/tikz/Penrose/alignment edge}a\relax
-    \pgftransformrotate{-36}%
-    \pgftransformshift{\pgfpoint{-\pr@cphi cm}{\pr@sphi cm}}%
-    \else
-    \if\pgfkeysvalueof{/tikz/Penrose/alignment edge}A\relax
-    \pgftransformrotate{216}%
-    \pgftransformshift{\pgfpoint{-2*\pr@cphi cm}{0 cm}}%
-    \fi\fi\fi\fi
-    \fi
-    \UsePenroseTile[
-      every Penrose tile clip/.try,
-      every thick rhombus clip/.try
-    ]{thick rhombus}
-    \UsePenroseTile[
-      every Penrose tile/.try,
-      every thick rhombus/.try,
-      pic actions
-    ]{thick rhombus}
-    \UsePenroseTile[
-      every Penrose arc clip/.try,
-      every thick rhombus arc clip/.try
-    ]{thick rhombus}
-\path[every circle arc/.try] (2*\pr@cphi,0) circle[radius=1/4];
-\path[every long arc/.try] (0,0) circle[radius=3/4];
-\coordinate (-edge B start) at (0,0);
-\coordinate (-edge B end) at (36:1);
-\coordinate (-edge a start) at (36:1);
-\coordinate (-edge a end) at (2*\pr@cphi,0);
-\coordinate (-edge A start) at (2*\pr@cphi,0);
-\coordinate (-edge A end) at (-36:1);
-\coordinate (-edge b start) at (-36:1);
-\coordinate (-edge b end) at (0,0);
-    \end{scope}
-  },
-  thick rhombus/.style={
-    every Penrose pic/.try,
-    pic type=thick rhombus,
-  },
-%    \end{macrocode}
-% Now the kite.
-%    \begin{macrocode}
-  kite/.pic={
-    \begin{scope}
-    \pgfkeysgetvalue{/tikz/Penrose/alignment location}{\prloc}
-    \ifx\prloc\pgfutil@empty
-    \else
-    \begingroup
-    \tikzset{name prefix ..}%
-    \tikz@scan@one@point\pgfutil@firstofone%
-    (\prloc-edge \pgfkeysvalueof{/tikz/Penrose/alignment edge} start)%
-    \global\pgf@xa=\pgf@x
-    \global\pgf@ya=\pgf@y
-    \tikz@scan@one@point\pgfutil@firstofone%
-    (\prloc-edge \pgfkeysvalueof{/tikz/Penrose/alignment edge} end)%
-    \global\pgf@xb=\pgf@x
-    \global\pgf@yb=\pgf@y
-    \endgroup
-    \advance\pgf@xb by -\pgf@xa
-    \advance\pgf@yb by -\pgf@ya
-    \pgftransformshift{\pgfpoint{\pgf@xa}{\pgf@ya}}%
-    \pgfpointnormalised{\pgfpoint{\pgf@xb}{\pgf@yb}}
-    \pgf@xb=\pgf@x
-    \pgf@yb=\pgf@y
-    \pgftransformtriangle%
-    {\pgfpoint{0pt}{0pt}}%
-    {\pgfpoint{\pgf@xb}{\pgf@yb}}%
-    {\pgfpoint{-\pgf@yb}{\pgf@xb}}%
-    \if\pgfkeysvalueof{/tikz/Penrose/alignment edge}c\relax
-    \pgftransformrotate{-72}%
-    \pgftransformshift{\pgfpoint{-\pr@cphi cm}{\pr@sphi cm}}%
-    \else
-    \if\pgfkeysvalueof{/tikz/Penrose/alignment edge}C\relax
-    \pgftransformrotate{-108}%
-    \pgftransformshift{\pgfpoint{-1 cm}{0 cm}}%
-    \else
-    \if\pgfkeysvalueof{/tikz/Penrose/alignment edge}a\relax
-    \pgftransformrotate{36}%
-    \else
-    \if\pgfkeysvalueof{/tikz/Penrose/alignment edge}A\relax
-    \pgftransformrotate{144}%
-    \pgftransformshift{\pgfpoint{-\pr@cphi cm}{-\pr@sphi cm}}%
-    \fi\fi\fi\fi
-    \fi
-    \UsePenroseTile[
-      every Penrose tile clip/.try,
-      every kite clip/.try
-    ]{kite}
-    \UsePenroseTile[
-      every Penrose tile/.try,
-      every kite/.try,
-      pic actions
-    ]{kite}
-    \UsePenroseTile[
-      every Penrose arc clip/.try,
-      every kite arc clip/.try
-    ]{kite}
-\path[every circle arc/.try] (0,0) circle[radius=\pr@invphi];
-\path[every long arc/.try] (1,0) circle[radius=\pr@invphisq];
-\coordinate (-edge a start) at (0,0);
-\coordinate (-edge a end) at (36:1);
-\coordinate (-edge c start) at (36:1);
-\coordinate (-edge c end) at (1,0);
-\coordinate (-edge C start) at (1,0);
-\coordinate (-edge C end) at (-36:1);
-\coordinate (-edge A start) at (-36:1);
-\coordinate (-edge A end) at (0,0);
-    \end{scope}
-  },
-%    \end{macrocode}
-% The dart is next.
-%    \begin{macrocode}
-  dart/.pic={
-    \begin{scope}
-    \pgfkeysgetvalue{/tikz/Penrose/alignment location}{\prloc}
-    \ifx\prloc\pgfutil@empty
-    \else
-    \begingroup
-    \tikzset{name prefix ..}%
-    \tikz@scan@one@point\pgfutil@firstofone%
-    (\prloc-edge \pgfkeysvalueof{/tikz/Penrose/alignment edge} start)%
-    \global\pgf@xa=\pgf@x
-    \global\pgf@ya=\pgf@y
-    \tikz@scan@one@point\pgfutil@firstofone%
-    (\prloc-edge \pgfkeysvalueof{/tikz/Penrose/alignment edge} end)%
-    \global\pgf@xb=\pgf@x
-    \global\pgf@yb=\pgf@y
-    \endgroup
-    \advance\pgf@xb by -\pgf@xa
-    \advance\pgf@yb by -\pgf@ya
-    \pgftransformshift{\pgfpoint{\pgf@xa}{\pgf@ya}}%
-    \pgfpointnormalised{\pgfpoint{\pgf@xb}{\pgf@yb}}
-    \pgf@xb=\pgf@x
-    \pgf@yb=\pgf@y
-    \pgftransformtriangle%
-    {\pgfpoint{0pt}{0pt}}%
-    {\pgfpoint{\pgf@xb}{\pgf@yb}}%
-    {\pgfpoint{-\pgf@yb}{\pgf@xb}}%
-    \if\pgfkeysvalueof{/tikz/Penrose/alignment edge}c\relax
-    \pgftransformrotate{108}%
-    \else
-    \if\pgfkeysvalueof{/tikz/Penrose/alignment edge}C\relax
-    \pgftransformrotate{72}%
-    \pgftransformshift%
-    {\pgfpoint{\pr@invphi*\pr@shphi cm}{-\pr@invphi*\pr@chphi cm}}%
-    \else
-    \if\pgfkeysvalueof{/tikz/Penrose/alignment edge}a\relax
-    \pgftransformrotate{-36}%
-    \pgftransformshift%
-    {\pgfpoint{\pr@invphi*\pr@shphi cm}{\pr@invphi*\pr@chphi cm}}%
-    \else
-    \if\pgfkeysvalueof{/tikz/Penrose/alignment edge}A\relax
-    \pgftransformrotate{216}%
-    \pgftransformshift{\pgfpoint{-\pr@invphi cm}{0 cm}}%
-    \fi\fi\fi\fi
-    \fi
-    \UsePenroseTile[
-      every Penrose tile clip/.try,
-      every dart clip/.try
-    ]{dart}
-    \UsePenroseTile[
-      every Penrose tile/.try,
-      every dart/.try,
-      pic actions
-    ]{dart}
-    \UsePenroseTile[
-      every Penrose arc clip/.try,
-      every dart arc clip/.try
-    ]{dart}
-\path[every circle arc/.try] (\pr@invphi,0) circle[radius=\pr@ominvphi];
-\path[every long arc/.try] (0,0) circle[radius=\pr@ominvphisq];
-\coordinate (-edge c start) at (0,0);
-\coordinate (-edge c end) at (108:\pr@invphi);
-\coordinate (-edge a start) at (108:\pr@invphi);
-\coordinate (-edge a end) at (\pr@invphi,0);
-\coordinate (-edge A start) at (\pr@invphi,0);
-\coordinate (-edge A end) at (-108:\pr@invphi);
-\coordinate (-edge C start) at (-108:\pr@invphi);
-\coordinate (-edge C end) at (0,0);
-    \end{scope}
-  },
-  kite/.style={
-    every Penrose pic/.try,
-    pic type=kite,
-  },
-  dart/.style={
-    every Penrose pic/.try,
-    pic type=dart,
-  },
-%    \end{macrocode}
-% The golden triangle.
-%    \begin{macrocode}
-  golden triangle/.pic={
-    \begin{scope}
-    \pgfkeysgetvalue{/tikz/Penrose/alignment location}{\prloc}
-    \ifx\prloc\pgfutil@empty
-    \else
-    \begingroup
-    \tikzset{name prefix ..}%
-    \tikz@scan@one@point\pgfutil@firstofone%
-    (\prloc-edge \pgfkeysvalueof{/tikz/Penrose/alignment edge} start)%
-    \global\pgf@xa=\pgf@x
-    \global\pgf@ya=\pgf@y
-    \tikz@scan@one@point\pgfutil@firstofone%
-    (\prloc-edge \pgfkeysvalueof{/tikz/Penrose/alignment edge} end)%
-    \global\pgf@xb=\pgf@x
-    \global\pgf@yb=\pgf@y
-    \endgroup
-    \advance\pgf@xb by -\pgf@xa
-    \advance\pgf@yb by -\pgf@ya
-    \pgftransformshift{\pgfpoint{\pgf@xa}{\pgf@ya}}%
-    \pgfpointnormalised{\pgfpoint{\pgf@xb}{\pgf@yb}}
-    \pgf@xb=\pgf@x
-    \pgf@yb=\pgf@y
-    \pgftransformtriangle%
-    {\pgfpoint{0pt}{0pt}}%
-    {\pgfpoint{\pgf@xb}{\pgf@yb}}%
-    {\pgfpoint{-\pgf@yb}{\pgf@xb}}%
-    \if\pgfkeysvalueof{/tikz/Penrose/alignment edge}B\relax
-    \pgftransformrotate{18}%
-    \else
-    \if\pgfkeysvalueof{/tikz/Penrose/alignment edge}C\relax
-    \pgftransformrotate{-90}%
-    \pgftransformshift{\pgfpoint{-\pr@chphi cm}{\pr@shphi cm}}%
-    \else
-    \if\pgfkeysvalueof{/tikz/Penrose/alignment edge}A\relax
-    \pgftransformrotate{162}%
-    \pgftransformshift{\pgfpoint{-\pr@chphi cm}{-\pr@shphi cm}}%
-    \fi\fi\fi
-    \fi
-    \UsePenroseTile[
-      every Penrose tile clip/.try,
-      every golden triangle clip/.try
-    ]{golden triangle}
-    \UsePenroseTile[
-      every Penrose tile/.try,
-      every golden triangle/.try,
-      pic actions
-    ]{golden triangle}
-\coordinate (-edge a start) at (0,0);
-\coordinate (-edge a end) at (18:1);
-\coordinate (-edge c start) at (18:1);
-\coordinate (-edge c end) at (-18:1);
-\coordinate (-edge b start) at (-18:1);
-\coordinate (-edge b end) at (0,0);
-    \end{scope}
-  },
-  golden triangle/.style={
-    every Penrose pic/.try,
-    pic type=golden triangle,
-  },
-%    \end{macrocode}
-% The reverse golden triangle (is there a better name?).
-%    \begin{macrocode}
-  reverse golden triangle/.pic={
-    \begin{scope}
-    \pgfkeysgetvalue{/tikz/Penrose/alignment location}{\prloc}
-    \ifx\prloc\pgfutil@empty
-    \else
-    \begingroup
-    \tikzset{name prefix ..}%
-    \tikz@scan@one@point\pgfutil@firstofone%
-    (\prloc-edge \pgfkeysvalueof{/tikz/Penrose/alignment edge} start)%
-    \global\pgf@xa=\pgf@x
-    \global\pgf@ya=\pgf@y
-    \tikz@scan@one@point\pgfutil@firstofone%
-    (\prloc-edge \pgfkeysvalueof{/tikz/Penrose/alignment edge} end)%
-    \global\pgf@xb=\pgf@x
-    \global\pgf@yb=\pgf@y
-    \endgroup
-    \advance\pgf@xb by -\pgf@xa
-    \advance\pgf@yb by -\pgf@ya
-    \pgftransformshift{\pgfpoint{\pgf@xa}{\pgf@ya}}%
-    \pgfpointnormalised{\pgfpoint{\pgf@xb}{\pgf@yb}}
-    \pgf@xb=\pgf@x
-    \pgf@yb=\pgf@y
-    \pgftransformtriangle%
-    {\pgfpoint{0pt}{0pt}}%
-    {\pgfpoint{\pgf@xb}{\pgf@yb}}%
-    {\pgfpoint{-\pgf@yb}{\pgf@xb}}%
-    \if\pgfkeysvalueof{/tikz/Penrose/alignment edge}b\relax
-    \pgftransformrotate{162}%
-    \pgftransformshift{\pgfpoint{-\pr@chphi cm}{-\pr@shphi cm}}%
-    \else
-    \if\pgfkeysvalueof{/tikz/Penrose/alignment edge}c\relax
-    \pgftransformrotate{-90}%
-    \pgftransformshift{\pgfpoint{-\pr@chphi cm}{\pr@shphi cm}}%
-    \else
-    \if\pgfkeysvalueof{/tikz/Penrose/alignment edge}a\relax
-    \pgftransformrotate{18}%
-    \fi\fi\fi
-    \fi
-    \UsePenroseTile[
-      every Penrose tile clip/.try,
-      every reverse golden triangle clip/.try
-    ]{reverse golden triangle}
-    \UsePenroseTile[
-      every Penrose tile/.try,
-      every reverse golden triangle/.try,
-      pic actions
-    ]{reverse golden triangle}
-\coordinate (-edge B start) at (0,0);
-\coordinate (-edge B end) at (18:1);
-\coordinate (-edge C start) at (18:1);
-\coordinate (-edge C end) at (-18:1);
-\coordinate (-edge A start) at (-18:1);
-\coordinate (-edge A end) at (0,0);
-    \end{scope}
-  },
-  reverse golden triangle/.style={
-    every Penrose pic/.try,
-    pic type=reverse golden triangle,
-  },
-%    \end{macrocode}
-% The golden gnomon.
-%    \begin{macrocode}
-  golden gnomon/.pic={
-    \begin{scope}
-    \pgfkeysgetvalue{/tikz/Penrose/alignment location}{\prloc}
-    \ifx\prloc\pgfutil@empty
-    \else
-    \begingroup
-    \tikzset{name prefix ..}%
-    \tikz@scan@one@point\pgfutil@firstofone%
-    (\prloc-edge \pgfkeysvalueof{/tikz/Penrose/alignment edge} start)%
-    \global\pgf@xa=\pgf@x
-    \global\pgf@ya=\pgf@y
-    \tikz@scan@one@point\pgfutil@firstofone%
-    (\prloc-edge \pgfkeysvalueof{/tikz/Penrose/alignment edge} end)%
-    \global\pgf@xb=\pgf@x
-    \global\pgf@yb=\pgf@y
-    \endgroup
-    \advance\pgf@xb by -\pgf@xa
-    \advance\pgf@yb by -\pgf@ya
-    \pgftransformshift{\pgfpoint{\pgf@xa}{\pgf@ya}}%
-    \pgfpointnormalised{\pgfpoint{\pgf@xb}{\pgf@yb}}
-    \pgf@xb=\pgf@x
-    \pgf@yb=\pgf@y
-    \pgftransformtriangle%
-    {\pgfpoint{0pt}{0pt}}%
-    {\pgfpoint{\pgf@xb}{\pgf@yb}}%
-    {\pgfpoint{-\pgf@yb}{\pgf@xb}}%
-    \if\pgfkeysvalueof{/tikz/Penrose/alignment edge}c\relax
-    \pgftransformrotate{144}%
-    \pgftransformshift{\pgfpoint{-\pr@cphi cm}{-\pr@sphi cm}}%
-    \else
-    \if\pgfkeysvalueof{/tikz/Penrose/alignment edge}B\relax
-    \pgftransformrotate{-144}%
-    \pgftransformshift{\pgfpoint{-2*\pr@cphi cm}{0 cm}}%
-    \else
-    \if\pgfkeysvalueof{/tikz/Penrose/alignment edge}a\relax
-    \fi\fi\fi
-    \fi
-    \UsePenroseTile[
-      every Penrose tile clip/.try,
-      every golden gnomon clip/.try
-    ]{golden gnomon}
-    \UsePenroseTile[
-      every Penrose tile/.try,
-      every golden gnomon/.try,
-      pic actions
-    ]{golden gnomon}
-\coordinate (-edge C start) at (0,0);
-\coordinate (-edge C end) at (36:1);
-\coordinate (-edge b start) at (36:1);
-\coordinate (-edge b end) at (2*\pr@cphi,0);
-\coordinate (-edge A start) at (2*\pr@cphi,0);
-\coordinate (-edge A end) at (0,0);
-    \end{scope}
-  },
-  golden gnomon/.style={
-    every Penrose pic/.try,
-    pic type=golden gnomon,
-  },
-%    \end{macrocode}
-% The reverse golden gnomon.
-%    \begin{macrocode}
-  reverse golden gnomon/.pic={
-    \begin{scope}
-    \pgfkeysgetvalue{/tikz/Penrose/alignment location}{\prloc}
-    \ifx\prloc\pgfutil@empty
-    \else
-    \begingroup
-    \tikzset{name prefix ..}%
-    \tikz@scan@one@point\pgfutil@firstofone%
-    (\prloc-edge \pgfkeysvalueof{/tikz/Penrose/alignment edge} start)%
-    \global\pgf@xa=\pgf@x
-    \global\pgf@ya=\pgf@y
-    \tikz@scan@one@point\pgfutil@firstofone%
-    (\prloc-edge \pgfkeysvalueof{/tikz/Penrose/alignment edge} end)%
-    \global\pgf@xb=\pgf@x
-    \global\pgf@yb=\pgf@y
-    \endgroup
-    \advance\pgf@xb by -\pgf@xa
-    \advance\pgf@yb by -\pgf@ya
-    \pgftransformshift{\pgfpoint{\pgf@xa}{\pgf@ya}}%
-    \pgfpointnormalised{\pgfpoint{\pgf@xb}{\pgf@yb}}
-    \pgf@xb=\pgf@x
-    \pgf@yb=\pgf@y
-    \pgftransformtriangle%
-    {\pgfpoint{0pt}{0pt}}%
-    {\pgfpoint{\pgf@xb}{\pgf@yb}}%
-    {\pgfpoint{-\pgf@yb}{\pgf@xb}}%
-    \if\pgfkeysvalueof{/tikz/Penrose/alignment edge}C\relax
-    \pgftransformrotate{36}%
-    \else
-    \if\pgfkeysvalueof{/tikz/Penrose/alignment edge}b\relax
-    \pgftransformrotate{-36}%
-    \pgftransformshift{\pgfpoint{-\pr@cphi cm}{\pr@sphi cm}}%
-    \else
-    \if\pgfkeysvalueof{/tikz/Penrose/alignment edge}A\relax
-    \pgftransformrotate{180}%
-    \pgftransformshift{\pgfpoint{-2*\pr@cphi cm}{0 cm}}%
-    \fi\fi\fi
-    \fi
-    \UsePenroseTile[
-      every Penrose tile clip/.try,
-      every reverse golden gnomon clip/.try
-    ]{reverse golden gnomon}
-    \UsePenroseTile[
-      every Penrose tile/.try,
-      every reverse golden gnomon/.try,
-      pic actions
-    ]{reverse golden gnomon}
-\coordinate (-edge a start) at (0,0);
-\coordinate (-edge a end) at (2*\pr@cphi,0);
-\coordinate (-edge B start) at (2*\pr@cphi,0);
-\coordinate (-edge B end) at (-36:1);
-\coordinate (-edge c start) at (-36:1);
-\coordinate (-edge c end) at (0,0);
-    \end{scope}
-  },
-  reverse golden gnomon/.style={
-    every Penrose pic/.try,
-    pic type=reverse golden gnomon,
-  },
-%    \end{macrocode}
-% The primary pentagon.
-%    \begin{macrocode}
-  pentagon 5/.pic={
-    \begin{scope}
-    \pgfkeysgetvalue{/tikz/Penrose/alignment location}{\prloc}
-    \ifx\prloc\pgfutil@empty
-    \else
-    \begingroup
-    \tikzset{name prefix ..}%
-    \tikz@scan@one@point\pgfutil@firstofone%
-    (\prloc-edge \pgfkeysvalueof{/tikz/Penrose/alignment edge} start)%
-    \global\pgf@xa=\pgf@x
-    \global\pgf@ya=\pgf@y
-    \tikz@scan@one@point\pgfutil@firstofone%
-    (\prloc-edge \pgfkeysvalueof{/tikz/Penrose/alignment edge} end)%
-    \global\pgf@xb=\pgf@x
-    \global\pgf@yb=\pgf@y
-    \endgroup
-    \advance\pgf@xb by -\pgf@xa
-    \advance\pgf@yb by -\pgf@ya
-    \pgftransformshift{\pgfpoint{\pgf@xa}{\pgf@ya}}%
-    \pgfpointnormalised{\pgfpoint{\pgf@xb}{\pgf@yb}}
-    \pgf@xb=\pgf@x
-    \pgf@yb=\pgf@y
-    \pgftransformtriangle%
-    {\pgfpoint{0pt}{0pt}}%
-    {\pgfpoint{\pgf@xb}{\pgf@yb}}%
-    {\pgfpoint{-\pgf@yb}{\pgf@xb}}%
-    \test@newedge{1}%
-    \if@newedge
-    \pgftransformrotate{180}%
-    \pgftransformshift{\pgfpoint{-1 cm}{0 cm}}%
-    \else
-    \test@newedge{2}%
-    \if@newedge
-    \pgftransformshift{\pgfpoint{1 cm}{0 cm}}%
-    \pgftransformrotate{108}%
-    \pgftransformshift{\pgfpoint{-1 cm}{0 cm}}%
-    \else
-    \test@newedge{3}%
-    \if@newedge
-    \pgftransformshift%
-    {\pgfpoint{\pr@phi * \pr@shphi cm}{- \pr@phi * \pr@chphi cm}}%
-    \pgftransformrotate{36}%
-    \else
-    \test@newedge{4}%
-    \if@newedge
-    \pgftransformshift{\pgfpoint{- \pr@shphi cm}{-\pr@chphi cm}}%
-    \pgftransformrotate{-36}%
-    \else
-    \test@newedge{5}%
-    \if@newedge
-    \pgftransformrotate{-108}%
-    \fi\fi\fi\fi\fi
-    \fi
-    \UsePenroseTile[
-      every Penrose tile clip/.try,
-      every pentagon clip/.try,
-      every pentagon 5 clip/.try
-    ]{pentagon 5}
-    \UsePenroseTile[
-      every Penrose tile/.try,
-      every pentagon/.try,
-      every pentagon 5/.try,
-      pic actions
-    ]{pentagon 5}
-\coordinate (-edge a1 start) at (0,0);
-\coordinate (-edge a1 end) at (1,0);
-\coordinate (-edge a2 start) at (1,0);
-\coordinate (-edge a2 end) at (1+\pr@shphi,\pr@chphi);
-\coordinate (-edge a3 start) at (1+\pr@shphi,\pr@chphi);
-\coordinate (-edge a3 end) at (\pr@cphi-\pr@shphi,\pr@sphi+\pr@chphi);
-\coordinate (-edge a4 start) at (\pr@cphi-\pr@shphi,\pr@sphi+\pr@chphi);
-\coordinate (-edge a4 end) at (-\pr@shphi,\pr@chphi);
-\coordinate (-edge a5 start) at (-\pr@shphi,\pr@chphi);
-\coordinate (-edge a5 end) at (0,0);
-    \end{scope}
-  },
-  pentagon 5/.style={
-    every Penrose pic/.try,
-    pic type=pentagon 5,
-  },
-%    \end{macrocode}
-% The secondary pentagon.
-%    \begin{macrocode}
-  pentagon 3/.pic={
-    \begin{scope}
-    \pgfkeysgetvalue{/tikz/Penrose/alignment location}{\prloc}
-    \ifx\prloc\pgfutil@empty
-    \else
-    \begingroup
-    \tikzset{name prefix ..}%
-    \tikz@scan@one@point\pgfutil@firstofone%
-    (\prloc-edge \pgfkeysvalueof{/tikz/Penrose/alignment edge} start)%
-    \global\pgf@xa=\pgf@x
-    \global\pgf@ya=\pgf@y
-    \tikz@scan@one@point\pgfutil@firstofone%
-    (\prloc-edge \pgfkeysvalueof{/tikz/Penrose/alignment edge} end)%
-    \global\pgf@xb=\pgf@x
-    \global\pgf@yb=\pgf@y
-    \endgroup
-    \advance\pgf@xb by -\pgf@xa
-    \advance\pgf@yb by -\pgf@ya
-    \pgftransformshift{\pgfpoint{\pgf@xa}{\pgf@ya}}%
-    \pgfpointnormalised{\pgfpoint{\pgf@xb}{\pgf@yb}}
-    \pgf@xb=\pgf@x
-    \pgf@yb=\pgf@y
-    \pgftransformtriangle%
-    {\pgfpoint{0pt}{0pt}}%
-    {\pgfpoint{\pgf@xb}{\pgf@yb}}%
-    {\pgfpoint{-\pgf@yb}{\pgf@xb}}%
-    \test@edgealign{a}%
-    \if@edgealign
-    \pgftransformrotate{180}%
-    \pgftransformshift{\pgfpoint{-1 cm}{0 cm}}%
-    \else
-    \test@edgealign{B}%
-    \if@edgealign%
-    \test@newedge{1}%
-    \if@newedge
-    \pgftransformshift{\pgfpoint{1 cm}{0 cm}}%
-    \pgftransformrotate{108}%
-    \pgftransformshift{\pgfpoint{-1 cm}{0 cm}}%
-    \else
-    \pgftransformrotate{-108}%
-    \fi
-    \else
-    \test@newedge{1}%
-    \if@newedge
-    \pgftransformshift%
-    {\pgfpoint{\pr@phi * \pr@shphi cm}{- \pr@phi * \pr@chphi cm}}%
-    \pgftransformrotate{36}%
-    \else
-    \pgftransformshift{\pgfpoint{- \pr@shphi cm}{-\pr@chphi cm}}%
-    \pgftransformrotate{-36}%
-    \fi\fi\fi
-    \fi
-    \UsePenroseTile[
-      every Penrose tile clip/.try,
-      every pentagon clip/.try,
-      every pentagon 3 clip/.try
-    ]{pentagon 3}
-    \UsePenroseTile[
-      every Penrose tile/.try,
-      every pentagon/.try,
-      every pentagon 3/.try,
-      pic actions
-    ]{pentagon 3}
-\coordinate (-edge A start) at (0,0);
-\coordinate (-edge A end) at (1,0);
-\coordinate (-edge b1 start) at (1,0);
-\coordinate (-edge b1 end) at (1+\pr@shphi,\pr@chphi);
-\coordinate (-edge a1 start) at (1+\pr@shphi,\pr@chphi);
-\coordinate (-edge a1 end) at (\pr@cphi-\pr@shphi,\pr@sphi+\pr@chphi);
-\coordinate (-edge a2 start) at (\pr@cphi-\pr@shphi,\pr@sphi+\pr@chphi);
-\coordinate (-edge a2 end) at (-\pr@shphi,\pr@chphi);
-\coordinate (-edge b2 start) at (-\pr@shphi,\pr@chphi);
-\coordinate (-edge b2 end) at (0,0);
-    \end{scope}
-  },
-  pentagon 3/.style={
-    every Penrose pic/.try,
-    pic type=pentagon 3,
-  },
-%    \end{macrocode}
-% The tertiary pentagon.
-%    \begin{macrocode}
-  pentagon 2/.pic={
-    \begin{scope}
-    \pgfkeysgetvalue{/tikz/Penrose/alignment location}{\prloc}
-    \ifx\prloc\pgfutil@empty
-    \else
-    \begingroup
-    \tikzset{name prefix ..}%
-    \tikz@scan@one@point\pgfutil@firstofone%
-    (\prloc-edge \pgfkeysvalueof{/tikz/Penrose/alignment edge} start)%
-    \global\pgf@xa=\pgf@x
-    \global\pgf@ya=\pgf@y
-    \tikz@scan@one@point\pgfutil@firstofone%
-    (\prloc-edge \pgfkeysvalueof{/tikz/Penrose/alignment edge} end)%
-    \global\pgf@xb=\pgf@x
-    \global\pgf@yb=\pgf@y
-    \endgroup
-    \advance\pgf@xb by -\pgf@xa
-    \advance\pgf@yb by -\pgf@ya
-    \pgftransformshift{\pgfpoint{\pgf@xa}{\pgf@ya}}%
-    \pgfpointnormalised{\pgfpoint{\pgf@xb}{\pgf@yb}}
-    \pgf@xb=\pgf@x
-    \pgf@yb=\pgf@y
-    \pgftransformtriangle%
-    {\pgfpoint{0pt}{0pt}}%
-    {\pgfpoint{\pgf@xb}{\pgf@yb}}%
-    {\pgfpoint{-\pgf@yb}{\pgf@xb}}%
-    \test@edgealign{D}%
-    \if@edgealign
-    \pgftransformrotate{180}%
-    \pgftransformshift{\pgfpoint{-1 cm}{0 cm}}%
-    \else
-    \test@edgealign{a}%
-    \if@edgealign%
-    \test@newedge{1}%
-    \if@newedge
-    \pgftransformshift{\pgfpoint{1 cm}{0 cm}}%
-    \pgftransformrotate{108}%
-    \pgftransformshift{\pgfpoint{-1 cm}{0 cm}}%
-    \else
-    \pgftransformrotate{-108}%
-    \fi
-    \else
-    \test@newedge{1}%
-    \if@newedge
-    \pgftransformshift%
-    {\pgfpoint{\pr@phi * \pr@shphi cm}{- \pr@phi * \pr@chphi cm}}%
-    \pgftransformrotate{36}%
-    \else
-    \pgftransformshift{\pgfpoint{- \pr@shphi cm}{-\pr@chphi cm}}%
-    \pgftransformrotate{-36}%
-    \fi\fi\fi
-    \fi
-    \UsePenroseTile[
-      every Penrose tile clip/.try,
-      every pentagon clip/.try,
-      every pentagon 2 clip/.try
-    ]{pentagon 2}
-    \UsePenroseTile[
-      every Penrose tile/.try,
-      every pentagon/.try,
-      every pentagon 2/.try,
-      pic actions
-    ]{pentagon 2}
-\coordinate (-edge d start) at (0,0);
-\coordinate (-edge d end) at (1,0);
-\coordinate (-edge A1 start) at (1,0);
-\coordinate (-edge A1 end) at (1+\pr@shphi,\pr@chphi);
-\coordinate (-edge c1 start) at (1+\pr@shphi,\pr@chphi);
-\coordinate (-edge c1 end) at (\pr@cphi-\pr@shphi,\pr@sphi+\pr@chphi);
-\coordinate (-edge c2 start) at (\pr@cphi-\pr@shphi,\pr@sphi+\pr@chphi);
-\coordinate (-edge c2 end) at (-\pr@shphi,\pr@chphi);
-\coordinate (-edge A2 start) at (-\pr@shphi,\pr@chphi);
-\coordinate (-edge A2 end) at (0,0);
-    \end{scope}
-  },
-  pentagon 2/.style={
-    every Penrose pic/.try,
-    pic type=pentagon 2,
-  },
-%    \end{macrocode}
-% The pentagram.
-%    \begin{macrocode}
-  pentagram/.pic={
-    \begin{scope}
-    \pgfkeysgetvalue{/tikz/Penrose/alignment location}{\prloc}
-    \ifx\prloc\pgfutil@empty
-    \else
-    \begingroup
-    \tikzset{name prefix ..}%
-    \tikz@scan@one@point\pgfutil@firstofone%
-    (\prloc-edge \pgfkeysvalueof{/tikz/Penrose/alignment edge} start)%
-    \global\pgf@xa=\pgf@x
-    \global\pgf@ya=\pgf@y
-    \tikz@scan@one@point\pgfutil@firstofone%
-    (\prloc-edge \pgfkeysvalueof{/tikz/Penrose/alignment edge} end)%
-    \global\pgf@xb=\pgf@x
-    \global\pgf@yb=\pgf@y
-    \endgroup
-    \advance\pgf@xb by -\pgf@xa
-    \advance\pgf@yb by -\pgf@ya
-    \pgftransformshift{\pgfpoint{\pgf@xa}{\pgf@ya}}%
-    \pgfpointnormalised{\pgfpoint{\pgf@xb}{\pgf@yb}}
-    \pgf@xb=\pgf@x
-    \pgf@yb=\pgf@y
-    \pgftransformtriangle%
-    {\pgfpoint{0pt}{0pt}}%
-    {\pgfpoint{\pgf@xb}{\pgf@yb}}%
-    {\pgfpoint{-\pgf@yb}{\pgf@xb}}%
-    \test@newedge{2}%
-    \if@newedge
-    \pgftransformshift{\pgfpoint{1 cm}{0 cm}}%
-    \pgftransformrotate{72}%
-    \else
-    \test@newedge{3}%
-    \if@newedge
-    \pgftransformrotate{-72}%
-    \pgftransformshift{\pgfpoint{2 * \pr@shphi cm}{0 cm}}%
-    \else
-    \test@newedge{4}%
-    \if@newedge
-    \pgftransformshift{\pgfpoint{1 cm + 2 * \pr@shphi cm}{0 cm}}%
-    \else
-    \test@newedge{5}%
-    \if@newedge
-    \pgftransformrotate{216}%
-    \pgftransformshift{\pgfpoint{\pr@cphi cm}{\pr@sphi cm}}%
-    \else
-    \test@newedge{6}%
-    \if@newedge
-    \pgftransformshift{\pgfpoint{1cm}{0cm}}%
-    \pgftransformrotate{-72}%
-    \pgftransformshift{\pgfpoint{\pr@cphi cm}{\pr@sphi cm}}%
-    \else
-    \test@newedge{7}%
-    \if@newedge
-    \pgftransformrotate{144}%
-    \pgftransformshift{\pgfpoint{\pr@shphi cm}{\pr@chphi cm}}%
-    \else
-    \test@newedge{8}%
-    \if@newedge
-    \pgftransformshift{\pgfpoint{1 cm + 2*\pr@shphi cm}{0cm}}%
-    \pgftransformrotate{216}%
-    \pgftransformshift{\pgfpoint{\pr@cphi cm}{\pr@sphi cm}}%
-    \else
-    \test@newedge{9}%
-    \if@newedge
-    \pgftransformshift{\pgfpoint{-2*\pr@shphi cm}{0cm}}%
-    \pgftransformrotate{72}%
-    \else
-    \test@newedge{10}%
-    \if@newedge
-    \pgftransformrotate{144}%
-    \pgftransformshift{\pgfpoint{-1 cm}{0 cm}}%
-    \else
-    \fi\fi\fi\fi\fi\fi\fi\fi\fi
-    \fi
-    \UsePenroseTile[
-      every Penrose tile clip/.try,
-      every pentagram clip/.try
-    ]{pentagram}
-    \UsePenroseTile[
-      every Penrose tile/.try,
-      every pentagram/.try,
-      pic actions
-    ]{pentagram}
-\coordinate (-edge C1 start) at (1,0);
-\coordinate (-edge C1 end) at (0,0);
-\coordinate (-edge C2 start) at (0,0);
-\coordinate (-edge C2 end) at (-\pr@shphi,\pr@chphi);
-\coordinate (-edge C3 start) at (-\pr@shphi,\pr@chphi);
-\coordinate (-edge C3 end) at (-2*\pr@shphi,0);
-\coordinate (-edge C4 start) at (-2*\pr@shphi,0);
-\coordinate (-edge C4 end) at (-1-2*\pr@shphi,0);
-\coordinate (-edge C5 start) at (-1-2*\pr@shphi,0);
-\coordinate (-edge C5 end) at (-\pr@cphi,-\pr@sphi);
-\coordinate (-edge C6 start) at (-\pr@cphi,-\pr@sphi);
-\coordinate (-edge C6 end) at (-\pr@cphi-\pr@shphi,-\pr@sphi-\pr@chphi);
-\coordinate (-edge C7 start) at (-\pr@cphi-\pr@shphi,-\pr@sphi-\pr@chphi);
-\coordinate (-edge C7 end) at (-\pr@shphi,-\pr@chphi);
-\coordinate (-edge C8 start) at (-\pr@shphi,-\pr@chphi);
-\coordinate (-edge C8 end) at (1-\pr@cphi+\pr@shphi,-\pr@sphi-\pr@chphi);
-\coordinate (-edge C9 start) at (1-\pr@cphi+\pr@shphi,-\pr@sphi-\pr@chphi);
-\coordinate (-edge C9 end) at (1-\pr@cphi,-\pr@sphi);
-\coordinate (-edge C10 start) at (1-\pr@cphi,-\pr@sphi);
-\coordinate (-edge C10 end) at (1,0);
-    \end{scope}
-  },
-  pentagram/.style={
-    every Penrose pic/.try,
-    pic type=pentagram,
-  },
-%    \end{macrocode}
-% The boat.
-%    \begin{macrocode}
-  boat/.pic={
-    \begin{scope}
-    \pgfkeysgetvalue{/tikz/Penrose/alignment location}{\prloc}
-    \ifx\prloc\pgfutil@empty
-    \else
-    \begingroup
-    \tikzset{name prefix ..}%
-    \tikz@scan@one@point\pgfutil@firstofone%
-    (\prloc-edge \pgfkeysvalueof{/tikz/Penrose/alignment edge} start)%
-    \global\pgf@xa=\pgf@x
-    \global\pgf@ya=\pgf@y
-    \tikz@scan@one@point\pgfutil@firstofone%
-    (\prloc-edge \pgfkeysvalueof{/tikz/Penrose/alignment edge} end)%
-    \global\pgf@xb=\pgf@x
-    \global\pgf@yb=\pgf@y
-    \endgroup
-    \advance\pgf@xb by -\pgf@xa
-    \advance\pgf@yb by -\pgf@ya
-    \pgftransformshift{\pgfpoint{\pgf@xa}{\pgf@ya}}%
-    \pgfpointnormalised{\pgfpoint{\pgf@xb}{\pgf@yb}}
-    \pgf@xb=\pgf@x
-    \pgf@yb=\pgf@y
-    \pgftransformtriangle%
-    {\pgfpoint{0pt}{0pt}}%
-    {\pgfpoint{\pgf@xb}{\pgf@yb}}%
-    {\pgfpoint{-\pgf@yb}{\pgf@xb}}%
-    \test@edgealign{d}%
-    \if@edgealign
-    \pgftransformrotate{180}%
-    \pgftransformshift{\pgfpoint{\pr@cphi cm - 1cm}{\pr@sphi cm}}%
-    \else
-    \test@edgealign{b}%
-    \if@edgealign%
-    \test@newedge{2}%
-    \if@newedge
-    \pgftransformrotate{144}%
-    \pgftransformshift{\pgfpoint{-1 cm}{0 cm}}%
-    \else
-    \pgftransformrotate{216}%
-    \pgftransformshift{\pgfpoint{\pr@cphi cm}{\pr@sphi cm}}%
-    \fi
-    \else
-    \test@edgealign{c}%
-    \if@edgealign%
-    \test@newedge{2}%
-    \if@newedge
-    \pgftransformshift{\pgfpoint{1 cm}{0 cm}}%
-    \pgftransformrotate{72}%
-    \else
-    \test@newedge{3}%
-    \if@newedge
-    \pgftransformrotate{-72}%
-    \pgftransformshift{\pgfpoint{2 * \pr@shphi cm}{0 cm}}%
-    \else
-    \test@newedge{4}%
-    \if@newedge
-    \pgftransformshift{\pgfpoint{1 cm + 2 * \pr@shphi cm}{0 cm}}%
-    \else
-    \fi\fi\fi\fi\fi\fi
-    \fi
-    \UsePenroseTile[
-      every Penrose tile clip/.try,
-      every boat clip/.try
-    ]{boat}
-    \UsePenroseTile[
-      every Penrose tile/.try,
-      every boat/.try,
-      pic actions
-    ]{boat}
-\coordinate (-edge C1 start) at (1,0);
-\coordinate (-edge C1 end) at (0,0);
-\coordinate (-edge C2 start) at (0,0);
-\coordinate (-edge C2 end) at (-\pr@shphi,\pr@chphi);
-\coordinate (-edge C3 start) at (-\pr@shphi,\pr@chphi);
-\coordinate (-edge C3 end) at (-2*\pr@shphi,0);
-\coordinate (-edge C4 start) at (-2*\pr@shphi,0);
-\coordinate (-edge C4 end) at (-1-2*\pr@shphi,0);
-\coordinate (-edge B1 start) at (-1-2*\pr@shphi,0);
-\coordinate (-edge B1 end) at (-\pr@cphi,-\pr@sphi);
-\coordinate (-edge D start) at (-\pr@cphi,-\pr@sphi);
-\coordinate (-edge D end) at (1-\pr@cphi,-\pr@sphi);
-\coordinate (-edge B2 start) at (1-\pr@cphi,-\pr@sphi);
-\coordinate (-edge B2 end) at (1,0);
-    \end{scope}
-  },
-  boat/.style={
-    every Penrose pic/.try,
-    pic type=boat,
-  },
-%    \end{macrocode}
-% The diamond.
-%    \begin{macrocode}
-  diamond/.pic={
-    \begin{scope}
-    \pgfkeysgetvalue{/tikz/Penrose/alignment location}{\prloc}
-    \ifx\prloc\pgfutil@empty
-    \else
-    \begingroup
-    \tikzset{name prefix ..}%
-    \tikz@scan@one@point\pgfutil@firstofone%
-    (\prloc-edge \pgfkeysvalueof{/tikz/Penrose/alignment edge} start)%
-    \global\pgf@xa=\pgf@x
-    \global\pgf@ya=\pgf@y
-    \tikz@scan@one@point\pgfutil@firstofone%
-    (\prloc-edge \pgfkeysvalueof{/tikz/Penrose/alignment edge} end)%
-    \global\pgf@xb=\pgf@x
-    \global\pgf@yb=\pgf@y
-    \endgroup
-    \advance\pgf@xb by -\pgf@xa
-    \advance\pgf@yb by -\pgf@ya
-    \pgftransformshift{\pgfpoint{\pgf@xa}{\pgf@ya}}%
-    \pgfpointnormalised{\pgfpoint{\pgf@xb}{\pgf@yb}}
-    \pgf@xb=\pgf@x
-    \pgf@yb=\pgf@y
-    \pgftransformtriangle%
-    {\pgfpoint{0pt}{0pt}}%
-    {\pgfpoint{\pgf@xb}{\pgf@yb}}%
-    {\pgfpoint{-\pgf@yb}{\pgf@xb}}%
-    \test@edgealign{d}%
-    \if@edgealign%
-    \test@newedge{2}%
-    \if@newedge
-    \pgftransformshift{\pgfpoint{1cm}{0cm}}%
-    \pgftransformrotate{-162}%
-    \else
-    \pgftransformrotate{-18}%
-    \fi
-    \else
-    \test@newedge{2}%
-    \if@newedge
-    \pgftransformrotate{162}%
-    \pgftransformshift{\pgfpoint{- 2 * \pr@chphi cm}{0cm}}%
-    \else
-    \pgftransformshift{\pgfpoint{- \pr@cphi cm}{-\pr@sphi cm}}%
-    \pgftransformrotate{18}%
-    \fi\fi
-    \fi
-    \UsePenroseTile[
-      every Penrose tile clip/.try,
-      every diamond clip/.try
-    ]{diamond}
-    \UsePenroseTile[
-      every Penrose tile/.try,
-      every diamond/.try,
-      pic actions
-    ]{diamond}
-\coordinate (-edge D1 start) at (0,0);
-\coordinate (-edge D1 end) at (\pr@chphi,\pr@shphi);
-\coordinate (-edge B1 start) at (\pr@chphi,\pr@shphi);
-\coordinate (-edge B1 end) at (2*\pr@chphi,0);
-\coordinate (-edge B2 start) at (2*\pr@chphi,0);
-\coordinate (-edge B2 end) at (\pr@chphi,-\pr@shphi);
-\coordinate (-edge D2 start) at (\pr@chphi,-\pr@shphi);
-\coordinate (-edge D2 end) at (0,0);
-    \end{scope}
-  },
-  diamond/.style={
-    every Penrose pic/.try,
-    pic type=diamond,
-  },
-}
-
-%    \end{macrocode}
-%
-%    \begin{macrocode}
-%</package>
-%    \end{macrocode}
+% \iffalse
+%</penrose>
+% \fi
 %
 % \end{implementation}
-%
 %\Finale
 \endinput
