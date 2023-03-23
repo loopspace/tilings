@@ -387,6 +387,20 @@ and the derived files            penrose.ins
 %    \end{macrocode}
 % \end{macro}
 %
+% \begin{macro}[internal]{\@@_keys_get:Nn,\pgfkeys_get:n}
+% This is a wrapper around \Verb+\pgfkeysgetvalue+ to make it easier to use with \LaTeX3 variables.
+%    \begin{macrocode}
+\cs_new_nopar:Npn \@@_keys_get:Nn #1#2
+{
+  \pgfkeysgetvalue{/tikz/tiling/#2}{#1}
+}
+\cs_new_nopar:Npn \@@_keys_get:n #1
+{
+  \pgfkeysvalueof{/tikz/tiling/#1}
+}
+%    \end{macrocode}
+% \end{macro}
+%
 % \begin{macro}[internal]{\@@_make_tile:nnn}
 % This builds the tile path from its pieces.
 % The arguments are the name of the tile, the descriptions of the sides, and a token list of the coordinates.
@@ -811,7 +825,7 @@ and the derived files            penrose.ins
 %    \end{macrocode}
 % Were we given a tile to align ourselves against?
 %    \begin{macrocode}
-      \pgfkeysgetvalue{/tikz/tiling/alignment~ location}{\l_@@_tmpa_tl}
+      \@@_keys_get:Nn \l_@@_tmpa_tl {alignment~ location}
       \tl_if_empty:NF \l_@@_tmpa_tl
       {
 %    \end{macrocode}
@@ -826,16 +840,16 @@ and the derived files            penrose.ins
 %    \begin{macrocode}
         \tikzset{name~ prefix~ ..}
         \tikz_scan_point:n {
-          (\l_@@_tmpa_tl -edge~ \pgfkeysvalueof{/tikz/tiling/alignment~ edge}~ start)
+          (\l_@@_tmpa_tl -edge~ \@@_keys_get:n {alignment~ edge}~ start)
         }
         \dim_set_eq:Nc \l_@@_xa_dim {pgf@x}
         \dim_set_eq:Nc \l_@@_ya_dim {pgf@y}
         \tikz_scan_point:n {
-          (\l_@@_tmpa_tl -edge~ \pgfkeysvalueof{/tikz/tiling/alignment~ edge}~ end)
+          (\l_@@_tmpa_tl -edge~ \@@_keys_get:n {alignment~ edge}~ end)
         }
         \dim_set_eq:Nc \l_@@_xb_dim {pgf@x}
         \dim_set_eq:Nc \l_@@_yb_dim {pgf@y}
-        \pgfkeysgetvalue{/tikz/tiling/alignment~ direction}{\l_@@_tmpb_tl}
+        \@@_keys_get:Nn \l_@@_tmpb_tl {alignment~ direction}
         \tl_if_eq:NnTF \l_@@_tmpb_tl {forewards}
         {
           \dim_gset_eq:NN \g_@@_xa_dim \l_@@_xa_dim
@@ -876,10 +890,10 @@ and the derived files            penrose.ins
 % The next job is to shift and rotate the current tile so that the correct edge ends up against the receiving tile.
 %    \begin{macrocode}
         \str_set:Nx \l_@@_tmpa_str
-        {\pgfkeysvalueof{/tikz/tiling/alignment~ edge}}
+        {\@@_keys_get:n {alignment~ edge}}
         \str_set:Nx \l_@@_tmpa_str {\str_head:N \l_@@_tmpa_str}
         \str_put_right:Nx \l_@@_tmpa_str
-        {\pgfkeysvalueof{/tikz/tiling/alignment~ new~ edge}}
+        {\@@_keys_get:n {alignment~ new~ edge}}
         \str_set:Nx \l_@@_tmpb_str {\str_lowercase:f { \l_@@_tmpa_str}}
         \str_if_eq:NNT \l_@@_tmpa_str \l_@@_tmpb_str
         {
