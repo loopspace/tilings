@@ -10,7 +10,7 @@ Released under the LaTeX Project Public License v1.3c or later
 See http://www.latex-project.org/lppl.txt
 ----------------------------------------------------------------
 
-This package is for the creation of Penrose tilings using either kite-and-dart or rhombuses, and either by manual placement or automatic generation.
+This package is for the creation of Penrose and similar tilings.
 %</readme>
 %<*internal>
 \fi
@@ -52,6 +52,8 @@ and the derived files            penrose.ins
                                  penrose_code.pdf
                                  penrose.pdf
                                  tikzlibrarytilings.code.tex
+                                 tikzlibrarytilings.penrose.code.tex
+                                 tikzlibrarytilings.polykite.code.tex
                                  tikzlibrarypenrose.code.tex
                                  README.txt
 
@@ -61,7 +63,13 @@ and the derived files            penrose.ins
   \file{tikzlibrarytilings.code.tex}{\from{\jobname.dtx}{tilings}}
 }
 \generate{
-  \file{tikzlibrarypenrose.code.tex}{\from{\jobname.dtx}{penrose}}
+  \file{tikzlibrarytilings.penrose.code.tex}{\from{\jobname.dtx}{penrose}}
+}
+\generate{
+  \file{tikzlibrarytilings.polykite.code.tex}{\from{\jobname.dtx}{polykite}}
+}
+\generate{
+  \file{tikzlibrarypenrose.code.tex}{\from{\jobname.dtx}{penrosedep}}
 }
 %</install>
 %<install>\endbatchfile
@@ -86,6 +94,7 @@ and the derived files            penrose.ins
 \usepackage[T1]{fontenc}
 \usepackage{lmodern}
 \usepackage{tikz}
+\usepackage{amsmath}
 %\usepackage{trace}
 \usetikzlibrary{penrose}
 %\traceoff
@@ -1068,7 +1077,7 @@ and the derived files            penrose.ins
 % \fi
 %
 %    \begin{macrocode}
-\ProvidesExplFile {tikzlibrarypenrose.code.tex} {2023/03/22} {1.6} {TikZ pics for Penrose tiles}
+\ProvidesExplFile {tikzlibrarytilings.penrose.code.tex} {2023/03/22} {1.6} {TikZ pics for Penrose tiles}
 \RequirePackage{tikz}
 \usetikzlibrary{tilings}
 %    \end{macrocode}
@@ -1238,27 +1247,6 @@ and the derived files            penrose.ins
  {cosd(18) , -sind(18)}
 }
 %    \end{macrocode}
-%
-% \item Aperiodical Hat.
-%    \begin{macrocode}
-\DefineTile{aperiodical hat}{1 2 2 2 2 1 1 2 2 1 1 2 2 1}
-{
-{ -1 , 0 }
-{ -1.75 , -sqrt(3)/4 }
-{ -1.5 , -sqrt(3)/2 }
-{ -1 , -sqrt(3)/2 }
-{ -.5 , -sqrt(3)/2 }
-{ -.25 , -sqrt(3)/4 }
-{  .5 , -sqrt(3)/2 }
-{ 1.25 , -sqrt(3)/4 }
-{ 1 , 0 }
-{ .5 , 0 }
-{ .5 , sqrt(3)/2 }
-{ -.25 , 3*sqrt(3)/4 }
-{ -.5 , sqrt(3)/2 }
-{ -1 , sqrt(3)/2 }
-}
-%    \end{macrocode}
 % \end{itemize}
 %
 % Now bake the tiles.
@@ -1278,7 +1266,6 @@ and the derived files            penrose.ins
 \BakeTile {pentagram}
 \BakeTile {boat}
 \BakeTile {diamond}
-\BakeTile {aperiodical hat}
 %    \end{macrocode}
 %
 %
@@ -2077,6 +2064,120 @@ and the derived files            penrose.ins
 %
 % \iffalse
 %</penrose>
+% \fi
+%
+% \iffalse
+%<*polykite>
+% \fi
+%
+%    \begin{macrocode}
+\ProvidesExplFile {tikzlibrarytilings.polykite.code.tex} {2023/03/22} {1.6} {TikZ pics for Aperiodical Polykite tiles}
+\RequirePackage{tikz}
+\usetikzlibrary{tilings}
+%    \end{macrocode}
+%
+% \begin{itemize}
+% \item Aperiodical Hat.
+%    \begin{macrocode}
+\DefineTile{aperiodical hat}{1 2 2 2 2 1 1 2 2 1 1 2 2 1}
+{
+{ -1 , 0 }
+{ -1.75 , -sqrt(3)/4 }
+{ -1.5 , -sqrt(3)/2 }
+{ -1 , -sqrt(3)/2 }
+{ -.5 , -sqrt(3)/2 }
+{ -.25 , -sqrt(3)/4 }
+{  .5 , -sqrt(3)/2 }
+{ 1.25 , -sqrt(3)/4 }
+{ 1 , 0 }
+{ .5 , 0 }
+{ .5 , sqrt(3)/2 }
+{ -.25 , 3*sqrt(3)/4 }
+{ -.5 , sqrt(3)/2 }
+{ -1 , sqrt(3)/2 }
+}
+%    \end{macrocode}
+%
+% \item Clusters
+%
+% The mapping between the notation in the \href{preprint}{} is:
+%
+% \begin{align*}
+% A^+, A^- &\mapsto a, A \\
+% B^+, B^- &\mapsto b, B\\
+% F^+, F^- &\mapsto c, C\\
+% X^+, X^- &\mapsto d, D\\
+% L &\mapsto 1
+% \end{align*}
+%
+%    \begin{macrocode}
+\DefineTile{cluster t}{A A b}
+{
+{ -1.5 , -sqrt(3)/2 }
+{  1.5 , -sqrt(3)/2 }
+{  0   ,  sqrt(3) }  
+}
+\DefineTile{cluster p}{A 1 D d b 1 D d}
+{
+{ -1.5 , -sqrt(3)/2 }
+{  1.5 , -sqrt(3)/2 }
+{  1 , 0 }
+{ .5 , sqrt(3)/2 }
+{ -.5 , sqrt(3)/2 }
+{ -3.5, sqrt(3)/2 }
+{ -3, 0 }
+{ -2.5, -sqrt(3)/2 }
+}
+\DefineTile{cluster f}{1 D c C d b 1 D d}
+{
+{ -1.5 , -sqrt(3)/2 }
+{ -.5 , -sqrt(3)/2 }
+{  .5 , -sqrt(3)/2 }
+{  1 , 0 }
+{ .5 , sqrt(3)/2 }
+{ -.5 , sqrt(3)/2 }
+{ -3.5, sqrt(3)/2 }
+{ -3, 0 }
+{ -2.5, -sqrt(3)/2 }
+}
+\DefineTile{cluster h}{a D d B D d B D d}
+{
+{ -.5 , sqrt(3)/2 }
+{ -2, -sqrt(3) }
+{ -2.5, -3*sqrt(3)/2 }
+{ -2, -2*sqrt(3) }
+{ 1.5, -2*sqrt(3) }
+{ 2, -2*sqrt(3) }
+{ 2.5, -3*sqrt(3)/2 }
+{ 1, 0}
+{ .5 , sqrt(3)/2 }
+}
+%    \end{macrocode}
+% \end{itemize}
+%
+%    \begin{macrocode}
+\BakeTile {aperiodical hat}
+\BakeTile {cluster t}
+\BakeTile {cluster p}
+\BakeTile {cluster f}
+\BakeTile {cluster h}
+%    \end{macrocode}
+%
+% \iffalse
+%</polykite>
+% \fi
+%
+% \iffalse
+%<*penrosedep>
+% \fi
+%
+%    \begin{macrocode}
+\ProvidesExplFile {tikzlibrarypenrose.code.tex} {2023/03/22} {1.6} {TikZ pics for Penrose tiles}
+\usetikzlibrary{tilings.penrose}
+%    \end{macrocode}
+%
+% \iffalse
+%</penrosedep>
 % \fi
 %
 % \end{implementation}
