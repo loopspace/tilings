@@ -925,19 +925,41 @@ and the derived files            penrose.ins
 % We clip against the tile path so that the tiles don't ``bleed''.
 % If we didn't do this, drawing the tile would result in overlaps which can look a bit ugly.
 % On the other hand, tight clipping can lead to ``gaps'' between the tiles so we make this optional by enclosing it in a style.
+%
+% We start by putting coordinates at each vertex, labelled by which edge they are.
 %    \begin{macrocode}
+      \@@_coordinates_at_vertices:n {#2}
+%    \end{macrocode}
+% The first action is to clip against the tile path.
+%    \begin{macrocode}      
       \UseTile[
         every~ tile~ clip/.try,
         every~ #2~ clip/.try
       ]{#2}
+%    \end{macrocode}
+% Any pre-actions?
+%    \begin{macrocode}
+      \tikzset{
+        every~ tile~ before~ path/.try,
+        every~ #2~ before~ path/.try,
+        this~ tile~ before~ path/.try
+      }
+%    \end{macrocode}
+% Now we render the tile path
+%    \begin{macrocode}
       \UseTile[
         every~ tile/.try,
         every~ #2/.try,
         pic~ actions
       ]{#2}
-% Lastly, we put coordinates at each vertex, labelled by which edge they are.
-%    \begin{macrocode}
-      \@@_coordinates_at_vertices:n {#2}
+%    \end{macrocode}
+% After drawing the tile and placing the coordinates, 
+%    \begin{macrocode}      
+      \tikzset{
+        every~ tile~ after~ path/.try,
+        every~ #2~ after~ path/.try,
+        this~ tile~ after~ path/.try
+      }
       \end{scope}
     },
 %    \end{macrocode}
@@ -1077,9 +1099,9 @@ and the derived files            penrose.ins
 % \fi
 %
 %    \begin{macrocode}
-\ProvidesExplFile {tikzlibrarytilings.penrose.code.tex} {2023/03/22} {1.6} {TikZ pics for Penrose tiles}
 \RequirePackage{tikz}
 \usetikzlibrary{tilings}
+\ProvidesFile {tikzlibrarytilings.penrose.code.tex} [2023/03/22 v1.6 TikZ pics for Penrose tiles]
 %    \end{macrocode}
 %
 %
@@ -1248,6 +1270,29 @@ and the derived files            penrose.ins
 }
 %    \end{macrocode}
 % \end{itemize}
+%
+%
+% Place the arcs
+%    \begin{macrocode}
+\tikzset{
+  every thin rhombus before path/.code={
+    \path[every circle arc/.try] (-edge a end) circle[radius=1/4];
+    \path[every long arc/.try] (-edge b start) circle[radius=1/4];
+  },
+  every thick rhombus before path/.code={
+    \path[every circle arc/.try] (-edge a end) circle[radius=1/4];
+    \path[every long arc/.try] (-edge B start) circle[radius=3/4];
+  },
+  every kite before path/.code={
+    \path[every circle arc/.try] (-edge a start) circle[radius=2/(sqrt(5)+1)];
+    \path[every long arc/.try] (-edge c end) circle[radius=2/(3+sqrt(5))];
+  },
+  every dart before path/.code={
+    \path[every circle arc/.try] (-edge a end) circle[radius=1 - 2/(sqrt(5)+1)];
+    \path[every long arc/.try] (-edge c start) circle[radius=2/(sqrt(5)+1) - 2/(3+sqrt(5))];
+  }
+}
+%    \end{macrocode}
 %
 % Now bake the tiles.
 %
@@ -2059,6 +2104,8 @@ and the derived files            penrose.ins
     \dim_set:Nn \l_@@_step_dim {#1}
   }
 }
+%    \end{macrocode}
+%    \begin{macrocode}
 \ExplSyntaxOff
 %    \end{macrocode}
 %
@@ -2071,9 +2118,9 @@ and the derived files            penrose.ins
 % \fi
 %
 %    \begin{macrocode}
-\ProvidesExplFile {tikzlibrarytilings.polykite.code.tex} {2023/03/22} {1.6} {TikZ pics for Aperiodical Polykite tiles}
 \RequirePackage{tikz}
 \usetikzlibrary{tilings}
+\ProvidesFile {tikzlibrarytilings.polykite.code.tex} [2023/03/22 v1.6 TikZ pics for Aperiodical Polykite tiles]
 %    \end{macrocode}
 %
 % \begin{itemize}
@@ -2172,7 +2219,7 @@ and the derived files            penrose.ins
 % \fi
 %
 %    \begin{macrocode}
-\ProvidesExplFile {tikzlibrarypenrose.code.tex} {2023/03/22} {1.6} {TikZ pics for Penrose tiles}
+\ProvidesFile {tikzlibrarypenrose.code.tex} [2023/03/22 v1.6 TikZ pics for Penrose tiles]
 \usetikzlibrary{tilings.penrose}
 %    \end{macrocode}
 %
