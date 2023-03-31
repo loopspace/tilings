@@ -253,7 +253,7 @@ and the derived files            penrose.ins
 \tl_gset_eq:cN {g_@@_side_3_tl} \g_@@_side_a_tl
 %    \end{macrocode}
 %
-% \begin{variable}{\l_@@_tmpa_fp, \l_@@_tmpb_fp, \l_@@_tmpc_fp, \l_@@_saved_x_fp, \l_@@_saved_y_fp, \l_@@_tmpa_str, \l_@@_tmpb_str, \l_@@_tmpa_seq, \l_@@_tmpa_tl, \l_@@_tmpb_tl, \l_@@_tmpc_tl, \l_@@_tmpd_tl, \l_@@_tmpa_int, \l_@@_tmpb_int, \l_@@_xa_dim, \l_@@_ya_dim, \l_@@_xb_dim, \l_@@_yb_dim, \g_@@_xa_dim, \g_@@_ya_dim, \g_@@_xb_dim, \g_@@_yb_dim, \l_@@_tmpa_prop, \l_@@_cw_bool, \l_@@_update_saved_bool, \l_@@_relative_bool}
+% \begin{variable}{\l_@@_tmpa_fp, \l_@@_tmpb_fp, \l_@@_tmpc_fp, \l_@@_saved_x_fp, \l_@@_saved_y_fp, \l_@@_tmpa_str, \l_@@_tmpb_str, \l_@@_tmpa_seq, \l_@@_tmpa_tl, \l_@@_tmpb_tl, \l_@@_tmpc_tl, \l_@@_tmpd_tl, \l_@@_tmpa_int, \l_@@_tmpb_int, \l_@@_xa_dim, \l_@@_ya_dim, \l_@@_xb_dim, \l_@@_yb_dim, \g_@@_xa_dim, \g_@@_ya_dim, \g_@@_xb_dim, \g_@@_yb_dim, \l_@@_tmpa_prop, \l_@@_cw_bool, \l_@@_update_saved_bool, \l_@@_relative_bool, \g_@@_output_tl}
 % We need a few temporary variables to hold intermediate calculations.
 %
 %    \begin{macrocode}
@@ -270,9 +270,12 @@ and the derived files            penrose.ins
 \tl_new:N \l_@@_tmpc_tl
 \tl_new:N \l_@@_tmpd_tl
 \tl_new:N \l_@@_tmp_tile_path_tl
-\tl_new:N \g_@@_smuggle_tl
 \int_new:N \l_@@_tmpa_int
 \int_new:N \l_@@_tmpb_int
+\fp_new:N \l_@@_xa_fp
+\fp_new:N \l_@@_ya_fp
+\fp_new:N \l_@@_xb_fp
+\fp_new:N \l_@@_yb_fp
 \dim_new:N \l_@@_xa_dim
 \dim_new:N \l_@@_ya_dim
 \dim_new:N \l_@@_xb_dim
@@ -287,6 +290,10 @@ and the derived files            penrose.ins
 \bool_new:N \l_@@_relative_bool
 \str_const:Nn \c_@@_colon_str {:}
 \str_const:Nn \c_@@_comma_str {,}
+\fp_const:Nn \c_@@_cm_fp {\dim_to_fp:n {1cm}}
+\tl_new:N \g_@@_output_tl
+\fp_new:N \g_@@_output_a_fp
+\fp_new:N \g_@@_output_b_fp
 \cs_generate_variant:Nn \seq_set_split:Nnn {NVV}
 %    \end{macrocode}
 % \end{variable}
@@ -367,10 +374,10 @@ and the derived files            penrose.ins
     {\fp_to_dim:N \l_@@_tmpb_fp}
   }
   \spath_transform:NnV \l_@@_tmpa_tl {#2} \l_@@_tmpb_tl
-  \tl_gset_eq:NN \g_@@_smuggle_tl \l_@@_tmpa_tl
+  \tl_gset_eq:NN \g_@@_output_tl \l_@@_tmpa_tl
   \group_end:
-  \tl_set_eq:NN #1 \g_@@_smuggle_tl
-  \tl_gclear:N \g_@@_smuggle_tl
+  \tl_set_eq:NN #1 \g_@@_output_tl
+  \tl_gclear:N \g_@@_output_tl
 }
 \cs_generate_variant:Nn \@@_normalise_path:Nn {NV, cn, cV}
 \cs_new_protected_nopar:Npn \@@_normalise_path:N #1
@@ -386,9 +393,11 @@ and the derived files            penrose.ins
 %    \begin{macrocode}
 \NewDocumentCommand \SetTilingPath { m }
 {
+  \group_begin:
   \pgfsyssoftpath@getcurrentpath\l_@@_tmpa_tl
   \@@_normalise_path:N \l_@@_tmpa_tl
   \tl_gset_eq:cN {g_@@_side_#1_tl} \l_@@_tmpa_tl
+  \group_end:
 }
 %    \end{macrocode}
 % \end{function}
@@ -431,10 +440,10 @@ and the derived files            penrose.ins
   \tl_set:Nn \l_@@_tmpa_tl {#3}
   \tl_set:Nx \l_@@_tmpb_tl {\tl_head:N \l_@@_tmpa_tl}
   \tl_set:Nn \l_@@_tmpa_tl {\pgfsyssoftpath@movetotoken}
-  \tikz_scan_point:V \l_@@_tmpb_tl
   \tl_put_right:Nx \l_@@_tmpa_tl
   {
-    {\dim_use:N \pgf@x}{\dim_use:N \pgf@y}
+    {\fp_to_dim:n {(\tl_item:Nn \l_@@_tmpb_tl {1}) * \c_@@_cm_fp}}
+    {\fp_to_dim:n {(\tl_item:Nn \l_@@_tmpb_tl {2}) * \c_@@_cm_fp}}
   }
   \tl_set_eq:NN \l_@@_tmp_tile_path_tl \l_@@_tmpa_tl
 %    \end{macrocode}
@@ -458,32 +467,30 @@ and the derived files            penrose.ins
 %    \begin{macrocode}
     \tl_set:Nx \l_@@_tmpb_tl {\tl_head:N \l_@@_tmpa_tl}
     \tl_set:Nx \l_@@_tmpa_tl {\tl_tail:N \l_@@_tmpa_tl}
-    \tikz_scan_point:V \l_@@_tmpb_tl
 %    \end{macrocode}
 % Store the resulting coordinate.
 %    \begin{macrocode}
-    \fp_set:Nn \l_@@_tmpa_fp { \pgf@x }
-    \fp_set:Nn \l_@@_tmpb_fp { \pgf@y }
+    \fp_set:Nn \l_@@_tmpa_fp { \tl_item:Nn \l_@@_tmpb_tl {1} }
+    \fp_set:Nn \l_@@_tmpb_fp { \tl_item:Nn \l_@@_tmpb_tl {2} }
 %    \end{macrocode}
 % Now get the next coordinate.
 %    \begin{macrocode}
     \tl_set:Nx \l_@@_tmpb_tl {\tl_head:N \l_@@_tmpa_tl}
-    \tikz_scan_point:V \l_@@_tmpb_tl
 %    \end{macrocode}
 % We want the difference between the two coordinates.
 %    \begin{macrocode}
-    \fp_set:Nn \l_@@_tmpa_fp {\pgf@x - \l_@@_tmpa_fp}
-    \fp_set:Nn \l_@@_tmpb_fp {\pgf@y - \l_@@_tmpb_fp}
+    \fp_set:Nn \l_@@_tmpa_fp {\tl_item:Nn \l_@@_tmpb_tl {1} - \l_@@_tmpa_fp}
+    \fp_set:Nn \l_@@_tmpb_fp {\tl_item:Nn \l_@@_tmpb_tl {2} - \l_@@_tmpb_fp}
 %    \end{macrocode}
 % This is converted into a transformation matrix.
 %    \begin{macrocode}
     \fp_set:Nn \l_@@_tmpc_fp {-\l_@@_tmpb_fp}
     \tl_set:Nx \l_@@_tmpb_tl
     {
-      {\fp_use:N \l_@@_tmpa_fp}
-      {\fp_use:N \l_@@_tmpb_fp} % not swapped
-      {\fp_use:N \l_@@_tmpc_fp} % not swapped
-      {\fp_use:N \l_@@_tmpa_fp}
+      {\fp_to_dim:n { \l_@@_tmpa_fp * \c_@@_cm_fp }}
+      {\fp_to_dim:n { \l_@@_tmpb_fp * \c_@@_cm_fp }} % not swapped
+      {\fp_to_dim:n { \l_@@_tmpc_fp * \c_@@_cm_fp }} % not swapped
+      {\fp_to_dim:n { \l_@@_tmpa_fp * \c_@@_cm_fp }}
       {0}
       {0}
     }
@@ -500,11 +507,11 @@ and the derived files            penrose.ins
 % At the end we close the path.
 %    \begin{macrocode}
   \spath_close:N \l_@@_tmp_tile_path_tl
-  \tl_gset_eq:NN \g_@@_smuggle_tl \l_@@_tmp_tile_path_tl
+  \tl_gset_eq:NN \g_@@_output_tl \l_@@_tmp_tile_path_tl
   \group_end:
   \tl_gclear_new:c {g_@@_tile_#1_tl}
-  \tl_gset_eq:cN {g_@@_tile_#1_tl} \g_@@_smuggle_tl
-  \tl_gclear:N \g_@@_smuggle_tl
+  \tl_gset_eq:cN {g_@@_tile_#1_tl} \g_@@_output_tl
+  \tl_gclear:N \g_@@_output_tl
 }
 %    \end{macrocode}
 % \end{macro}
@@ -531,22 +538,28 @@ and the derived files            penrose.ins
 % Process a coordinate through \Verb+fp+ and adds it to a token list.
 %    \begin{macrocode}
 \cs_new_nopar:Npn \@@_add_coordinate:Nnn #1#2#3 {
-  \fp_set:Nn \l_@@_tmpa_fp{#2}
-  \fp_set:Nn \l_@@_tmpb_fp{#3}
+  \group_begin:
+  \fp_set:Nn \l_@@_tmpa_fp {#2}
+  \fp_set:Nn \l_@@_tmpb_fp {#3}
   \bool_if:NT \l_@@_relative_bool
   {
     \fp_add:Nn \l_@@_tmpa_fp {\l_@@_saved_x_fp}
     \fp_add:Nn \l_@@_tmpb_fp {\l_@@_saved_y_fp}
   }
+  \fp_gset_eq:NN \g_@@_output_a_fp \l_@@_tmpa_fp
+  \fp_gset_eq:NN \g_@@_output_b_fp \l_@@_tmpb_fp
+  \group_end:
   \tl_put_right:Nx #1
   {
-    {(\fp_use:N \l_@@_tmpa_fp, \fp_use:N \l_@@_tmpb_fp)}
+    {{\fp_use:N \g_@@_output_a_fp}{\fp_use:N \g_@@_output_b_fp}}
   }
   \bool_if:NT \l_@@_update_saved_bool
   {
-    \fp_set_eq:NN \l_@@_saved_x_fp \l_@@_tmpa_fp
-    \fp_set_eq:NN \l_@@_saved_y_fp \l_@@_tmpb_fp
+    \fp_set_eq:NN \l_@@_saved_x_fp \g_@@_output_a_fp
+    \fp_set_eq:NN \l_@@_saved_y_fp \g_@@_output_b_fp
   }
+  \fp_zero:N \g_@@_output_a_fp
+  \fp_zero:N \g_@@_output_b_fp
 }
 %    \end{macrocode}
 % Wrapper around the add coordinate command to split at a comma.
@@ -567,15 +580,16 @@ and the derived files            penrose.ins
 %    \end{macrocode}
 % \end{macro}
 %
-% \begin{macro}[internal]{\@@_transform_side:Nnn}
+% \begin{macro}[internal]{\@@_transform_side_to_axis:Nnn}
 % Apply a transformation to make a given side lie on the x-axis.
 % Second argument is the tile, third is the side, first is whether to reverse the side.
 %    \begin{macrocode}
-\cs_new_nopar:Npn \@@_transform_side:Nnn #1#2#3
+\cs_new_nopar:Npn \@@_transform_side_to_axis:Nnn #1#2#3
 {
 %    \end{macrocode}
 % Get our tile data.
 %    \begin{macrocode}
+  \group_begin:
   \prop_get:NnN \g_@@_tiles_prop {#2} \l_@@_tmpa_tl
 %    \end{macrocode}
 % Start with the edge list.
@@ -629,43 +643,61 @@ and the derived files            penrose.ins
     \tl_set:NV \l_@@_tmpb_tl \l_@@_tmpc_tl
   }
 %    \end{macrocode}
-% Translate second to origin.
+% Get the coordinates of the first point, which will be the origin of the transformation.
 %    \begin{macrocode}
-  \tikz_scan_point:V \l_@@_tmpb_tl
-  \dim_set_eq:Nc \l_@@_xa_dim {pgf@x}
-  \dim_set_eq:Nc \l_@@_ya_dim {pgf@y}
+  \fp_set:Nn \l_@@_xa_fp {\tl_item:Nn \l_@@_tmpb_tl {1}}
+  \fp_set:Nn \l_@@_ya_fp {\tl_item:Nn \l_@@_tmpb_tl {2}}
 %    \end{macrocode}
-% Rotate and scale first to unit x-vector.
+% Get the coordinates of the second point and adjust relative to the first.
 %    \begin{macrocode}
-  \tikz_scan_point:V \l_@@_tmpa_tl
-  \dim_set_eq:Nc \l_@@_xb_dim {pgf@x}
-  \dim_set_eq:Nc \l_@@_yb_dim {pgf@y}
-
-  \dim_sub:Nn \l_@@_xb_dim {\l_@@_xa_dim }
-  \dim_sub:Nn \l_@@_yb_dim {\l_@@_ya_dim }
+  \fp_set:Nn \l_@@_xb_fp {\tl_item:Nn \l_@@_tmpa_tl {1} - \l_@@_xa_fp}
+  \fp_set:Nn \l_@@_yb_fp {\tl_item:Nn \l_@@_tmpa_tl {2} - \l_@@_ya_fp}
 %    \end{macrocode}
 % And normalise the vector along it.
 %    \begin{macrocode}
-  \pgfpointnormalised{\pgfpoint{\l_@@_xb_dim}{\l_@@_yb_dim}}
-  \dim_set_eq:Nc \l_@@_xb_dim {pgf@x}
-  \dim_set_eq:Nc \l_@@_yb_dim {pgf@y}
+%  \fp_set:Nn \l_@@_xb_fp {\l_@@_xb_fp / \c_@@_cm_fp}
+%  \fp_set:Nn \l_@@_yb_fp {\l_@@_yb_fp / \c_@@_cm_fp}
+  \fp_set:Nn \l_@@_tmpa_fp {(\l_@@_xb_fp)^2 + (\l_@@_yb_fp)^2}
+  \fp_set:Nn \l_@@_xb_fp { \l_@@_xb_fp / \l_@@_tmpa_fp}
+  \fp_set:Nn \l_@@_yb_fp { \l_@@_yb_fp / \l_@@_tmpa_fp}
 %    \end{macrocode}
 % Now rotate so that the \(x\)--axis lies along the edge.
 %    \begin{macrocode}
-    \pgftransformtriangle%
-    {\pgfpoint{0pt}{0pt}}%
-    {\pgfpoint{\l_@@_xb_dim}{-\l_@@_yb_dim}}
-    {\pgfpoint{\l_@@_yb_dim}{\l_@@_xb_dim}}
-
-  \pgftransformshift{\pgfpoint{-\l_@@_xa_dim}{-\l_@@_ya_dim}}
-
+  \tl_gset:Nx \g_@@_output_tl
+  {
+    \exp_not:N \pgftransformtriangle
+    {
+      \exp_not:N \pgfpoint{0pt}{0pt}
+    }
+    {
+      \exp_not:N \pgfpoint
+      {\fp_to_dim:N \l_@@_xb_fp}{\fp_to_dim:n {-\l_@@_yb_fp}}
+    }
+    {
+      \exp_not:N \pgfpoint
+      {\fp_to_dim:N \l_@@_yb_fp}{\fp_to_dim:N \l_@@_xb_fp}
+    }
+    \exp_not:N \pgftransformshift
+    {
+      \exp_not:N \pgfpoint
+      {
+        \fp_to_dim:n {-\l_@@_xa_fp * \c_@@_cm_fp}
+      }
+      {
+        \fp_to_dim:n {-\l_@@_ya_fp * \c_@@_cm_fp}
+      }
+    }
+  }
+  \group_end:
+  \tl_use:N \g_@@_output_tl
+  \tl_gclear:N \g_@@_output_tl
 }
 %    \end{macrocode}
 % \end{macro}
 %
 %    \begin{macrocode}
 \cs_generate_variant:Nn \tl_if_eq:nnT {nVT}
-\cs_generate_variant:Nn \@@_transform_side:Nnn {Nnx,NnV}
+\cs_generate_variant:Nn \@@_transform_side_to_axis:Nnn {Nnx,NnV,NVV}
 %    \end{macrocode}
 %
 % \begin{macro}[internal]{\TransformAlongSide}
@@ -684,7 +716,7 @@ and the derived files            penrose.ins
   {
     \bool_set_false:N \l_@@_cw_bool
   }
-  \@@_transform_side:Nnx \l_@@_cw_bool {#1}{#2}
+  \@@_transform_side_to_axis:Nnx \l_@@_cw_bool {#2}{#3}
 }
 %    \end{macrocode}
 % \end{macro}
@@ -694,6 +726,7 @@ and the derived files            penrose.ins
 %    \begin{macrocode}
 \cs_new_nopar:Npn \@@_coordinates_at_vertices:n #1
 {
+  \group_begin:
 %    \end{macrocode}
 % Get our tile data
 %    \begin{macrocode}
@@ -727,17 +760,18 @@ and the derived files            penrose.ins
   \tl_map_inline:Nn \l_@@_tmpb_tl {
     \tl_set:Nx \l_@@_tmpd_tl {
       \exp_not:N \coordinate
-      (-edge~ ##1~ start)~ at \tl_use:N \l_@@_tmpa_tl;
+      (-edge~ ##1~ start)~ at (\tl_item:Nn \l_@@_tmpa_tl {1},\tl_item:Nn \l_@@_tmpa_tl {2});
     }
     \tl_use:N \l_@@_tmpd_tl
     \tl_set:Nx \l_@@_tmpa_tl {\tl_head:N \l_@@_tmpc_tl}
     \tl_set:Nx \l_@@_tmpc_tl {\tl_tail:N \l_@@_tmpc_tl}
     \tl_set:Nx \l_@@_tmpd_tl {
       \exp_not:N \coordinate
-      (-edge~ ##1~ end)~ at \tl_use:N \l_@@_tmpa_tl;
+      (-edge~ ##1~ end)~ at (\tl_item:Nn \l_@@_tmpa_tl {1},\tl_item:Nn \l_@@_tmpa_tl {2});
     }
     \tl_use:N \l_@@_tmpd_tl
   }
+  \group_end:
 }
 %    \end{macrocode}
 % \end{macro}
@@ -755,6 +789,76 @@ and the derived files            penrose.ins
 %
 %    \begin{macrocode}
 \tikzset{
+  transform~ to~ tile/.code~ args={#1~ along~ #2}{%
+    \group_begin:
+    \tl_if_in:nnTF {#1} {back}
+    {
+      \tikzset{
+        tiling/alignment~ set~ location=#1,
+        tiling/alignment~ direction={backwards}
+      }
+    }
+    {
+      \tikzset{
+        tiling/alignment~ location=#1,
+        tiling/alignment~ direction={forewards}
+      }
+    }
+    \tl_if_in:nnTF {#2} {using}
+    {
+      \tikzset{
+        tiling/alignment~ set~ edges=#2,
+      }
+    }
+    {
+      \tikzset{
+        tiling/alignment~ edge=#2,
+      }
+    }
+    \tikz_scan_point:n {
+      (\@@_keys_get:n {alignment~ location} -edge~ \@@_keys_get:n {alignment~ edge}~ start)
+    }
+    \dim_set_eq:Nc \l_@@_xa_dim {pgf@x}
+    \dim_set_eq:Nc \l_@@_ya_dim {pgf@y}
+    \tikz_scan_point:n {
+      (\@@_keys_get:n {alignment~ location} -edge~ \@@_keys_get:n {alignment~ edge}~ end)
+    }
+    \dim_set_eq:Nc \l_@@_xb_dim {pgf@x}
+    \dim_set_eq:Nc \l_@@_yb_dim {pgf@y}
+    \@@_keys_get:Nn \l_@@_tmpb_tl {alignment~ direction}
+    \tl_if_eq:NnTF \l_@@_tmpb_tl {forewards}
+    {
+      \dim_gset_eq:NN \g_@@_xa_dim \l_@@_xa_dim
+      \dim_gset_eq:NN \g_@@_ya_dim \l_@@_ya_dim
+      \dim_gset_eq:NN \g_@@_xb_dim \l_@@_xb_dim
+      \dim_gset_eq:NN \g_@@_yb_dim \l_@@_yb_dim
+    }
+    {
+      \dim_gset_eq:NN \g_@@_xa_dim \l_@@_xb_dim
+      \dim_gset_eq:NN \g_@@_ya_dim \l_@@_yb_dim
+      \dim_gset_eq:NN \g_@@_xb_dim \l_@@_xa_dim
+      \dim_gset_eq:NN \g_@@_yb_dim \l_@@_ya_dim
+    }
+    \dim_gsub:Nn \g_@@_xb_dim {\g_@@_xa_dim}
+    \dim_gsub:Nn \g_@@_yb_dim {\g_@@_ya_dim}
+    \dim_gset:Nn \g_@@_xb_dim {\g_@@_xb_dim * \dim_ratio:nn {1pt}{1cm}}
+    \dim_gset:Nn \g_@@_yb_dim {\g_@@_yb_dim * \dim_ratio:nn {1pt}{1cm}}
+    \group_end:
+%    \end{macrocode}
+% We store the initial points in \Verb+\pgf@xa+ and \Verb+\pgf@ya+ but we want \Verb+\pgf@xb+ and \Verb+\pgf@yb+ to be a vector along the edge.
+%    \begin{macrocode}
+%    \end{macrocode}
+% We shift to the start of the edge.
+%    \begin{macrocode}
+    \pgftransformshift{\pgfpoint{\g_@@_xa_dim}{\g_@@_ya_dim}}
+%    \end{macrocode}
+% Now rotate so that the \(x\)--axis lies along the edge.
+%    \begin{macrocode}
+    \pgftransformtriangle
+    {\pgfpoint{0pt}{0pt}}
+    {\pgfpoint{\g_@@_xb_dim}{\g_@@_yb_dim}}
+    {\pgfpoint{-\g_@@_yb_dim}{\g_@@_xb_dim}}
+  },
   align~ with/.code~ args={#1~ along~ #2}{%
     \tl_if_in:nnTF {#1} {back}
     {
@@ -799,7 +903,7 @@ and the derived files            penrose.ins
 %    \end{macrocode}
 % Default clipping style.
 %    \begin{macrocode}
-  every tile clip/.style={clip}
+  every~ tile~ clip/.style={clip}
 }
 %    \end{macrocode}
 %
@@ -946,22 +1050,23 @@ and the derived files            penrose.ins
           \dim_gset_eq:NN \g_@@_xb_dim \l_@@_xa_dim
           \dim_gset_eq:NN \g_@@_yb_dim \l_@@_ya_dim
         }
+        \dim_gsub:Nn \g_@@_xb_dim {\g_@@_xa_dim}
+        \dim_gsub:Nn \g_@@_yb_dim {\g_@@_ya_dim}
+        \dim_gset:Nn \g_@@_xb_dim {\g_@@_xb_dim * \dim_ratio:nn {1pt}{1cm}}
+        \dim_gset:Nn \g_@@_yb_dim {\g_@@_yb_dim * \dim_ratio:nn {1pt}{1cm}}
         \group_end:
 %    \end{macrocode}
 % We store the initial points in \Verb+\pgf@xa+ and \Verb+\pgf@ya+ but we want \Verb+\pgf@xb+ and \Verb+\pgf@yb+ to be a vector along the edge.
-%    \begin{macrocode}
-        \dim_sub:Nn \g_@@_xb_dim {\g_@@_xa_dim}
-        \dim_sub:Nn \g_@@_yb_dim {\g_@@_ya_dim}
-%    \end{macrocode}
+%
 % We shift to the start of the edge.
 %    \begin{macrocode}
         \pgftransformshift{\pgfpoint{\g_@@_xa_dim}{\g_@@_ya_dim}}
 %    \end{macrocode}
 % And normalise the vector along it.
 %    \begin{macrocode}
-        \pgfpointnormalised{\pgfpoint{\g_@@_xb_dim}{\g_@@_yb_dim}}
-        \dim_gset_eq:Nc \g_@@_xb_dim {pgf@x}
-        \dim_gset_eq:Nc \g_@@_yb_dim {pgf@y}
+%        \pgfpointnormalised{\pgfpoint{\g_@@_xb_dim}{\g_@@_yb_dim}}
+%        \dim_gset_eq:Nc \g_@@_xb_dim {pgf@x}
+%        \dim_gset_eq:Nc \g_@@_yb_dim {pgf@y}
 %    \end{macrocode}
 % Now rotate so that the \(x\)--axis lies along the edge.
 %    \begin{macrocode}
@@ -992,7 +1097,7 @@ and the derived files            penrose.ins
         {
           \pgftransformyscale {-1}
         }
-        \@@_transform_side:NnV \l_@@_cw_bool {#2} \l_@@_tmpb_str
+        \@@_transform_side_to_axis:NnV \l_@@_cw_bool {#2} \l_@@_tmpb_str
       }
 %    \end{macrocode}
 % Now that the transformation is finalised, we can render the tile.
@@ -1071,24 +1176,9 @@ and the derived files            penrose.ins
 %    \begin{macrocode}
   \tl_set_eq:Nc \l_@@_tmp_tile_path_tl {g_@@_tile_#2_tl}
 %    \end{macrocode}
-% The transformation matrix returned by PGF appears to be transposed from what it should be.
-% (This needs a little more investigation, it might be that I've implemented the multiplication incorrectly here.)
+% We get the current transformation to apply to this path.
 %    \begin{macrocode}
   \pgfgettransform \l_@@_tmpa_tl
-%  \tl_clear:N \l_@@_tmpb_tl
-%  \tl_set:Nx \l_@@_tmpb_tl {{\tl_head:N \l_@@_tmpa_tl}}
-%  \tl_set:Nx \l_@@_tmpa_tl {\tl_tail:N \l_@@_tmpa_tl}
-%  \tl_put_right:Nx \l_@@_tmpb_tl
-%  {
-%    {\tl_item:Nn \l_@@_tmpa_tl {1}}
-%  }
-%  \tl_put_right:Nx \l_@@_tmpb_tl
-%  {
-%    {\tl_item:Nn \l_@@_tmpa_tl {2}}
-%  }
-%  \tl_set:Nx \l_@@_tmpa_tl {\tl_tail:N \l_@@_tmpa_tl}
-%  \tl_set:Nx \l_@@_tmpa_tl {\tl_tail:N \l_@@_tmpa_tl}
-%  \tl_put_right:NV \l_@@_tmpb_tl \l_@@_tmpa_tl
 %    \end{macrocode}
 % Apply the transformation, protocol the path, and render it.
 %    \begin{macrocode}
@@ -1159,9 +1249,168 @@ and the derived files            penrose.ins
     \exp_args:NV \pgfkeysalso #1
   }
 }
-\ExplSyntaxOff
 %    \end{macrocode}
 % \end{macro}
+%
+% \subsection{Lindenmayer System}
+%
+% This is an implementation of the Lindenmayer System description of Penrose and other tilings as a way of generating tilings from a specific starting seed.
+%
+% The implementation uses \Verb+prop+s to store \emph{rules} and \emph{actions}.
+% The rules are used to expand the starting seed to a certain level, after which the actions are carried out.
+% The syntax is based on the PGF library, but as we're already using \LaTeX3 it is reimplemented in that.
+%
+% \begin{macro}[internal]{\@@_make_lms:Nnnn}
+% This creates the token list of actions, starting with the seed.
+% The arguments are: a token list to store the result in, the name of the system, the number of iterations, and the initial state.
+%    \begin{macrocode}
+\cs_new_nopar:Npn \@@_make_lms:Nnnn #1#2#3#4
+{
+  \group_begin:
+%    \end{macrocode}
+% On the first time round, we start with the given seed.
+%    \begin{macrocode}
+  \tl_set:Nn \l_@@_tmpb_tl {#4}
+%    \end{macrocode}
+% We repeat the specified number of times.
+%    \begin{macrocode}
+  \prg_replicate:nn {#3} {
+%    \end{macrocode}
+% Duplicate the current state.
+%    \begin{macrocode}
+    \tl_set_eq:NN \l_@@_tmpa_tl \l_@@_tmpb_tl
+%    \end{macrocode}
+% Clear the receiving token list.
+%    \begin{macrocode}
+    \tl_clear:N \l_@@_tmpb_tl
+%    \end{macrocode}
+% Walk through the current list, appending to the receiving list according to the rules.
+%    \begin{macrocode}
+    \tl_map_inline:Nn \l_@@_tmpa_tl
+    {
+%    \end{macrocode}
+% If a rule exists, copy that.
+%    \begin{macrocode}
+      \prop_if_in:cnTF {g_@@_#2_lms_rule_prop} {##1}
+      {
+        \tl_put_right:Nx \l_@@_tmpb_tl
+        {\prop_item:cn {g_@@_#2_lms_rule_prop} {##1} }
+      }
+      {
+%    \end{macrocode}
+% Otherwise, just copy the token.
+%    \begin{macrocode}
+        \tl_put_right:Nn \l_@@_tmpb_tl {##1}
+      }
+    }
+  }
+%    \end{macrocode}
+% We've done all this inside a group, now pass the result outside.
+%    \begin{macrocode}
+  \tl_set:Nn \l_@@_tmpa_tl {
+    \group_end:
+    \tl_set:Nn #1
+  }
+  \tl_put_right:Nx \l_@@_tmpa_tl {{\tl_use:N \l_@@_tmpb_tl}}
+  \tl_use:N \l_@@_tmpa_tl
+}
+\cs_generate_variant:Nn \@@_make_lms:Nnnn {Nnnx}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}[internal]{\@@_invoke_lms:Nn}
+% This carries out the actions specified by the resulting rules.
+%    \begin{macrocode}
+\cs_new_nopar:Npn \@@_invoke_lms:Nn #1#2
+{
+  \group_begin:
+%    \end{macrocode}
+% Walk through the given list, carrying out the corresponding action if it exists.
+% If not, look at the default.
+% Otherwise, just do nothing.
+%    \begin{macrocode}
+  \tl_map_inline:Nn #1 {
+    \prop_if_in:cnTF {g_@@_#2_lms_action_prop} {##1}
+    {
+      \prop_item:cn {g_@@_#2_lms_action_prop} {##1}
+    }
+    {
+      \prop_if_in:cnT {g_@@_default_lms_action_prop} {##1}
+      {
+        \prop_item:cn {g_@@_default_lms_action_prop} {##1}
+      }
+    }
+  }
+  \group_end:
+}
+%    \end{macrocode}
+% \end{macro}
+%
+% We keep track of the number of tiles.
+%    \begin{macrocode}
+\int_new:N \g_@@_tile_int
+\int_new:N \g_@@_tiles_int
+%    \end{macrocode}
+%
+% \begin{function}{\TilingDecomposition}
+% This is the user macro to invoke the decomposition.
+% The arguments are: optional styles, the name, number of iterations, and starting seed.
+%    \begin{macrocode}
+\NewDocumentCommand \TilingDecomposition { O{} m m m }
+{
+  \group_begin:
+  \tikzset{#1}
+  \@@_make_lms:Nnnx \l_@@_tmpa_tl {#2} {#3} {#4}
+  \@@_count_lms:N \l_@@_tmpa_tl
+  \int_gzero:N \g_@@_tile_int
+  \int_set:Nn \l_@@_pentagon_parity_int {2}
+  \@@_invoke_lms:Nn \l_@@_tmpa_tl {#2}
+  \group_end:
+}
+%    \end{macrocode}
+% \end{function}
+%
+% \begin{macro}[internal]{\@@_count_lms:N}
+% This counts the number of tiles in the string.
+%    \begin{macrocode}
+\cs_new_nopar:Npn \@@_count_lms:N #1
+{
+  \int_gzero:N \g_@@_tiles_int
+  \tl_map_inline:Nn #1
+  {
+    \tl_if_eq:nnT {##1} {T}
+    {
+      \int_gincr:N \g_@@_tiles_int
+    }
+    \tl_if_eq:nnT {##1} {t}
+    {
+      \int_gincr:N \g_@@_tiles_int
+    }
+    \tl_if_eq:nnT {##1} {G}
+    {
+      \int_gincr:N \g_@@_tiles_int
+    }
+    \tl_if_eq:nnT {##1} {g}
+    {
+      \int_gincr:N \g_@@_tiles_int
+    }
+  }
+}
+%    \end{macrocode}
+% \end{macro}
+%
+% This is a \Verb+\tikzset+ mechanism for setting the dimensions of the tiling.
+%    \begin{macrocode}
+\tikzset{
+  step/.code={
+    \dim_set:Nn \l_@@_step_dim {#1}
+  }
+}
+%    \end{macrocode}
+%
+%    \begin{macrocode}
+\ExplSyntaxOff
+%    \end{macrocode}
 %
 % \iffalse
 %</tilings>
@@ -1394,13 +1643,8 @@ and the derived files            penrose.ins
 \ExplSyntaxOn
 %    \end{macrocode}
 %
-% This is an implementation of the Lindenmayer System description of Penrose tilings as a way of generating tilings from a specific starting seed.
+% These are the rules for generating rhombus tilings with the Lindenmayer System procedure.
 %
-% The implementation uses \Verb+prop+s to store \emph{rules} and \emph{actions}.
-% The rules are used to expand the starting seed to a certain level, after which the actions are carried out.
-% The syntax is based on the PGF library, but as we're already using \LaTeX3 it is reimplemented in that.
-%
-% These are the rules for generating rhombus tilings.
 %    \begin{macrocode}
 \prop_new:N \g_@@_rhombus_lms_rule_prop
 \prop_gput:Nnn \g_@@_rhombus_lms_rule_prop {T} {[f*sT][f>g]}
@@ -2032,153 +2276,6 @@ and the derived files            penrose.ins
 }
 %    \end{macrocode}
 %
-% \begin{macro}[internal]{\@@_make_lms:Nnnn}
-% This creates the token list of actions, starting with the seed.
-% The arguments are: a token list to store the result in, the name of the system, the number of iterations, and the initial state.
-%    \begin{macrocode}
-\cs_new_nopar:Npn \@@_make_lms:Nnnn #1#2#3#4
-{
-  \group_begin:
-%    \end{macrocode}
-% On the first time round, we start with the given seed.
-%    \begin{macrocode}
-  \tl_set:Nn \l_@@_tmpb_tl {#4}
-%    \end{macrocode}
-% We repeat the specified number of times.
-%    \begin{macrocode}
-  \prg_replicate:nn {#3} {
-%    \end{macrocode}
-% Duplicate the current state.
-%    \begin{macrocode}
-    \tl_set_eq:NN \l_@@_tmpa_tl \l_@@_tmpb_tl
-%    \end{macrocode}
-% Clear the receiving token list.
-%    \begin{macrocode}
-    \tl_clear:N \l_@@_tmpb_tl
-%    \end{macrocode}
-% Walk through the current list, appending to the receiving list according to the rules.
-%    \begin{macrocode}
-    \tl_map_inline:Nn \l_@@_tmpa_tl
-    {
-%    \end{macrocode}
-% If a rule exists, copy that.
-%    \begin{macrocode}
-      \prop_if_in:cnTF {g_@@_#2_lms_rule_prop} {##1}
-      {
-        \tl_put_right:Nx \l_@@_tmpb_tl
-        {\prop_item:cn {g_@@_#2_lms_rule_prop} {##1} }
-      }
-      {
-%    \end{macrocode}
-% Otherwise, just copy the token.
-%    \begin{macrocode}
-        \tl_put_right:Nn \l_@@_tmpb_tl {##1}
-      }
-    }
-  }
-%    \end{macrocode}
-% We've done all this inside a group, now pass the result outside.
-%    \begin{macrocode}
-  \tl_set:Nn \l_@@_tmpa_tl {
-    \group_end:
-    \tl_set:Nn #1
-  }
-  \tl_put_right:Nx \l_@@_tmpa_tl {{\tl_use:N \l_@@_tmpb_tl}}
-  \tl_use:N \l_@@_tmpa_tl
-}
-\cs_generate_variant:Nn \@@_make_lms:Nnnn {Nnnx}
-%    \end{macrocode}
-% \end{macro}
-%
-% \begin{macro}[internal]{\@@_invoke_lms:Nn}
-% This carries out the actions specified by the resulting rules.
-%    \begin{macrocode}
-\cs_new_nopar:Npn \@@_invoke_lms:Nn #1#2
-{
-  \group_begin:
-%    \end{macrocode}
-% Walk through the given list, carrying out the corresponding action if it exists.
-% If not, look at the default.
-% Otherwise, just do nothing.
-%    \begin{macrocode}
-  \tl_map_inline:Nn #1 {
-    \prop_if_in:cnTF {g_@@_#2_lms_action_prop} {##1}
-    {
-      \prop_item:cn {g_@@_#2_lms_action_prop} {##1}
-    }
-    {
-      \prop_if_in:cnT {g_@@_default_lms_action_prop} {##1}
-      {
-        \prop_item:cn {g_@@_default_lms_action_prop} {##1}
-      }
-    }
-  }
-  \group_end:
-}
-%    \end{macrocode}
-% \end{macro}
-%
-% We keep track of the number of tiles.
-%    \begin{macrocode}
-\int_new:N \g_@@_tile_int
-\int_new:N \g_@@_tiles_int
-%    \end{macrocode}
-%
-% \begin{function}{\PenroseDecomposition}
-% This is the user macro to invoke the decomposition.
-% The arguments are: optional styles, the name, number of iterations, and starting seed.
-%    \begin{macrocode}
-\NewDocumentCommand \PenroseDecomposition { O{} m m m }
-{
-  \group_begin:
-  \tikzset{#1}
-  \@@_make_lms:Nnnx \l_@@_tmpa_tl {#2} {#3} {#4}
-  \@@_count_lms:N \l_@@_tmpa_tl
-  \int_gzero:N \g_@@_tile_int
-  \int_set:Nn \l_@@_pentagon_parity_int {2}
-  \@@_invoke_lms:Nn \l_@@_tmpa_tl {#2}
-  \group_end:
-}
-%    \end{macrocode}
-% \end{function}
-%
-% \begin{macro}[internal]{\@@_count_lms:N}
-% This counts the number of tiles in the string.
-%    \begin{macrocode}
-\cs_new_nopar:Npn \@@_count_lms:N #1
-{
-  \int_gzero:N \g_@@_tiles_int
-  \tl_map_inline:Nn #1
-  {
-    \tl_if_eq:nnT {##1} {T}
-    {
-      \int_gincr:N \g_@@_tiles_int
-    }
-    \tl_if_eq:nnT {##1} {t}
-    {
-      \int_gincr:N \g_@@_tiles_int
-    }
-    \tl_if_eq:nnT {##1} {G}
-    {
-      \int_gincr:N \g_@@_tiles_int
-    }
-    \tl_if_eq:nnT {##1} {g}
-    {
-      \int_gincr:N \g_@@_tiles_int
-    }
-  }
-}
-%    \end{macrocode}
-% \end{macro}
-%
-% This is a \Verb+\tikzset+ mechanism for setting the dimensions of the tiling.
-%    \begin{macrocode}
-\tikzset{
-  step/.code={
-    \dim_set:Nn \l_@@_step_dim {#1}
-  }
-}
-%    \end{macrocode}
 %    \begin{macrocode}
 \ExplSyntaxOff
 %    \end{macrocode}
@@ -2234,9 +2331,9 @@ and the derived files            penrose.ins
 \DefinePolykiteTile{aperiodical turtle}{1/2}{sqrt(3)/2}
 %    \end{macrocode}
 %
-% \item Clusters
+% \item Meta Clusters
 %
-% The mapping between the notation in the \href{preprint}{} is:
+% The mapping between the notation in the \href{preprint}{https://arxiv.org/abs/2303.10798} is:
 %
 % \begin{align*}
 % A^+, A^- &\mapsto a, A \\
@@ -2247,13 +2344,13 @@ and the derived files            penrose.ins
 % \end{align*}
 %
 %    \begin{macrocode}
-\DefineTile{cluster t}{A A b}
+\DefineTile{meta cluster t}{A A b}
 {
 { -1.5 , -sqrt(3)/2 }
 {  1.5 , -sqrt(3)/2 }
 {  0   ,  sqrt(3) }  
 }
-\DefineTile{cluster p}{A 1 D d b 1 D d}
+\DefineTile{meta cluster p}{A 1 D d b 1 D d}
 {
 { -1.5 , -sqrt(3)/2 }
 {  1.5 , -sqrt(3)/2 }
@@ -2264,7 +2361,7 @@ and the derived files            penrose.ins
 { -3, 0 }
 { -2.5, -sqrt(3)/2 }
 }
-\DefineTile{cluster f}{1 D c C d b 1 D d}
+\DefineTile{meta cluster f}{1 D c C d b 1 D d}
 {
 { -1.5 , -sqrt(3)/2 }
 { -.5 , -sqrt(3)/2 }
@@ -2276,17 +2373,63 @@ and the derived files            penrose.ins
 { -3, 0 }
 { -2.5, -sqrt(3)/2 }
 }
-\DefineTile{cluster h}{a D d B D d B D d}
+\DefineTile{meta cluster h}{a D d B D d B D d}
 {
-{ -.5 , sqrt(3)/2 }
+{ -.5 , 3*sqrt(3)/2 }
+{ -2, 0 }
+{ -2.5, -sqrt(3)/2 }
 { -2, -sqrt(3) }
-{ -2.5, -3*sqrt(3)/2 }
-{ -2, -2*sqrt(3) }
-{ 1.5, -2*sqrt(3) }
-{ 2, -2*sqrt(3) }
-{ 2.5, -3*sqrt(3)/2 }
-{ 1, 0}
-{ .5 , sqrt(3)/2 }
+{ 1, -sqrt(3) }
+{ 2, -sqrt(3) }
+{ 2.5, -sqrt(3)/2 }
+{ 1, sqrt(3)}
+{ .5 , 3*sqrt(3)/2 }
+}
+%    \end{macrocode}
+% \item Super Clusters
+%
+%    \begin{macrocode}
+\DefineTile{super cluster t}{A A b}
+{
+{ -30 : 3 * (1 + sqrt(5))/2 / sqrt(3) }
+{ 90 : 3 * (1 + sqrt(5))/2 / sqrt(3) }
+{ 210 : 3 * (1 + sqrt(5))/2 / sqrt(3) }
+}
+% 1 + 3phi, 1 + 2phi
+\DefineTile{super cluster p}{A 1 D d b 1 D d}
+{
+{ 1, 0 }
+++{ 3*(1 + sqrt(5))/2, 0 }
+++{ 120 : 1 + sqrt(5) }
+++{ 120 : 1 }
+++{ -1, 0 }
+++{ -3*(1 + sqrt(5))/2, 0 }
+++{ -60 : 1 + sqrt(5) }
+++{ -60 : 1}
+}
+\DefineTile{super cluster f}{1 D c C d b 1 D d}
+{
+{ 1, 0 }
+++{ 1 + sqrt(5), 0 }
+++{ 1, 0 }
++{ -.75 + (2 + sqrt(5)) * sqrt(3)/4 * sqrt(3)/3, (2 + sqrt(5)) * sqrt(3)/4 + 3/4 * sqrt(3)/3 }
+++{ -1.5, (2 + sqrt(5)) * sqrt(3)/2 }
+++{ -1, 0 }
+++{ -3*(1 + sqrt(5))/2, 0 }
+++{ -60 : 1 + sqrt(5) }
+++{ -60 : 1}
+}
+\DefineTile{super cluster h}{d B D d B D d a D}
+{
+{.5, (.5 + (1 + sqrt(5))/2) * sqrt(3)}
+++{-1,0}
+++{240 : 3*(1+sqrt(5))/2}
+++{240 : 1}
+++{300 : 1}
+++{ 3*(1+sqrt(5))/2, 0 }
+++{1, 0}
+++{60 : 1}
+++{120 : 3*(1+sqrt(5))/2 }
 }
 %    \end{macrocode}
 % \end{itemize}
@@ -2294,10 +2437,14 @@ and the derived files            penrose.ins
 %    \begin{macrocode}
 \BakeTile {aperiodical hat}
 \BakeTile {aperiodical turtle}
-\BakeTile {cluster t}
-\BakeTile {cluster p}
-\BakeTile {cluster f}
-\BakeTile {cluster h}
+\BakeTile {meta cluster t}
+\BakeTile {meta cluster p}
+\BakeTile {meta cluster f}
+\BakeTile {meta cluster h}
+\BakeTile {super cluster t}
+\BakeTile {super cluster p}
+\BakeTile {super cluster f}
+\BakeTile {super cluster h}
 %    \end{macrocode}
 %
 % \iffalse
