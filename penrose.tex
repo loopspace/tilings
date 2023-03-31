@@ -4,9 +4,14 @@
 \usepackage{trace}
 \usepackage{lmodern}
 \usepackage{morefloats}
+\usepackage{multicol}
 \usepackage[svgnames]{xcolor}
 \usepackage{tikz}
-\usetikzlibrary{penrose}
+\usetikzlibrary{
+  tilings.polykite,
+  tilings.penrose
+}
+\ExplSyntaxOff
 \usepackage[numbered]{hypdoc}
 \definecolor{lstbgcolor}{rgb}{0.9,0.9,0.9} 
  
@@ -78,47 +83,132 @@
 \makeatother
 
 \providecommand*{\url}{\texttt}
-\GetFileInfo{tikzlibrarypenrose.code.tex}
+\GetFileInfo{tikzlibrarytilings.code.tex}
 
-\title{The \textsf{Penrose} Package: Documentation}
+\title{The \textsf{Tilings} Package: Documentation}
 \author{Andrew Stacey\texorpdfstring{\\ \url{loopspace@mathforge.org}}{}}
  \date{\fileversion~from \filedate}
 
 \begin{document}
+
 \maketitle
 
 \tableofcontents
   
 \section{Introduction}
 
-The \textsf{Penrose} package is a TikZ library for drawing Penrose tiles.
-It currently supports natively the kite/dart, rhombus, and pentagon tile sets, but has provision for defining new tiles.
+The \textsf{Tilings} package is a TikZ library for drawing tiles and tilings, such as Penrose tilings.
+It currently supports natively the various Penrose tile sets -- kite/dart, rhombus, and pentagon -- and the aperiodical polykites, but has provision for defining new tiles.
 There are two main methods for their placement: one that automatically generates a tiling, and one that allows for ``by hand'' placement.
 Furthermore, the tiles themselves can be deformed and will still (hopefully!) fit together in the correct fashion.
 
 \section{Initialisation}
 
-To use this package, load the \Verb+tikz+ package and load \Verb+penrose+ as a TikZ library.
+This is actually several libraries.
+There is a core library called \Verb+tilings+ which defines the main functionality for working with tiles and tilings but which doesn't define any tiles itself.
+For that, there are currently two sublibraries:
+%
+\begin{itemize}
+\item \Verb+tilings.penrose+ for Penrose tiles,
+\item \Verb+tilings.polykite+ for the aperiodical polykite tiles.
+\end{itemize}
+%
+The sublibraries automatically load the core library.
+
+So to use this package, load the \Verb+tikz+ package and load one of the tilings libraries as a TikZ library.
 Specifically, your preamble should contain:
 
 \begin{verbatim}
 \usepackage{tikz}
-\usetikzlibrary{penrose}
+\end{verbatim}
+
+\noindent and at least one of the following lines:
+
+\begin{verbatim}
+\usetikzlibrary{tilings}
+\usetikzlibrary{tilings.penrose}
+\usetikzlibrary{tilings.polykite}
 \end{verbatim}
 
 \section{Usage}
 
-Using this package splits into several components.
-There are the two main ways of getting tiles on to the page, and then there are the ways of deforming or styling the tiles once they are there.
+This library defines a variety of tools for working with tiles, from defining them to positioning them to deforming them.
 
-\subsection{Placing Tiles ``By Hand''}
+\section{Defining the Tiles}
 
-It is possible to use the tiles as \Verb+pic+s.
-These are mini-drawings introduced in TikZ3.0 that are node-like in style, but a little more geared towards repeatable \emph{drawings} than boxes containing text.
-This package defines several \Verb+pic+ types:
+This package includes the capability to define new tiles.
+The command to do this is:
+%
+\begin{verbatim}
+\DefineTile{<name>}{<sides>}{<vertices>}
+\end{verbatim}
+%
+For example,
+%
+\begin{verbatim}
+\DefineTile {square}{a A a A}
+{
+  {0,0}
+  {1,0}
+  {1,1}
+  {0,1}
+}
+\end{verbatim}
+
+The \Verb!<sides>! is a list of sides for matching rules and positioning.
+The first side in the list corresponds to the edge between the first two vertices, through to the last side which corresponds to the edge between the last and first vertices.
+
+Each letter used matches against its opposite case (so it is possible to create a side that matches against itself by using a symbol that \TeX\ regards as having the same upper as lower case; not all symbols work, I've used numbers and \Verb+!+ successfully).
+These are also used in path replacing, both a letter and its opposite case are replaced by the corresponding path (but in opposite directions) when the tile is ``baked''.
+
+The vertices can be written in cartesian form: \Verb+{<x>,<y>}+, or in polar: \Verb+{<angle>:<length>}+.
+The vertex can be preceded by upto two \Verb!+! signs which have the same interpretation as in TikZ: the vertex description is taken relative to the previously saved point with a single \Verb!+! additionally not updating the last saved point.
+The initial saved point is the origin, so the following defines a hexagonal tile.
+%
+\begin{verbatim}
+\DefineTile {hexagon}{a A a A a A}
+{
+  +{0:1}
+  +{60:1}
+  +{120:1}
+  +{180:1}
+  +{240:1}
+  +{300:1}
+}
+\end{verbatim}
+
+The numbers are passed to the \Verb!fp! module of \LaTeX3 so can involve complicated expressions.
+Note that the trigonometric functions for angles in degrees are \Verb!cosd!, \Verb!sind!, and \Verb!tand!.
+
+The tile must be baked via the command \Verb!\BakeTile! before it can be used.
+
+\begin{example}
+\DefineTile {square}{a A a A}
+{
+  {0,0}
+  {1,0}
+  {1,1}
+  {0,1}
+}
+
+\begin{tikzpicture}
+\path[save tiling path=a] (0,0) to[out=45,in=135] (1,0);
+\BakeTile{square}
+\pic[square,name=A,fill=green];
+\pic[square,align with=A along a1 using 2,name=B,fill=red];
+\pic[square,align with=A along A1 using 2,fill=red];
+\pic[square,align with=A along A2 using 1,fill=red];
+\pic[square,align with=B along a1 using 2,fill=green];
+\pic[square,align with=B along a2 using 1,fill=green];
+\end{tikzpicture}
+\end{example}
+
+\subsection{Predefined Tiles: Penrose}
+
+The sublibrary \Verb+tilings.penrose+ defines a slew of tiles based on Penrose tilings.
 
 \tikzset{
-  every Penrose pic/.style={draw,ultra thick},
+  every tile/.style={draw,ultra thick},
   every circle arc/.style={draw,thin},
   every long arc/.style={draw,thin},
 }
@@ -145,21 +235,10 @@ The triangles and gnomon are not true Penrose tiles but rather can be used to bu
 The two types of each triangle and gnomon are actually different in that they have different matching rules.
 This is best illustrated by deforming the paths (see Section~\ref{sec:pathdeform}).
 
-There are two ways in TikZ to specify the \Verb+pic+ type: either as the ``contents'' of the pic or as the argument to the \Verb+pic type+ key.
-Each of the tiles comes with a shorthand key which specifies the \Verb+pic type+ and also invokes the key \Verb+every Penrose tile+.
-That is, the key \Verb+dart+ calls the \Verb+every Penrose tile+ key and specifies the \Verb+pic type+ as \Verb+dart+.
-
-The tiles can be placed using standard TikZ methods.
-One important thing to note is that by default, \Verb+pic+s are like \Verb+nodes+ in that they only respond to ambient translations, and not to rotations and scaling.
-To make them notice this, use the key \Verb+transform shape+ or specify the transformation to the \Verb+pic+ directly.
-If the shortcut keys are used to specify the tiles, this can be put in the \Verb+every Penrose pic+ style.
-
-TikZ \Verb+pic+s can be named, using the \Verb+name=<name>+ key.
-When a Penrose tile has been named then it can be used for positioning other tiles.
-Each edge is assigned a label from \Verb+a b c d e A B C D E+ and a new tile can be aligned with an old one along a matching edge (\Verb+a+ matches with \Verb+A+ and so on).
-
-The edge labels are as follows.
+The edge labelling is as follows.
 For the \Verb+pentagon 5+, for example, the edges are all the same and the numbers are used to distinguish between them.
+
+\begin{multicols}{2}
 
 \foreach \tile/\edges in {
   kite/{a,A,c,C},
@@ -168,9 +247,9 @@ For the \Verb+pentagon 5+, for example, the edges are all the same and the numbe
   thick rhombus/{a,A,b,B},
   pentagon 5/{a1,a2,a3,a4,a5},
   pentagon 3/{A,b1,a1,a2,b2},
-  pentagon 2/{d,A1,c1,c2,A2},
-  pentagram/{C1,C2,C3,C4,C5,C6,C7,C8,C9,C10},
-  boat/{C1,C2,C3,C4,B1,D,B2},
+  pentagon 2/{d,A1,e,c,A2},
+  pentagram/{C1,E1,C2,E2,C3,E3,C4,E4,C5,E5},
+  boat/{C1,E1,C2,E2,B1,D,B2},
   diamond/{D1,B1,B2,D2},
   golden triangle/{a,b,c},
   reverse golden triangle/{A,B,C},
@@ -180,11 +259,78 @@ For the \Verb+pentagon 5+, for example, the edges are all the same and the numbe
 \begin{tikzpicture}
 \pic[draw,\tile,name=tile];
 \foreach \e in \edges {
-    \path (tile-edge \e\space start) -- node {\e} (tile-edge \e\space end);
+    \path (tile-edge \e\space start) -- node[fill=white,fill opacity=.5,text opacity=1] {\e} (tile-edge \e\space end);
 }
 \end{tikzpicture}
 
 }
+
+\end{multicols}
+
+\subsection{Predefined Tiles: Polykite}
+
+The sublibrary \Verb+tilings.polykite+ defines a slew of tiles based on the aperiodical polykite tilings as described in \href{https://arxiv.org/abs/2303.10798}{An Aperiodic Monotile}.
+It also defines a wrapper around the \Verb+\DefineTile+ command for creating one of the family of polykite tiles described in that article:
+
+\begin{verbatim}
+\DefinePolykiteTile{<name>}{<a>}{<b>}
+\DefinePolykiteTile{aperiodical hat}{sqrt(3)/2}{1/2}
+\end{verbatim}
+
+\begin{itemize}
+\item Aperiodical Hat \tikz[baseline=-.5ex] \pic[draw,aperiodical hat];
+\item Aperiodical Turtle \tikz[baseline=-.5ex] \pic[draw,aperiodical turtle];
+\item Meta Cluster H \tikz[baseline=-.5ex] \pic[scale=.5,draw,meta cluster h];
+\item Meta Cluster F \tikz[baseline=-.5ex] \pic[scale=.5,draw,meta cluster f];
+\item Meta Cluster T \tikz[baseline=-.5ex] \pic[scale=.5,draw,meta cluster t];
+\item Meta Cluster P \tikz[baseline=-.5ex] \pic[scale=.5,draw,meta cluster p];
+\item Super Cluster H \tikz[baseline=-.5ex] \pic[scale=.5,draw,super cluster h];
+\item Super Cluster F \tikz[baseline=-.5ex] \pic[scale=.5,draw,super cluster f];
+\item Super Cluster T \tikz[baseline=-.5ex] \pic[scale=.5,draw,super cluster t];
+\item Super Cluster P \tikz[baseline=-.5ex] \pic[scale=.5,draw,super cluster p];
+\end{itemize}
+
+The edges of the cluster tiles are actually multi-edges for the matching rules.
+
+\begin{multicols}{2}
+
+\foreach \tile/\edges in {
+  aperiodical hat/{11,21,22,23,24,12,13,25,26,14,15,27,28,16},
+  aperiodical turtle/{11,21,22,23,24,12,13,25,26,14,15,27,28,16},
+  meta cluster t/{A1,A2,b},
+  meta cluster p/{A, 11, D1, d1, b, 12, D2, d2},
+  meta cluster f/{11, D1, c, C, d1, b, 12, D2, d2},
+  meta cluster h/{a, D1, d1, B1, D2, d2, B2, D3, d3}%
+}{
+\begin{tikzpicture}
+\pic[draw,\tile,name=tile];
+\foreach \e in \edges {
+    \path (tile-edge \e\space start) -- node[fill=white,fill opacity=.5,text opacity=1] {\e} (tile-edge \e\space end);
+}
+\end{tikzpicture}
+
+}
+
+\end{multicols}
+
+
+\section{Positioning the Tiles}
+
+The main way to use the tiles is via the \Verb+pic+ syntax that was introduced in TikZ3.0.
+These are mini-drawings that are node-like in style, but a little more geared towards repeatable \emph{drawings} than boxes containing text.
+
+There are two ways in TikZ to specify the \Verb+pic+ type: either as the ``contents'' of the pic or as the argument to the \Verb+pic type+ key.
+Each of the tiles comes with a shorthand key which specifies the \Verb+pic type+ and also invokes the key \Verb+every tile+.
+That is, the key \Verb+dart+ calls the \Verb+every tile+ key and specifies the \Verb+pic type+ as \Verb+dart+.
+
+The tiles can be placed using standard TikZ methods.
+One important thing to note is that by default, \Verb+pic+s are like \Verb+nodes+ in that they only respond to ambient translations, and not to rotations and scaling.
+To make them notice this, use the key \Verb+transform shape+ or specify the transformation to the \Verb+pic+ directly.
+If the shortcut keys are used to specify the tiles, this can be put in the \Verb+every tile+ style.
+
+TikZ \Verb+pic+s can be named, using the \Verb+name=<name>+ key.
+When a tile has been named then it can be used for positioning other tiles.
+Each edge is assigned a label and a new tile can be aligned with an old one along a matching edge (\Verb+a+ matches with \Verb+A+ and so on).
 
 To align a tile with an existing one, use the following key:
 %
@@ -200,13 +346,20 @@ align with=<tile> along <edge> using <number>
 \end{verbatim}
 %
 to specify which of the edges on the new tile to use.
+Lastly, it is possible to reflect a tile either in use or in definition in which case the edges might be backwards so the key can be modified with the word \Verb+back+ as in:
+%
+\begin{verbatim}
+align with=<tile> back along <edge>
+\end{verbatim}
+%
+and similarly with \Verb+using ...+.
 
 \begin{example}
 \begin{tikzpicture}
 \pic[kite,name=tile];
 \pic[dart,align with=tile along c];
 \pic[pentagon 5,name=ptile,at={(3,0)}];
-\pic[pentagon 3,align with=ptile along a1 using 2];
+\pic[pentagon 3,align with=ptile along a1];
 \end{tikzpicture}
 \end{example}
 
@@ -262,7 +415,7 @@ The tiles can be styled, either directly or using various keys.
 Each tile has the following styles applied (in this order):
 %
 \begin{enumerate}
-\item \Verb+every Penrose Tile+
+\item \Verb+every tile+
 \item \Verb+every <name>+
 \item \Verb+pic actions+
 \end{enumerate}
@@ -281,12 +434,12 @@ In practical terms, this means that if drawn then the line width is half that wh
 There is a way to specify a Penrose tiling using \emph{Lindenmayer systems}.
 In brief, this takes a golden triangle or gnomon (or one of the reverse ones) and repeatedly decomposes it into smaller triangles and gnomon.
 Once a desired level has been reached, the resulting triangles and gnomon are glued together in pairs to create either darts and kites or rhombuses (of both types).
-This library contains an implementation of this for each of the tilings.
+This library contains an implementation of this for each of the Penrose tilings.
 
 The user command is:
 %
 \begin{verbatim}
-\PenroseDecomposition{<type>}{<level>}{<seed>}
+\TilingDecomposition{<type>}{<level>}{<seed>}
 \end{verbatim}
 %
 where \Verb+<type>+ is one of:
@@ -312,10 +465,10 @@ The code is not particularly optimised for speed, and once \Verb+<level>+ gets t
 
 \begin{example}
 \begin{tikzpicture}[
-  every Penrose tile/.style={draw},
-  Penrose step=2cm,
+  every tile/.style={draw},
+  step=2cm,
 ]
-\PenroseDecomposition{kite}{0}{T}
+\TilingDecomposition{kite}{0}{T}
 \end{tikzpicture}
 \end{example}
 
@@ -324,8 +477,8 @@ These allow styling the tiles by their number: a count is kept of the number of 
 Specifically, two keys are tried:
 %
 \begin{enumerate}
-\item \Verb+Penrose tile <number>+, and
-\item \Verb+Penrose tile={<number>}{<total>}+
+\item \Verb+tile <number>+, and
+\item \Verb+tile={<number>}{<total>}+
 \end{enumerate}
 %
 A word of warning is in order on the second of these.
@@ -334,18 +487,18 @@ It is done by a quick count at the start of the process and counts those letters
 Not every letter in the resulting word actually does.
 Nevertheless, this can be used to style a tile based on what proportion of tiles have been rendered.
 
-Lastly, \Verb+Penrose step+ is used to control the size of the resulting picture.
+Lastly, \Verb+step+ is used to control the size of the resulting picture.
 
 \begin{example}
 \begin{tikzpicture}[
-  every Penrose tile/.style={draw},
-  Penrose step=4cm,
-  Penrose tile/.code 2 args={
+  every tile/.style={draw},
+  step=4cm,
+  tile/.code 2 args={
     \pgfmathsetmacro\tint{100*#1/#2}
     \pgfkeysalso{fill=black!\tint}
   }
 ]
-\PenroseDecomposition{rhombus}{3}{T}
+\TilingDecomposition{rhombus}{3}{T}
 \end{tikzpicture}
 \end{example}
 
@@ -353,18 +506,18 @@ Lastly, \Verb+Penrose step+ is used to control the size of the resulting picture
 \label{sec:pathdeform}
 
 This package provides the ability to deform the various tiles.
-The various tiles can be built from four paths (labelled \Verb+a+, \Verb+b+, \Verb+c+, and \Verb+d+) together with their reverses.
+The various tiles are built from labelled paths together with their reverses.
 By changing these paths, one can get a wide variety of different tiles with the same fundamental matching rules.
 Indeed, by using asymmetric paths, the matching rules can be enforced without the need for additional decoration.
 
-Internally, the \Verb+penrose+ library uses the \Verb+spath3+ package for storing and manipulating the paths.
+Internally, the \Verb+tiling+ library uses the \Verb+spath3+ package for storing and manipulating the paths.
 
-To create a new edge path, use the key \Verb+save Penrose path=<edge>+ where \Verb+<edge>+ is a symbol used in the edge description of a tile.
+To create a new edge path, use the key \Verb+save tiling path=<edge>+ where \Verb+<edge>+ is a symbol used in the edge description of a tile.
 There are no constraints on the size of the path as all paths are scaled and transformed to fit the tiles.
 Once the edge paths have been specified, they are welded together into the tiles using the following command:
 %
 \begin{verbatim}
-\BakePenroseTile{<name>}
+\BakeTile{<name>}
 \end{verbatim}
 %
 Here, \Verb+<name>+ is one of the names of the tiles.
@@ -372,90 +525,36 @@ This has global effect, as does the definition of the edge paths.
 Paths, both sides and tiles, can be cloned via:
 %
 \begin{verbatim}
-\tikzset{clone Penrose side path={target}{source}
-\tikzset{clone Penrose tile path={target}{source}
+\tikzset{clone tiling side path={target}{source}
+\tikzset{clone tile path={target}{source}
 \end{verbatim}
 %
 and restored with the same command (but names switched).
-
-The initial version of this package used \Verb!\MakePenroseTile! for this command.
-That command is still available for backwards compatibility.
 
 \begin{example}
 \begin{tikzpicture}
 \pic[draw,dart,name=dart];
 \pic[draw,kite,align with=dart along c];
 \pic[draw,kite,align with=dart along C];
-\tikzset{clone Penrose tile path={original kite}{kite}}
-\tikzset{clone Penrose tile path={original dart}{dart}}
-\path[save Penrose path=a] (0,0) to[out=-30,in=100] (1,0);
-\path[save Penrose path=c] (0,0) to[out=-40,in=140] (1,0);
-\BakePenroseTile{kite}
-\BakePenroseTile{dart}
+\tikzset{clone tile path={original kite}{kite}}
+\tikzset{clone tile path={original dart}{dart}}
+\path[save tiling path=a] (0,0) to[out=-30,in=100] (1,0);
+\path[save tiling path=c] (0,0) to[out=-40,in=140] (1,0);
+\BakeTile{kite}
+\BakeTile{dart}
 \pic[xshift=2cm,draw,dart,name=dart];
 \pic[draw,kite,align with=dart along c];
 \pic[draw,kite,align with=dart along C];
-\tikzset{clone Penrose tile path={kite}{original kite}}
-\tikzset{clone Penrose tile path={dart}{original dart}}
+\tikzset{clone tile path={kite}{original kite}}
+\tikzset{clone tile path={dart}{original dart}}
 \pic[xshift=4cm,draw,dart,name=dart];
 \pic[draw,kite,align with=dart along c];
 \pic[draw,kite,align with=dart along C];
 \end{tikzpicture}
 \end{example}
 
-With deformed tiles, there is no guarantee that the inner arcs will match up perfectly.
+With deformed tiles, there is no guarantee that the inner arcs on the Penrose tiles will match up perfectly.
 
-\section{Defining New Tiles}
-
-This package includes the capability to define new tiles.
-The command to do this is:
-%
-\begin{verbatim}
-\DefineTile{<name>}{<sides>}{<coordinates>}
-\end{verbatim}
-%
-For example,
-%
-\begin{verbatim}
-\DefineTile {square}{a A a A}
-{
-  {0,0}
-  {1,0}
-  {1,1}
-  {0,1}
-}
-\end{verbatim}
-%
-The \Verb!<sides>! is a list of sides for matching rules.
-Each letter used matches against its opposite case (so it is possible to create a side that matches against itself by using a symbol that \TeX\ regards as having the same upper as lower case; not all symbols work, I've used \Verb+!+ successfully).
-These are also used in path replacing, both a letter and its opposite case are replaced by the corresponding path (but in opposite directions) when the tile is ``baked''.
-The coordinates are passed to the \Verb!fp! module of \LaTeX3 so can involve complicated expressions.
-Note that the trigonometric functions for angles in degrees are \Verb!cosd!, \Verb!sind!, and \Verb!tand!.
-
-Note that the tile must be baked via the command \Verb!\BakePenroseTile! before it can be used.
-
-The new tile can be used with all the same features as the pre-defined Penrose tiles, except for the Lindenmayer systems. 
-
-\begin{example}
-\DefineTile {square}{a A a A}
-{
-  {0,0}
-  {1,0}
-  {1,1}
-  {0,1}
-}
-
-\begin{tikzpicture}
-\path[save Penrose path=a] (0,0) to[out=45,in=135] (1,0);
-\BakePenroseTile{square}
-\pic[square,name=A,fill=green];
-\pic[square,align with=A along a1 using 2,name=B,fill=red];
-\pic[square,align with=A along A1 using 2,fill=red];
-\pic[square,align with=A along A2 using 1,fill=red];
-\pic[square,align with=B along a1 using 2,fill=green];
-\pic[square,align with=B along a2 using 1,fill=green];
-\end{tikzpicture}
-\end{example}
 
 \section{More Examples}
 
@@ -463,32 +562,32 @@ Let's set some aesthetically pleasing shapes.
 
 \begin{justexample}
 \begin{tikzpicture}
-\path[save Penrose path=a] (0,0) to[out=-30,in=100] (1,0);
-\path[save Penrose path=b] (0,0) to[out=0,in=140] (1,0);
-\path[save Penrose path=c] (0,0) to[out=-40,in=140] (1,0);
-\BakePenroseTile{thin rhombus}
-\BakePenroseTile{thick rhombus}
-\BakePenroseTile{golden triangle}
-\BakePenroseTile{reverse golden triangle}
-\BakePenroseTile{golden gnomon}
-\BakePenroseTile{reverse golden gnomon}
-\BakePenroseTile{kite}
-\BakePenroseTile{dart}
+\path[save tiling path=a] (0,0) to[out=-30,in=100] (1,0);
+\path[save tiling path=b] (0,0) to[out=0,in=140] (1,0);
+\path[save tiling path=c] (0,0) to[out=-40,in=140] (1,0);
+\BakeTile{thin rhombus}
+\BakeTile{thick rhombus}
+\BakeTile{golden triangle}
+\BakeTile{reverse golden triangle}
+\BakeTile{golden gnomon}
+\BakeTile{reverse golden gnomon}
+\BakeTile{kite}
+\BakeTile{dart}
 \end{tikzpicture}
 \end{justexample}
 
 \begin{tikzpicture}
-\path[save Penrose path=a] (0,0) to[out=-30,in=100] (1,0);
-\path[save Penrose path=b] (0,0) to[out=0,in=140] (1,0);
-\path[save Penrose path=c] (0,0) to[out=-40,in=140] (1,0);
-\BakePenroseTile{thin rhombus}
-\BakePenroseTile{thick rhombus}
-\BakePenroseTile{golden triangle}
-\BakePenroseTile{reverse golden triangle}
-\BakePenroseTile{golden gnomon}
-\BakePenroseTile{reverse golden gnomon}
-\BakePenroseTile{kite}
-\BakePenroseTile{dart}
+\path[save tiling path=a] (0,0) to[out=-30,in=100] (1,0);
+\path[save tiling path=b] (0,0) to[out=0,in=140] (1,0);
+\path[save tiling path=c] (0,0) to[out=-40,in=140] (1,0);
+\BakeTile{thin rhombus}
+\BakeTile{thick rhombus}
+\BakeTile{golden triangle}
+\BakeTile{reverse golden triangle}
+\BakeTile{golden gnomon}
+\BakeTile{reverse golden gnomon}
+\BakeTile{kite}
+\BakeTile{dart}
 \end{tikzpicture}
 
 
@@ -497,15 +596,15 @@ Note that as the pattern is formed by repeating two different initial seeds \(5\
 
 \begin{example}
 \begin{tikzpicture}[
-  every Penrose tile/.style={draw},
-  Penrose tile 1/.style={fill=yellow},
+  every tile/.style={draw},
+  tile 1/.style={fill=yellow},
 ]
 \foreach \tp/\pos in {rhombus/0cm,rtriangle/2.5cm,kite/5cm,ktriangle/7.5cm}
 {
 \begin{scope}[xshift=\pos]
 \foreach[evaluate=\k as \mk using {\k+Mod(\k,2)},evaluate=\k as \ax using {Mod(\k,2) == 0 ? "T" : "t"}] \k in {0,...,9} {
   \begin{scope}[rotate=\mk*36]
-  \PenroseDecomposition{\tp}{1}{\ax}
+  \TilingDecomposition{\tp}{1}{\ax}
   \end{scope}
 }
 \end{scope}
@@ -537,17 +636,17 @@ It is defined as:
 
 \begin{example}
 \begin{tikzpicture}[
-  every Penrose tile/.style={draw},
+  every tile/.style={draw},
   every kite/.style={fill=reverseGoldenTriangle},
   every dart/.style={fill=goldenTriangle},
-  Penrose tile/.code 2 args={
+  tile/.code 2 args={
     \pgfmathsetmacro\tint{100*(1 - 1.5*#1/#2))}
     \pgfkeysalso{tint fill colour=\tint}
   }
 ]
 \foreach[evaluate=\k as \mk using {\k+Mod(\k,2)},evaluate=\k as \ax using {Mod(\k,2) == 0 ? "T" : "t"}] \k in {0,...,9} {
   \begin{scope}[rotate=\mk*36]
-  \PenroseDecomposition[Penrose step=5cm]{kite}{4}{\ax}
+  \TilingDecomposition[step=5cm]{kite}{4}{\ax}
   \end{scope}
 }
 \end{tikzpicture}
@@ -557,7 +656,7 @@ An example with ``manual placement''.
 
 \begin{example}
 \begin{tikzpicture}[
-  every Penrose pic/.style={
+  every tile/.style={
     draw=black,
     ultra thick,
   },
@@ -603,8 +702,8 @@ The decomposition rules for the Lindenmayer system can be illustrated by drawing
 \foreach \tp/\pos in {rhombus/0cm,rtriangle/2cm,kite/4cm,ktriangle/6cm}
 {
 \begin{scope}[xshift=\pos]
-  \PenroseDecomposition[every path/.style={draw=red,ultra thick}]{\tp}{0}{\ax}
-  \PenroseDecomposition[every path/.style={fill=gray!50,fill opacity=.5,draw=black}]{\tp}{1}{\ax}
+  \TilingDecomposition[every path/.style={draw=red,ultra thick}]{\tp}{0}{\ax}
+  \TilingDecomposition[every path/.style={fill=gray!50,fill opacity=.5,draw=black}]{\tp}{1}{\ax}
 \end{scope}
 }
 \end{tikzpicture}
@@ -617,7 +716,7 @@ The tiles can make interesting forms by themselves.
 \begin{example}
 \begin{tikzpicture}[
   scale=2,
-  every Penrose pic/.style={
+  every tile/.style={
     transform shape,
   },
   every golden triangle/.style={
@@ -717,7 +816,7 @@ Lastly, here's an example that generates full page patterns.
 \foreach \tp/\lvl in {rhombus/5,rhombus/6,kite/5,kite/6}
 {
 \begin{tikzpicture}[
-  every Penrose tile/.style={draw},
+  every tile/.style={draw},
   remember picture,
   overlay,
   scale=20
@@ -726,7 +825,7 @@ Lastly, here's an example that generates full page patterns.
 \begin{scope}[shift={(a)}]
 \foreach[evaluate=\k as \mk using {\k+Mod(\k,2)},evaluate=\k as \ax using {Mod(\k,2) == 0 ? "T" : "t"}] \k in {0,...,9} {
   \begin{scope}[rotate=\mk*36]
-  \PenroseDecomposition{\tp}{\lvl}{\ax}
+  \TilingDecomposition{\tp}{\lvl}{\ax}
   \end{scope}
 }
 \end{scope}
@@ -736,17 +835,17 @@ Lastly, here's an example that generates full page patterns.
 \end{justexample}
 
 \begin{tikzpicture}
-\path[save Penrose path=a] (0,0) -- (1,0);
-\path[save Penrose path=b] (0,0) -- (1,0);
-\path[save Penrose path=c] (0,0) -- (1,0);
-\BakePenroseTile{thin rhombus}
-\BakePenroseTile{thick rhombus}
-\BakePenroseTile{golden triangle}
-\BakePenroseTile{reverse golden triangle}
-\BakePenroseTile{golden gnomon}
-\BakePenroseTile{reverse golden gnomon}
-\BakePenroseTile{kite}
-\BakePenroseTile{dart}
+\path[save tiling path=a] (0,0) -- (1,0);
+\path[save tiling path=b] (0,0) -- (1,0);
+\path[save tiling path=c] (0,0) -- (1,0);
+\BakeTile{thin rhombus}
+\BakeTile{thick rhombus}
+\BakeTile{golden triangle}
+\BakeTile{reverse golden triangle}
+\BakeTile{golden gnomon}
+\BakeTile{reverse golden gnomon}
+\BakeTile{kite}
+\BakeTile{dart}
 \end{tikzpicture}
 
 \newpage
@@ -754,7 +853,7 @@ Lastly, here's an example that generates full page patterns.
 \foreach \tp/\lvl in {rhombus/5,rhombus/6,kite/5,kite/6}
 {
 \begin{tikzpicture}[
-  every Penrose tile/.style={draw},
+  every tile/.style={draw},
   remember picture,
   overlay,
   scale=20
@@ -763,7 +862,7 @@ Lastly, here's an example that generates full page patterns.
 \begin{scope}[shift={(a)}]
 \foreach[evaluate=\k as \mk using {\k+Mod(\k,2)},evaluate=\k as \ax using {Mod(\k,2) == 0 ? "T" : "t"}] \k in {0,...,9} {
   \begin{scope}[rotate=\mk*36]
-  \PenroseDecomposition{\tp}{\lvl}{\ax}
+  \TilingDecomposition{\tp}{\lvl}{\ax}
   \end{scope}
 }
 \end{scope}
@@ -775,13 +874,13 @@ Lastly, here's an example that generates full page patterns.
 %% \foreach \lvl in {5,6}
 %% {
 %% \begin{tikzpicture}[
-%%   every Penrose tile/.style={draw},
+%%   every tile/.style={draw},
 %%   remember picture,
 %%   overlay,
 %%   scale=180
 %% ]
 %% \coordinate (a) at (current page.center);
-%%   \PenroseDecomposition{pentagon}{\lvl}{D}
+%%   \TilingDecomposition{pentagon}{\lvl}{D}
 %% \end{tikzpicture}
 %% \newpage
 %% }
