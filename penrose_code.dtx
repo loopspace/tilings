@@ -298,6 +298,13 @@ and the derived files            penrose.ins
 %    \end{macrocode}
 % \end{variable}
 %
+% \subsection{Helpful Error Messages}
+%
+%    \begin{macrocode}
+\msg_new:nnn { tilings }{ not baked }{ Tile~ #1~ has~ not~ been~ baked. }
+\msg_new:nnn { tilings }{ no side }{ Tile~ side~ #1~ has~ not~ been~ defined,~ using~ default. }
+%    \end{macrocode}
+%
 % \subsection{Creating the Tiles}
 %
 % \begin{macro}[internal]{\@@_normalise_path:Nn}
@@ -461,6 +468,11 @@ and the derived files            penrose.ins
 % Clone the path for this side.
 %    \begin{macrocode}
     \tl_set:Nx \l_@@_tmpc_tl {\tl_head:n {##1}}
+    \tl_if_exist:cF {g_@@_side_ \tl_use:N \l_@@_tmpc_tl _tl}
+    {
+      \msg_error:nnx { tilings }{ no side } { \tl_use:N \l_@@_tmpc_tl }
+      \tl_gset_eq:cc {g_@@_side_ \tl_use:N \l_@@_tmpc_tl _tl} {g_@@_side_a_tl}
+    }
     \tl_set_eq:Nc \l_@@_tmpd_tl {g_@@_side_ \tl_use:N \l_@@_tmpc_tl _tl}
 %    \end{macrocode}
 % Strip off the next coordinate, and convert it to a point.
@@ -1174,16 +1186,22 @@ and the derived files            penrose.ins
 % We need to transform the tile to correspond to the current transformation matrix.
 % To ensure that we only transform the current tile, we clone it first.
 %    \begin{macrocode}
-  \tl_set_eq:Nc \l_@@_tmp_tile_path_tl {g_@@_tile_#2_tl}
+  \tl_if_exist:cTF {g_@@_tile_#2_tl}
+  {
+    \tl_set_eq:Nc \l_@@_tmp_tile_path_tl {g_@@_tile_#2_tl}
 %    \end{macrocode}
 % We get the current transformation to apply to this path.
 %    \begin{macrocode}
-  \pgfgettransform \l_@@_tmpa_tl
+    \pgfgettransform \l_@@_tmpa_tl
 %    \end{macrocode}
 % Apply the transformation, protocol the path, and render it.
 %    \begin{macrocode}
-  \spath_transform:NV \l_@@_tmp_tile_path_tl \l_@@_tmpa_tl
-  \spath_tikz_path:nV {#1} \l_@@_tmp_tile_path_tl
+    \spath_transform:NV \l_@@_tmp_tile_path_tl \l_@@_tmpa_tl
+    \spath_tikz_path:nV {#1} \l_@@_tmp_tile_path_tl
+  }
+  {
+    \msg_error:nnn { tilings }{ not baked }{#2}
+  }
 }
 %    \end{macrocode}
 % \end{function}
