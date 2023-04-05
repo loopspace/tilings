@@ -398,13 +398,18 @@ and the derived files            penrose.ins
 % \begin{function}{\SetTilingPath}
 % This sets the path corresponding to a particular side to the current path, and normalises it.
 %    \begin{macrocode}
-\NewDocumentCommand \SetTilingPath { m }
+\cs_new_protected_nopar:Npn \@@_set_tiling_path:n #1
 {
   \group_begin:
   \pgfsyssoftpath@getcurrentpath\l_@@_tmpa_tl
   \@@_normalise_path:N \l_@@_tmpa_tl
   \tl_gset_eq:cN {g_@@_side_#1_tl} \l_@@_tmpa_tl
   \group_end:
+}
+
+\NewDocumentCommand \SetTilingPath { m }
+{
+  \@@_set_tiling_path:n {#1}
 }
 %    \end{macrocode}
 % \end{function}
@@ -1125,7 +1130,8 @@ and the derived files            penrose.ins
 %    \begin{macrocode}      
       \UseTile[
         every~ tile~ clip/.try,
-        every~ #2~ clip/.try
+        every~ #2~ clip/.try,
+        this~ tile~ clip/.try
       ]{#2}
 %    \end{macrocode}
 % Any pre-actions?
@@ -1141,6 +1147,7 @@ and the derived files            penrose.ins
       \UseTile[
         every~ tile/.try,
         every~ #2/.try,
+        this~ tile/.try,
         pic~ actions
       ]{#2}
 %    \end{macrocode}
@@ -1168,10 +1175,15 @@ and the derived files            penrose.ins
 % \begin{function}{\BakeTile}
 % This is the user wrapper around the tile creation macros.
 %    \begin{macrocode}
-\NewDocumentCommand \BakeTile {m}
+\cs_new_protected_nopar:Npn \@@_bake_tile:n #1
 {
   \prop_get:NnN \g_@@_tiles_prop {#1} \l_@@_tmpa_tl
   \@@_make_tile:nV {#1} \l_@@_tmpa_tl
+}
+
+\NewDocumentCommand \BakeTile {m}
+{
+  \@@_bake_tile:n {#1}
 }
 %    \end{macrocode}
 % \end{function}
@@ -1180,7 +1192,7 @@ and the derived files            penrose.ins
 % This is the command that actually places a tile on the page.
 % The first argument is optional and is for styling.
 %    \begin{macrocode}
-\NewDocumentCommand \UseTile {O{} m} 
+\cs_new_protected_nopar:Npn \@@_use_tile:nn #1#2
 {
 %    \end{macrocode}
 % We need to transform the tile to correspond to the current transformation matrix.
@@ -1202,6 +1214,11 @@ and the derived files            penrose.ins
   {
     \msg_error:nnn { tilings }{ not baked }{#2}
   }
+}
+
+\NewDocumentCommand \UseTile {O{} m} 
+{
+  \@@_use_tile:nn {#1}{#2}
 }
 %    \end{macrocode}
 % \end{function}
@@ -1374,7 +1391,7 @@ and the derived files            penrose.ins
 % This is the user macro to invoke the decomposition.
 % The arguments are: optional styles, the name, number of iterations, and starting seed.
 %    \begin{macrocode}
-\NewDocumentCommand \TilingDecomposition { O{} m m m }
+\cs_new_protected_nopar:Npn \@@_tiling_decomposition:nnnn #1#2#3#4
 {
   \group_begin:
   \tikzset{#1}
@@ -1384,6 +1401,11 @@ and the derived files            penrose.ins
   \int_set:Nn \l_@@_pentagon_parity_int {2}
   \@@_invoke_lms:Nn \l_@@_tmpa_tl {#2}
   \group_end:
+}
+
+\NewDocumentCommand \TilingDecomposition { O{} m m m }
+{
+ \@@_tiling_decomposition:nnnn {#1}{#2}{#3}{#4}
 }
 %    \end{macrocode}
 % \end{function}
@@ -1420,7 +1442,7 @@ and the derived files            penrose.ins
 % This is a \Verb+\tikzset+ mechanism for setting the dimensions of the tiling.
 %    \begin{macrocode}
 \tikzset{
-  step/.code={
+  tiling~ step/.code={
     \dim_set:Nn \l_@@_step_dim {#1}
   }
 }
@@ -2362,13 +2384,13 @@ and the derived files            penrose.ins
 % \end{align*}
 %
 %    \begin{macrocode}
-\DefineTile{meta cluster t}{A A b}
+\DefineTile{meta cluster T}{A A b}
 {
 { -1.5 , -sqrt(3)/2 }
 {  1.5 , -sqrt(3)/2 }
 {  0   ,  sqrt(3) }  
 }
-\DefineTile{meta cluster p}{A 1 D d b 1 D d}
+\DefineTile{meta cluster P}{A 1 D d b 1 D d}
 {
 { -1.5 , -sqrt(3)/2 }
 {  1.5 , -sqrt(3)/2 }
@@ -2379,7 +2401,7 @@ and the derived files            penrose.ins
 { -3, 0 }
 { -2.5, -sqrt(3)/2 }
 }
-\DefineTile{meta cluster f}{1 D c C d b 1 D d}
+\DefineTile{meta cluster F}{1 D c C d b 1 D d}
 {
 { -1.5 , -sqrt(3)/2 }
 { -.5 , -sqrt(3)/2 }
@@ -2391,7 +2413,7 @@ and the derived files            penrose.ins
 { -3, 0 }
 { -2.5, -sqrt(3)/2 }
 }
-\DefineTile{meta cluster h}{a D d B D d B D d}
+\DefineTile{meta cluster H}{a D d B D d B D d}
 {
 { -.5 , 3*sqrt(3)/2 }
 { -2, 0 }
@@ -2407,14 +2429,14 @@ and the derived files            penrose.ins
 % \item Super Clusters
 %
 %    \begin{macrocode}
-\DefineTile{super cluster t}{A A b}
+\DefineTile{super cluster T}{A A b}
 {
 { -30 : 3 * (1 + sqrt(5))/2 / sqrt(3) }
 { 90 : 3 * (1 + sqrt(5))/2 / sqrt(3) }
 { 210 : 3 * (1 + sqrt(5))/2 / sqrt(3) }
 }
 % 1 + 3phi, 1 + 2phi
-\DefineTile{super cluster p}{A 1 D d b 1 D d}
+\DefineTile{super cluster P}{A 1 D d b 1 D d}
 {
 { 1, 0 }
 ++{ 3*(1 + sqrt(5))/2, 0 }
@@ -2425,7 +2447,7 @@ and the derived files            penrose.ins
 ++{ -60 : 1 + sqrt(5) }
 ++{ -60 : 1}
 }
-\DefineTile{super cluster f}{1 D c C d b 1 D d}
+\DefineTile{super cluster F}{1 D c C d b 1 D d}
 {
 { 1, 0 }
 ++{ 1 + sqrt(5), 0 }
@@ -2437,7 +2459,7 @@ and the derived files            penrose.ins
 ++{ -60 : 1 + sqrt(5) }
 ++{ -60 : 1}
 }
-\DefineTile{super cluster h}{d B D d B D d a D}
+\DefineTile{super cluster H}{d B D d B D d a D}
 {
 {.5, (.5 + (1 + sqrt(5))/2) * sqrt(3)}
 ++{-1,0}
@@ -2450,19 +2472,136 @@ and the derived files            penrose.ins
 ++{120 : 3*(1+sqrt(5))/2 }
 }
 %    \end{macrocode}
+% \item Subclusters
+%
+%    \begin{macrocode}
+\DefineTile{subcluster H}{b b A}
+{
+  { 0, 0 }
+  { 3, 0 }
+  { 60 : 3 }
+}
+\DefineTile{subcluster T}{a a B}
+{
+  { 0, 0 }
+  { 3, 0 }
+  { 60 : 3 }
+}
+\DefineTile{subcluster P}{ 1 a 1 B }
+{
+  { 0, 0 }
+  { 1, 0 }
+  { 4, 0 }
+  { 3, 0 }
+}
+\DefineTile{subcluster F}{ 1 1 F f B }
+{
+  { 0, 0 }
+  { 1, 0 }
+  +{ 60 : 1 }
+  { 2, 0 }
+  { 3, 0 }
+}
+%    \end{macrocode}
 % \end{itemize}
+%
+% The P and F subclusters have no area, so clipping against them is not helpful.
+%    \begin{macrocode}
+\tikzset{
+  no clip/.code={%
+    \tikz@addmode{\tikz@mode@clipfalse}%
+  },
+  every subcluster P clip/.style={no clip},
+  every subcluster F clip/.style={no clip},
+}
+%    \end{macrocode}
+%
 %
 %    \begin{macrocode}
 \BakeTile {aperiodical hat}
 \BakeTile {aperiodical turtle}
-\BakeTile {meta cluster t}
-\BakeTile {meta cluster p}
-\BakeTile {meta cluster f}
-\BakeTile {meta cluster h}
-\BakeTile {super cluster t}
-\BakeTile {super cluster p}
-\BakeTile {super cluster f}
-\BakeTile {super cluster h}
+\BakeTile {meta cluster T}
+\BakeTile {meta cluster P}
+\BakeTile {meta cluster F}
+\BakeTile {meta cluster H}
+\BakeTile {super cluster T}
+\BakeTile {super cluster P}
+\BakeTile {super cluster F}
+\BakeTile {super cluster H}
+%    \end{macrocode}
+%
+% The subclusters are deformed by default.
+%
+%    \begin{macrocode}
+\ExplSyntaxOn
+\tl_gset:cn {g_@@_side_polykite_a_tl}
+{%
+  \pgfsyssoftpath@movetotoken {0pt}{-0.3333332942822268pt}%
+  \pgfsyssoftpath@linetotoken {0.0833331478405773pt}{-0.1889954840909892pt}%
+  \pgfsyssoftpath@linetotoken {0.3333332942822268pt}{-0.3333332942822268pt}%
+  \pgfsyssoftpath@linetotoken {0.5833333235705567pt}{-0.1889954840909892pt}%
+  \pgfsyssoftpath@linetotoken {0.6666667057177732pt}{-0.3333332942822268pt}%
+  \pgfsyssoftpath@linetotoken {1pt}{-0.3333332942822268pt}%
+}
+\tl_gset:cn {g_@@_side_polykite_A_tl}
+{%
+  \pgfsyssoftpath@movetotoken {0pt}{0.33333pt}%
+  \pgfsyssoftpath@linetotoken {0.33333pt}{0.33333pt}%
+  \pgfsyssoftpath@linetotoken {0.41667pt}{0.189pt}%
+  \pgfsyssoftpath@linetotoken {0.66667pt}{0.33333pt}%
+  \pgfsyssoftpath@linetotoken {0.91667pt}{0.189pt}%
+  \pgfsyssoftpath@linetotoken {1pt}{0.33333pt}%
+}
+\tl_gset:cn {g_@@_side_polykite_b_tl}
+{%
+  \pgfsyssoftpath@movetotoken {0pt}{0pt}%
+  \pgfsyssoftpath@linetotoken {0.3333332942822268pt}{0pt}%
+  \pgfsyssoftpath@linetotoken {0.4166665592761237pt}{0.1443378101912376pt}%
+  \pgfsyssoftpath@linetotoken {0.6666667057177732pt}{0pt}%
+  \pgfsyssoftpath@linetotoken {0.9166666178527835pt}{0.1443378101912376pt}%
+  \pgfsyssoftpath@linetotoken {1pt}{0pt}%
+}
+\tl_gset:cn {g_@@_side_polykite_B_tl}
+{%
+  \pgfsyssoftpath@movetotoken {0pt}{0pt}%
+  \pgfsyssoftpath@linetotoken {0.08333pt}{-0.14433pt}%
+  \pgfsyssoftpath@linetotoken {0.33333pt}{0pt}%
+  \pgfsyssoftpath@linetotoken {0.58333pt}{-0.14433pt}%
+  \pgfsyssoftpath@linetotoken {0.66667pt}{0pt}%
+  \pgfsyssoftpath@linetotoken {1pt}{0pt}%
+}
+\tl_gset:cn {g_@@_side_polykite_f_tl}
+{%
+  \pgfsyssoftpath@movetotoken {0pt}{-2.00000070292pt}%
+  \pgfsyssoftpath@linetotoken {0.74999982427pt}{-1.566987221617321pt}%
+  \pgfsyssoftpath@linetotoken {1pt}{-2.00000070292pt}%
+}
+\tl_gset:cn {g_@@_side_polykite_F_tl}
+{%
+  \pgfsyssoftpath@movetotoken {0pt}{2pt}%
+  \pgfsyssoftpath@linetotoken {0.25pt}{1.56699pt}%
+  \pgfsyssoftpath@linetotoken {1pt}{2pt}%
+}
+
+\clist_map_inline:nn {a,A,b,B,f,F}
+{
+  \tl_gclear_new:c {g_@@_side_backup_#1_tl}
+  \tl_gset_eq:cc {g_@@_side_backup_#1_tl} {g_@@_side_#1_tl}
+  \tl_gset_eq:cc {g_@@_side_#1_tl}{g_@@_side_polykite_#1_tl}
+}
+\ExplSyntaxOff
+
+\BakeTile{subcluster H}
+\BakeTile{subcluster T}
+\BakeTile{subcluster P}
+\BakeTile{subcluster F}
+
+\ExplSyntaxOn
+\clist_map_inline:nn {a,A,b,B,f,F}
+{
+  \tl_gset_eq:cc {g_@@_side_#1_tl} {g_@@_side_backup_#1_tl}
+}
+\ExplSyntaxOff
 %    \end{macrocode}
 %
 % \iffalse
@@ -2476,6 +2615,65 @@ and the derived files            penrose.ins
 %    \begin{macrocode}
 \ProvidesFile {tikzlibrarypenrose.code.tex} [2023/03/22 v1.6 TikZ pics for Penrose tiles]
 \usetikzlibrary{tilings.penrose}
+%    \end{macrocode}
+%
+% Backwards compatibility mode:
+%
+% \begin{itemize}
+% \item \Verb+\SetPenrosePath+ is \Verb+\SetTilingPath+
+% \item \Verb+\BakePenrosePath+ and \Verb+\MakePenrosePath+ are \Verb+\BakeTilingPath+
+% \item \Verb+\UsePenroseTile+ is \Verb+\UseTile+
+% \item \Verb+\PenroseDecomposition+ is \Verb+\TilingDecomposition+
+% \end{itemize}
+%    \begin{macrocode}
+\ExplSyntaxOn
+\NewDocumentCommand \SetPenrosePath { m }
+{
+  \@@_set_tiling_path:n {#1}
+}
+\NewDocumentCommand \BakePenroseTile {m}
+{
+  \@@_bake_tile:n {#1}
+}
+\NewDocumentCommand \MakePenroseTile {m}
+{
+  \@@_bake_tile:n {#1}
+}
+\NewDocumentCommand \UsePenroseTile {O{} m} 
+{
+  \@@_use_tile:nn {#1}{#2}
+}
+\NewDocumentCommand \PenroseDecomposition { O{} m m m }
+{
+ \@@_tiling_decomposition:nnnn {#1}{#2}{#3}{#4}
+}
+\ExplSyntaxOff
+%    \end{macrocode}
+%
+%    \begin{macrocode}
+\tikzset{
+  save Penrose path/.forward to=/tikz/save tiling path,
+  clone Penrose side path/.forward to=/tikz/clone tiling side path,
+  spath/prefix/Penrose side/.forward to=/tikz/spath/prefix/tiling side,
+  spath/suffix/Penrose side/.forward to=/tikz/spath/suffix/tiling side,
+  clone Penrose tile path/.forward to=/tikz/clone tiling tile path,
+  spath/prefix/Penrose tile/.forward to=/tikz/spath/prefix/tiling tile,
+  spath/suffix/Penrose tile/.forward to=/tikz/spath/suffix/tiling tile,
+  Penrose step/.forward to=/tikz/tiling step,
+  every tile/.append style={
+    every Penrose tile/.try
+  },
+  every tile clip/.append style={
+    every Penrose tile clip/.try
+  },
+  every tile pic/.append style={
+    every Penrose pic/.try
+  },
+  tile/.append style={
+    Penrose tile #1/.try,
+    Penrose tile/.try=#1
+  }
+}
 %    \end{macrocode}
 %
 % \iffalse
