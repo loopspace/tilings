@@ -13,3 +13,4 @@ CTAN
 *.ins
 README.txt
 tikzlibrarypenrose.code.tex
+tikzlibrarytilings.*
