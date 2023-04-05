@@ -130,9 +130,16 @@ Specifically, your preamble should contain:
 \usetikzlibrary{tilings.polykite}
 \end{verbatim}
 
-\section{Usage}
+The original version of this package concerned itself only with Penrose tiles so was named \Verb+penrose+.
+Since then it has been extended and is more general and so has been renamed \Verb+tilings+.
+Some commands have been renamed, but there is a wrapper library which aims to provide backwards compatibility with the original naming scheme.
+This is now the \Verb+penrose+ TikZ library, meaning that old documents that use the \Verb+penrose+ TikZ library should still work.
+New documents shouldn't be written using:
 
-This library defines a variety of tools for working with tiles, from defining them to positioning them to deforming them.
+\begin{verbatim}
+\usetikzlibrary{penrose}
+\end{verbatim}
+
 
 \section{Defining the Tiles}
 
@@ -161,7 +168,7 @@ The first side in the list corresponds to the edge between the first two vertice
 Each letter used matches against its opposite case (so it is possible to create a side that matches against itself by using a symbol that \TeX\ regards as having the same upper as lower case; not all symbols work, I've used numbers and \Verb+!+ successfully).
 These are also used in path replacing, both a letter and its opposite case are replaced by the corresponding path (but in opposite directions) when the tile is ``baked''.
 
-The vertices can be written in cartesian form: \Verb+{<x>,<y>}+, or in polar: \Verb+{<angle>:<length>}+.
+The vertices can be written in cartesian form: \Verb+{<x>,<y>}+, or in polar: \Verb+{<angle>:<length>}+ (with the angle in degrees).
 The vertex can be preceded by upto two \Verb!+! signs which have the same interpretation as in TikZ: the vertex description is taken relative to the previously saved point with a single \Verb!+! additionally not updating the last saved point.
 The initial saved point is the origin, so the following defines a hexagonal tile.
 %
@@ -277,30 +284,47 @@ It also defines a wrapper around the \Verb+\DefineTile+ command for creating one
 \DefinePolykiteTile{aperiodical hat}{sqrt(3)/2}{1/2}
 \end{verbatim}
 
+(Note that the aperiodical hat tile is already defined.)
+
 \begin{itemize}
 \item Aperiodical Hat \tikz[baseline=-.5ex] \pic[draw,aperiodical hat];
 \item Aperiodical Turtle \tikz[baseline=-.5ex] \pic[draw,aperiodical turtle];
-\item Meta Cluster H \tikz[baseline=-.5ex] \pic[scale=.5,draw,meta cluster h];
-\item Meta Cluster F \tikz[baseline=-.5ex] \pic[scale=.5,draw,meta cluster f];
-\item Meta Cluster T \tikz[baseline=-.5ex] \pic[scale=.5,draw,meta cluster t];
-\item Meta Cluster P \tikz[baseline=-.5ex] \pic[scale=.5,draw,meta cluster p];
-\item Super Cluster H \tikz[baseline=-.5ex] \pic[scale=.5,draw,super cluster h];
-\item Super Cluster F \tikz[baseline=-.5ex] \pic[scale=.5,draw,super cluster f];
-\item Super Cluster T \tikz[baseline=-.5ex] \pic[scale=.5,draw,super cluster t];
-\item Super Cluster P \tikz[baseline=-.5ex] \pic[scale=.5,draw,super cluster p];
+\item Meta Cluster H \tikz[baseline=-.5ex] \pic[scale=.5,draw,meta cluster H];
+\item Meta Cluster F \tikz[baseline=-.5ex] \pic[scale=.5,draw,meta cluster F];
+\item Meta Cluster T \tikz[baseline=-.5ex] \pic[scale=.5,draw,meta cluster T];
+\item Meta Cluster P \tikz[baseline=-.5ex] \pic[scale=.5,draw,meta cluster P];
+\item Super Cluster H \tikz[baseline=-.5ex] \pic[scale=.5,draw,super cluster H];
+\item Super Cluster F \tikz[baseline=-.5ex] \pic[scale=.5,draw,super cluster F];
+\item Super Cluster T \tikz[baseline=-.5ex] \pic[scale=.5,draw,super cluster T];
+\item Super Cluster P \tikz[baseline=-.5ex] \pic[scale=.5,draw,super cluster P];
+\item Subcluster H \tikz[baseline=-.5ex] \pic[scale=.5,draw,subcluster H];
+\item Subcluster F \tikz[baseline=-.5ex] \pic[scale=.5,draw,subcluster F];
+\item Subcluster T \tikz[baseline=-.5ex] \pic[scale=.5,draw,subcluster T];
+\item Subcluster P \tikz[baseline=-.5ex] \pic[scale=.5,draw,subcluster P];
 \end{itemize}
 
-The edges of the cluster tiles are actually multi-edges for the matching rules.
+The edges of the meta and super cluster tiles are actually multi-edges for the matching rules.
+
+The subcluster tiles are a bit different to the others.
+The \(P\) and \(F\) tiles have no area (so are not clipped by default) and the \(H\) and \(T\) tiles have edge deformations applied by default so that they have the appearance of the aperiodical hat tile.
 
 \begin{multicols}{2}
 
 \foreach \tile/\edges in {
   aperiodical hat/{11,21,22,23,24,12,13,25,26,14,15,27,28,16},
   aperiodical turtle/{11,21,22,23,24,12,13,25,26,14,15,27,28,16},
-  meta cluster t/{A1,A2,b},
-  meta cluster p/{A, 11, D1, d1, b, 12, D2, d2},
-  meta cluster f/{11, D1, c, C, d1, b, 12, D2, d2},
-  meta cluster h/{a, D1, d1, B1, D2, d2, B2, D3, d3}%
+  meta cluster T/{A1,A2,b},
+  meta cluster P/{A, 11, D1, d1, b, 12, D2, d2},
+  meta cluster F/{11, D1, c, C, d1, b, 12, D2, d2},
+  meta cluster H/{a, D1, d1, B1, D2, d2, B2, D3, d3},
+  super cluster T/{A1,A2,b},
+  super cluster P/{A, 11, D1, d1, b, 12, D2, d2},
+  super cluster F/{11, D1, c, C, d1, b, 12, D2, d2},
+  super cluster H/{a, D1, d1, B1, D2, d2, B2, D3, d3},
+  subcluster T/{a1,a2,B},
+  subcluster H/{b1,b2,A},
+  subcluster P/{11, a, 12, B},
+  subcluster F/{11, 12, F, f, B}%
 }{
 \begin{tikzpicture}
 \pic[draw,\tile,name=tile];
@@ -328,7 +352,7 @@ One important thing to note is that by default, \Verb+pic+s are like \Verb+nodes
 To make them notice this, use the key \Verb+transform shape+ or specify the transformation to the \Verb+pic+ directly.
 If the shortcut keys are used to specify the tiles, this can be put in the \Verb+every tile+ style.
 
-TikZ \Verb+pic+s can be named, using the \Verb+name=<name>+ key.
+TikZ \Verb+pic+s can be named, using the \Verb+name=<name>+ key or using the \Verb+(name)+ syntax (see the TikZ documentation for more details).
 When a tile has been named then it can be used for positioning other tiles.
 Each edge is assigned a label and a new tile can be aligned with an old one along a matching edge (\Verb+a+ matches with \Verb+A+ and so on).
 
@@ -412,16 +436,51 @@ With judicious use of loops, quite complicated pictures can be rendered using si
 \end{example}
 
 The tiles can be styled, either directly or using various keys.
-Each tile has the following styles applied (in this order):
+When a tile is placed then there are various actions that happen with associated keys.
+The actions and keys are:
+%
+\begin{enumerate}
+\item The tile path is used with the intention of it being a clipping path.
+The keys for this action are:
+%
+\begin{enumerate}
+\item \Verb+every tile clip+, by default this is set to \Verb+clip+,
+\item \Verb+every <name> clip+ where \Verb+name+ is the tile name (not the pic name).
+\item \Verb+this tile clip+.
+\end{enumerate}
+
+\item A set of keys are used to allow arbitrary code to be executes before the tile path is rendered.
+These are:
+
+\begin{enumerate}
+\item \Verb+every tile before path+
+\item \Verb+every <name> before path+
+\item \Verb+this tile before path+
+\end{enumerate}
+
+\item The tile path is rendered.
+The keys for this action are:
 %
 \begin{enumerate}
 \item \Verb+every tile+
 \item \Verb+every <name>+
+\item \Verb+this tile+
 \item \Verb+pic actions+
 \end{enumerate}
-%
+
+\item A set of keys are used to allow arbitrary code to be executes before the tile path is rendered.
+These are:
+
+\begin{enumerate}
+\item \Verb+every tile after path+
+\item \Verb+every <name> after path+
+\item \Verb+this tile after path+
+\end{enumerate}
+\end{enumerate}
+
+
 The \Verb+pic actions+ are any actions given directly to the tile, as in \Verb+\pic[draw,thin rhombus];+.
-The kite, dart, and rhombus tiles also have arcs drawn on them and these are styled as \Verb+every circle arc+ and \Verb+every long arc+.
+The kite, dart, and rhombus tiles also have arcs drawn on them which are inserted via the \Verb+every <name> after path+ keys, and these are themselves styled ussing \Verb+every circle arc+ and \Verb+every long arc+.
 The names come from the way the arcs look on the rhombus shapes.
 
 One other point is important to note about the tiles.
@@ -435,6 +494,7 @@ There is a way to specify a Penrose tiling using \emph{Lindenmayer systems}.
 In brief, this takes a golden triangle or gnomon (or one of the reverse ones) and repeatedly decomposes it into smaller triangles and gnomon.
 Once a desired level has been reached, the resulting triangles and gnomon are glued together in pairs to create either darts and kites or rhombuses (of both types).
 This library contains an implementation of this for each of the Penrose tilings.
+(The intention is to implement this for the super clusters for the aperiodical polykite tilings as well).
 
 The user command is:
 %
