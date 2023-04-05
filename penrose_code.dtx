@@ -1025,7 +1025,11 @@ and the derived files            penrose.ins
 %    \begin{macrocode}
   \tikzset{
     #2/.pic={
-      \begin{scope}
+      \begin{scope}[
+        every~ tile~ scope/.try,
+        every~ #2~ scope/.try,
+        this~ tile~ scope/.try
+      ]
 %    \end{macrocode}
 % Were we given a tile to align ourselves against?
 %    \begin{macrocode}
