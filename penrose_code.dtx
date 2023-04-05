@@ -575,8 +575,8 @@ and the derived files            penrose.ins
     \fp_set_eq:NN \l_@@_saved_x_fp \g_@@_output_a_fp
     \fp_set_eq:NN \l_@@_saved_y_fp \g_@@_output_b_fp
   }
-  \fp_zero:N \g_@@_output_a_fp
-  \fp_zero:N \g_@@_output_b_fp
+  \fp_gzero:N \g_@@_output_a_fp
+  \fp_gzero:N \g_@@_output_b_fp
 }
 %    \end{macrocode}
 % Wrapper around the add coordinate command to split at a comma.
@@ -2534,6 +2534,15 @@ and the derived files            penrose.ins
 %
 %    \begin{macrocode}
 \ExplSyntaxOn
+\clist_map_inline:nn {a,A,b,B,f,F}
+{
+  \tl_new:c {g_@@_side_polykite_#1_tl}
+  \tl_if_exist:cF {g_@@_side_#1_tl}
+  {
+    \tl_new:c {g_@@_side_#1_tl}
+  }
+}
+
 \tl_gset:cn {g_@@_side_polykite_a_tl}
 {%
   \pgfsyssoftpath@movetotoken {0pt}{-0.3333332942822268pt}%
@@ -2587,6 +2596,7 @@ and the derived files            penrose.ins
 {
   \tl_gclear_new:c {g_@@_side_backup_#1_tl}
   \tl_gset_eq:cc {g_@@_side_backup_#1_tl} {g_@@_side_#1_tl}
+  \tl_gclear_new:c {g_@@_side_#1_tl}
   \tl_gset_eq:cc {g_@@_side_#1_tl}{g_@@_side_polykite_#1_tl}
 }
 \ExplSyntaxOff
