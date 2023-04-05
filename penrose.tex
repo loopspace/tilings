@@ -306,9 +306,21 @@ It also defines a wrapper around the \Verb+\DefineTile+ command for creating one
 The edges of the meta and super cluster tiles are actually multi-edges for the matching rules.
 
 The subcluster tiles are a bit different to the others.
-The \(P\) and \(F\) tiles have no area (so are not clipped by default) and the \(H\) and \(T\) tiles have edge deformations applied by default so that they have the appearance of the aperiodical hat tile.
+The \(H\) and \(T\) tiles are actually equilateral triangles but they have edge deformations applied by default so that they have the appearance of the aperiodical hat tile.
+The \(P\) and \(F\) tiles have no area (so are not clipped by default) which means that the edge labels aren't fully clear as to which side they are on.
+They match the diagrams given in the \href{https://arxiv.org/abs/2303.10798}{paper}, with the \(L\) sides being the sides labelled \(11\) and \(12\). 
 
 \begin{multicols}{2}
+
+\tikzset{
+  every super cluster scope/.style={
+    scale=.5
+  },
+  every super cluster T scope/.style={every super cluster scope},
+  every super cluster P scope/.style={every super cluster scope},
+  every super cluster F scope/.style={every super cluster scope},
+  every super cluster H scope/.style={every super cluster scope},
+}
 
 \foreach \tile/\edges in {
   aperiodical hat/{11,21,22,23,24,12,13,25,26,14,15,27,28,16},
@@ -440,13 +452,21 @@ When a tile is placed then there are various actions that happen with associated
 The actions and keys are:
 %
 \begin{enumerate}
+\item A scope is started and the following keys are tried.
+%
+\begin{enumerate}
+\item \Verb+every tile scope+
+\item \Verb+every <name> scope+ where \Verb+name+ is the tile name (not the pic name)
+\item \Verb+this tile scope+
+\end{enumerate}
+
 \item The tile path is used with the intention of it being a clipping path.
 The keys for this action are:
 %
 \begin{enumerate}
-\item \Verb+every tile clip+, by default this is set to \Verb+clip+,
-\item \Verb+every <name> clip+ where \Verb+name+ is the tile name (not the pic name).
-\item \Verb+this tile clip+.
+\item \Verb+every tile clip+ by default this is set to \Verb+clip+
+\item \Verb+every <name> clip+
+\item \Verb+this tile clip+
 \end{enumerate}
 
 \item A set of keys are used to allow arbitrary code to be executes before the tile path is rendered.
