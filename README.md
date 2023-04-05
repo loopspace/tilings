@@ -29,6 +29,8 @@ There are also libraries with pre-defined tiles:
   
   These are the tiles defined in [the aperiodic
   monotile](https://arxiv.org/abs/2303.10798).
+  Currently defined are the hat, the turtle, the meta, super, and sub
+  clusters.
   
 Each of these loads the main `tilings` library and then defines
 certain sets of tiles.
@@ -51,8 +53,10 @@ The command to define a tile is:
   the edges.  The expectation is that these will go in the same
   direction around each tile (though this can be swapped when the tile
   is placed).  The first edge goes between the first two vertices
-  and so on.  Each vertex is specified by giving its coordinates in
-  the form `{ x, y}` and these will be put through the LaTeX3 floating
+  and so on.  Each vertex is specified by giving its coordinates,
+  these can be in cartesian form, `{ x, y}`, or polar form, `{ θ: r}`
+  (`θ` in degrees), and can be prepended by one or two `+` signs to
+  make them relative.  These will be put through the LaTeX3 floating
   point parser.
 
 When a tile has been defined it must still be _baked_.  This is
@@ -94,8 +98,20 @@ Various styles are used to render the tiles:
   style `every tile pic`.
 * A tile is clipped against itself, and the clipping path tries the
   styles `every tile clip` and `every <name> clip`.
-* The tile itself is rendered with `every tile`, `every <name>`, and
-  the `pic actions`.
+* The tile itself is rendered with `every tile`, `every <name>`, `this
+  tile`, and the `pic actions`.
 
+Tiles can be further customised using the keys:
+
+* `every tile before path`
+* `every <name> before path`
+* `this tile before path`
+* `every tile after path`
+* `every <name> after path`
+* `this tile after path`
+
+These are simply executed and not applied to a path, so are provided
+as hooks at the corresponding stages of rendering to allow other code
+to be run; the arcs on the Penrose tiles are inserted using these styles.
 
 
