@@ -295,6 +295,7 @@ and the derived files            penrose.ins
 \tl_new:N \g_@@_output_tl
 \fp_new:N \g_@@_output_a_fp
 \fp_new:N \g_@@_output_b_fp
+\prop_new:N \g_@@_tilenames_prop
 \cs_generate_variant:Nn \seq_set_split:Nnn {NVV}
 %    \end{macrocode}
 % \end{variable}
@@ -1071,6 +1072,11 @@ and the derived files            penrose.ins
         this~ tile~ scope/.try
       ]
 %    \end{macrocode}
+% Save the name and tile type
+%    \begin{macrocode}
+      \tikz@fig@mustbenamed
+      \prop_gput:NVn \g_@@_tilenames_prop \tikz@fig@name {#2}
+%    \end{macrocode}
 % Were we given a tile to align ourselves against?
 %    \begin{macrocode}
       \@@_keys_get:Nn \l_@@_tmpa_tl {alignment~ location}
@@ -1130,8 +1136,16 @@ and the derived files            penrose.ins
           \dim_gset:Nn \g_@@_ya_dim {0pt}
           \dim_gset:Nn \g_@@_xb_dim {1pt}
           \dim_gset:Nn \g_@@_yb_dim {0pt}
-          \msg_error:nnxx { tilings }{ no edge } { \tl_use:N \l_@@_tmpa_tl }
-          {\@@_keys_get:n {alignment~ edge} }
+
+          \prop_get:NVNTF \g_@@_tilenames_prop \l_@@_tmpa_tl \l_@@_tmpb_tl
+          {
+            \prop_get:NVN \g_@@_tiles_prop \l_@@_tmpb_tl \l_@@_tmpc_tl
+            \msg_error:nnxxx { tilings }{ tile no edge } { \tl_use:N \l_@@_tmpa_tl \c_space_tl (type~ \tl_use:N \l_@@_tmpb_tl) } {\@@_keys_get:n {alignment~ edge} } { \tl_item:Nn \l_@@_tmpc_tl {1} }
+            
+          }
+          {
+            \msg_error:nnx { tilings }{ no tile } { \tl_use:N \l_@@_tmpa_tl }
+          }
         }
         \group_end:
 %    \end{macrocode}
