@@ -296,7 +296,11 @@ and the derived files            penrose.ins
 \fp_new:N \g_@@_output_a_fp
 \fp_new:N \g_@@_output_b_fp
 \prop_new:N \g_@@_tilenames_prop
+\regex_const:Nn \c_@@_anchor_regex {\s\w+\Z}
 \cs_generate_variant:Nn \seq_set_split:Nnn {NVV}
+\cs_generate_variant:Nn \regex_extract_once:NnNTF {NVNTF}
+\cs_generate_variant:Nn \tl_if_eq:nnT {nVT}
+\cs_generate_variant:Nn \tl_if_in:NnT {NVT}
 %    \end{macrocode}
 % \end{variable}
 %
@@ -461,6 +465,22 @@ and the derived files            penrose.ins
 \cs_new_nopar:Npn \@@_keys_get:n #1
 {
   \pgfkeysvalueof{/tikz/tiling/#1}
+}
+\cs_new_nopar:Npn \@@_tikz_keys_get:Nn #1#2
+{
+  \pgfkeysgetvalue{/tikz/#2}{#1}
+}
+\cs_new_nopar:Npn \@@_tikz_keys_get:n #1
+{
+  \pgfkeysvalueof{/tikz/#1}
+}
+\cs_new_nopar:Npn \@@_pgf_keys_get:Nn #1#2
+{
+  \pgfkeysgetvalue{#2}{#1}
+}
+\cs_new_nopar:Npn \@@_pgf_keys_get:n #1
+{
+  \pgfkeysvalueof{#1}
 }
 %    \end{macrocode}
 % \end{macro}
@@ -754,8 +774,116 @@ and the derived files            penrose.ins
 % \end{macro}
 %
 %    \begin{macrocode}
-\cs_generate_variant:Nn \tl_if_eq:nnT {nVT}
 \cs_generate_variant:Nn \@@_transform_side_to_axis:Nnn {Nnx,NnV,NVV}
+%    \end{macrocode}
+%
+% \begin{macro}[internal]{\@@_translate_vertex_to_origin:Nnn}
+% Apply a transformation to make a given vertex sit at the origin.
+% Second argument is the tile, third is the side, first is a boolean to determine whether to use the start or end.
+%    \begin{macrocode}
+\cs_new_nopar:Npn \@@_translate_vertex_to_origin:Nnn #1#2#3
+{
+%    \end{macrocode}
+% Get our tile data, checking if the tile exists.
+%    \begin{macrocode}
+  \group_begin:
+  \prop_get:NnNTF \g_@@_tiles_prop {#2} \l_@@_tmpa_tl
+  {
+%    \end{macrocode}
+% Start with the edge list.
+%
+% Initialise the counter.
+%    \begin{macrocode}
+  \int_zero:N \l_@@_tmpb_int
+  \int_incr:N \l_@@_tmpb_int
+%    \end{macrocode}
+% Get the path type list.
+%
+%    \begin{macrocode}
+  \tl_set:Nx \l_@@_tmpc_tl {\tl_head:N \l_@@_tmpa_tl}
+%    \end{macrocode}
+%
+% Iterate through the path type list, looking for the requested path.
+%    \begin{macrocode}
+    \bool_set_false:N \l_@@_edge_bool
+    \tl_map_inline:Nn \l_@@_tmpc_tl {
+      \str_if_eq:nnT {##1} {#3} {
+        \bool_set_true:N \l_@@_edge_bool
+        \tl_map_break:
+      }
+      \int_incr:N \l_@@_tmpb_int
+    }
+    \bool_if:NTF \l_@@_edge_bool
+    {
+%    \end{macrocode}
+% Get the coordinate list.
+%    \begin{macrocode}
+      \tl_set:Nx \l_@@_tmpc_tl {\tl_tail:N \l_@@_tmpa_tl}
+%    \end{macrocode}
+% Strip off the outer braces.
+%    \begin{macrocode}
+      \tl_set:Nx \l_@@_tmpc_tl {\tl_item:Nn \l_@@_tmpc_tl {1}}
+%    \end{macrocode}
+% Add the first coordinate at the end.
+%    \begin{macrocode}
+      \tl_put_right:Nx \l_@@_tmpc_tl
+      {{\tl_item:Nn \l_@@_tmpc_tl {1}}}
+%    \end{macrocode}
+% Get the coordinates for this edge.
+%    \begin{macrocode}
+      \tl_set:Nx \l_@@_tmpa_tl
+      {\tl_item:Nn \l_@@_tmpc_tl {\int_use:N \l_@@_tmpb_int}}
+      \tl_set:Nx \l_@@_tmpb_tl
+      {\tl_item:Nn \l_@@_tmpc_tl {\int_use:N \l_@@_tmpb_int + 1}}
+%    \end{macrocode}
+% Possibly swap the ends.
+%    \begin{macrocode}
+      \bool_if:NT #1
+      {
+        \tl_set:NV \l_@@_tmpc_tl \l_@@_tmpa_tl
+        \tl_set:NV \l_@@_tmpa_tl \l_@@_tmpb_tl
+        \tl_set:NV \l_@@_tmpb_tl \l_@@_tmpc_tl
+      }
+%    \end{macrocode}
+% Get the coordinates of the first point, which will be the origin of the transformation.
+%    \begin{macrocode}
+      \fp_set:Nn \l_@@_xa_fp {\tl_item:Nn \l_@@_tmpb_tl {1}}
+      \fp_set:Nn \l_@@_ya_fp {\tl_item:Nn \l_@@_tmpb_tl {2}}
+%    \end{macrocode}
+% Shift to place the selected vertex at the origin.
+%    \begin{macrocode}
+      \tl_gset:Nx \g_@@_output_tl
+      {
+        \exp_not:N \pgftransformshift
+        {
+          \exp_not:N \pgfpoint
+          {
+            \fp_to_dim:n {-\l_@@_xa_fp * \c_@@_cm_fp}
+          }
+          {
+            \fp_to_dim:n {-\l_@@_ya_fp * \c_@@_cm_fp}
+          }
+        }
+      }
+    }
+    {
+      \msg_error:nnxxx {tilings} {tile no edge} {#2} {#3} {\tl_use:N  \l_@@_tmpc_tl }
+      \tl_gclear:N \g_@@_output_tl
+    }
+  }
+  {
+    \msg_error:nnn {tilings} {no tile} {#2}
+    \tl_gclear:N \g_@@_output_tl
+  }
+  \group_end:
+  \tl_use:N \g_@@_output_tl
+  \tl_gclear:N \g_@@_output_tl
+}
+%    \end{macrocode}
+% \end{macro}
+%
+%    \begin{macrocode}
+\cs_generate_variant:Nn \@@_translate_vertex_to_origin:Nnn {Nnx,NnV,NVV}
 %    \end{macrocode}
 %
 % \begin{macro}[internal]{\TransformAlongSide}
@@ -813,7 +941,7 @@ and the derived files            penrose.ins
   \tl_set:Nx \l_@@_tmpa_tl {\tl_head:N \l_@@_tmpc_tl}
   \tl_set:Nx \l_@@_tmpc_tl {\tl_tail:N \l_@@_tmpc_tl}
 %    \end{macrocode}
-% Iterate through the path type list, looking for the requested path
+% Iterate through the edge list, placing coordinates
 %    \begin{macrocode}
   \tl_map_inline:Nn \l_@@_tmpb_tl {
     \tl_set:Nx \l_@@_tmpd_tl {
@@ -942,6 +1070,29 @@ and the derived files            penrose.ins
         tiling/alignment~ edge=#2,
       }
     }
+    \tikz_node_if_defined:nTF
+    {
+      \@@_keys_get:n {alignment~ location} -edge~ \@@_keys_get:n {alignment~ edge}~ start
+    }
+    {
+      \tikzset{
+        tiling/alignment~ start/.expanded={(\@@_keys_get:n {alignment~ location} -edge~ \@@_keys_get:n {alignment~ edge}~ start)},
+        tiling/alignment~ end/.expanded={(\@@_keys_get:n {alignment~ location} -edge~ \@@_keys_get:n {alignment~ edge}~ end)},
+      }
+    }
+    {
+      \@@_keys_get:Nn \l_@@_tmpa_tl {alignment~ location}
+      \tl_set:Nx \l_@@_tmpa_tl {\tl_use:N \l_@@_tmpa_tl}
+      \prop_get:NVNTF \g_@@_tilenames_prop \l_@@_tmpa_tl \l_@@_tmpb_tl
+      {
+        \prop_get:NVN \g_@@_tiles_prop \l_@@_tmpb_tl \l_@@_tmpc_tl
+        \msg_error:nnxxx { tilings }{ tile no edge } { \tl_use:N \l_@@_tmpa_tl \c_space_tl (type~ \tl_use:N \l_@@_tmpb_tl) } {\@@_keys_get:n {alignment~ edge} } { \tl_item:Nn \l_@@_tmpc_tl {1} }
+        
+      }
+      {
+        \msg_error:nnx { tilings }{ no tile } {\@@_keys_get:n {alignment~ location}}
+      }
+    }
   },
   tiling/alignment~ set~ location/.code~ args={#1~ back}{
     \tikzset{
@@ -954,10 +1105,34 @@ and the derived files            penrose.ins
       tiling/alignment~ new~ edge=#2
     }
   },
+  align~ between/.code~ args={#1~ and~ #2~ using~ #3}{
+    \tikzset{
+      tiling/alignment~ start={#1},
+      tiling/alignment~ end={#2},
+    }
+    \str_set:Nn \l_@@_tmpa_str {#3}
+    \str_set:Nx \l_@@_tmpb_str {\str_tail:N \l_@@_tmpa_str}
+    \tikzset{
+      tiling/alignment~ new~ edge/.expanded={\str_use:N \l_@@_tmpb_str}
+    }
+    \str_set:Nx \l_@@_tmpa_str {\str_head:N \l_@@_tmpa_str}
+    \str_set:Nx \l_@@_tmpb_str {\str_lowercase:f { \l_@@_tmpa_str}}
+    \str_if_eq:NNT \l_@@_tmpa_str \l_@@_tmpb_str
+    {
+      \str_set:Nx \l_@@_tmpb_str
+      {\str_uppercase:f { \l_@@_tmpa_str}}
+    }
+    \tikzset{
+      tiling/alignment~ edge/.expanded={\str_use:N \l_@@_tmpb_str},
+    }
+  },
   tiling/alignment~ location/.initial={},
   tiling/alignment~ edge/.initial=a,
   tiling/alignment~ new~ edge/.initial={},
   tiling/alignment~ direction/.initial={forewards},
+  tiling/alignment~ start/.initial={},
+  tiling/alignment~ end/.initial={},
+  tiling/anchor/.initial={},
 %    \end{macrocode}
 % Default clipping style.
 %    \begin{macrocode}
@@ -1077,80 +1252,83 @@ and the derived files            penrose.ins
       \tikz@fig@mustbenamed
       \prop_gput:NVn \g_@@_tilenames_prop \tikz@fig@name {#2}
 %    \end{macrocode}
-% Were we given a tile to align ourselves against?
+% Were we given coordinates to align ourselves against?
 %    \begin{macrocode}
-      \@@_keys_get:Nn \l_@@_tmpa_tl {alignment~ location}
-      \tl_if_empty:NF \l_@@_tmpa_tl
+      \@@_keys_get:Nn \l_@@_tmpa_tl {alignment~ start}
+      \tl_if_empty:NTF \l_@@_tmpa_tl
+      {
+%    \end{macrocode}
+% No alignment information was given, was an anchor specified?
+%    \begin{macrocode}
+        \prop_get:NnN \g_@@_tiles_prop {#2} \l_@@_tmpa_tl
+        \tl_set:Nx \l_@@_tmpc_tl {\tl_head:N \l_@@_tmpa_tl}
+        \@@_keys_get:Nn \l_@@_tmpa_tl {anchor}
+        \tl_if_empty:NF \l_@@_tmpa_tl
+        {
+          \regex_extract_once:NVNTF \c_@@_anchor_regex \l_@@_tmpa_tl \l_@@_tmpb_tl
+          {
+            \regex_replace_once:NnN \c_@@_anchor_regex {} \l_@@_tmpa_tl
+            \tl_if_eq:NnTF \l_@@_tmpb_tl {~end}
+            {
+              \bool_set_true:N \l_@@_cw_bool
+            }
+            {
+              \bool_set_false:N \l_@@_cw_bool
+            }
+          }
+          {
+            \bool_set_false:N \l_@@_cw_bool
+          }
+          \tl_set:Nx \l_@@_tmpb_tl {{\tl_use:N \l_@@_tmpa_tl}}
+          \tl_if_in:NVT \l_@@_tmpc_tl \l_@@_tmpb_tl
+          {
+            \@@_translate_vertex_to_origin:NnV \l_@@_cw_bool {#2} \l_@@_tmpa_tl
+          }
+        }
+      }
       {
 %    \end{macrocode}
 % Yes, we were.
 % So we adjust our position accordingly.
-% The first job is to transform so that we're along the edge of the receiving tile.
+% The first job is to transform so that we're aligned with the specified coordinates.
 %    \begin{macrocode}
         \group_begin:
 %    \end{macrocode}
-% First question is whether the alignment tile exists and has the requested edge exists.
-% As \Verb+pic+ sets the node prefix, we have to temporarily suspend that (hence working in a group).
+% We get the locations of the start and ending coordinates.
 %    \begin{macrocode}
-        \tikzset{name~ prefix~ ..}
-        \tikz_node_if_defined:nTF
-        {\l_@@_tmpa_tl -edge~ \@@_keys_get:n {alignment~ edge}~ start}
+        \tikzset{
+          name~ prefix~ ..
+        }
+        \tikz_scan_point:n {
+          \@@_keys_get:n {alignment~ start}
+        }
+        \dim_set_eq:Nc \l_@@_xa_dim {pgf@x}
+        \dim_set_eq:Nc \l_@@_ya_dim {pgf@y}
+        \tikz_scan_point:n {
+          \@@_keys_get:n {alignment~ end}
+        }
+        \dim_set_eq:Nc \l_@@_xb_dim {pgf@x}
+        \dim_set_eq:Nc \l_@@_yb_dim {pgf@y}
+        \@@_keys_get:Nn \l_@@_tmpb_tl {alignment~ direction}
+        \tl_if_eq:NnTF \l_@@_tmpb_tl {forewards}
         {
-%    \end{macrocode}
-% We get the locations of the start and end of the receiving tile.
-%    \begin{macrocode}
-          \tikz_scan_point:n {
-            (\l_@@_tmpa_tl -edge~ \@@_keys_get:n {alignment~ edge}~ start)
-          }
-          \dim_set_eq:Nc \l_@@_xa_dim {pgf@x}
-          \dim_set_eq:Nc \l_@@_ya_dim {pgf@y}
-          \tikz_scan_point:n {
-            (\l_@@_tmpa_tl -edge~ \@@_keys_get:n {alignment~ edge}~ end)
-          }
-          \dim_set_eq:Nc \l_@@_xb_dim {pgf@x}
-          \dim_set_eq:Nc \l_@@_yb_dim {pgf@y}
-          \@@_keys_get:Nn \l_@@_tmpb_tl {alignment~ direction}
-          \tl_if_eq:NnTF \l_@@_tmpb_tl {forewards}
-          {
-            \dim_gset_eq:NN \g_@@_xa_dim \l_@@_xa_dim
-            \dim_gset_eq:NN \g_@@_ya_dim \l_@@_ya_dim
-            \dim_gset_eq:NN \g_@@_xb_dim \l_@@_xb_dim
-            \dim_gset_eq:NN \g_@@_yb_dim \l_@@_yb_dim
-          }
-          {
-            \dim_gset_eq:NN \g_@@_xa_dim \l_@@_xb_dim
-            \dim_gset_eq:NN \g_@@_ya_dim \l_@@_yb_dim
-            \dim_gset_eq:NN \g_@@_xb_dim \l_@@_xa_dim
-            \dim_gset_eq:NN \g_@@_yb_dim \l_@@_ya_dim
-          }
-          \dim_gsub:Nn \g_@@_xb_dim {\g_@@_xa_dim}
-          \dim_gsub:Nn \g_@@_yb_dim {\g_@@_ya_dim}
-          \dim_gset:Nn \g_@@_xb_dim {\g_@@_xb_dim * \dim_ratio:nn {1pt}{1cm}}
-          \dim_gset:Nn \g_@@_yb_dim {\g_@@_yb_dim * \dim_ratio:nn {1pt}{1cm}}
+          \dim_gset_eq:NN \g_@@_xa_dim \l_@@_xa_dim
+          \dim_gset_eq:NN \g_@@_ya_dim \l_@@_ya_dim
+          \dim_gset_eq:NN \g_@@_xb_dim \l_@@_xb_dim
+          \dim_gset_eq:NN \g_@@_yb_dim \l_@@_yb_dim
         }
         {
-%    \end{macrocode}
-% We can't transform as either the tile doesn't exist or it doesn't have the requested edge, so fall back to the origin.
-%    \begin{macrocode}
-          \dim_gset:Nn \g_@@_xa_dim {0pt}
-          \dim_gset:Nn \g_@@_ya_dim {0pt}
-          \dim_gset:Nn \g_@@_xb_dim {1pt}
-          \dim_gset:Nn \g_@@_yb_dim {0pt}
-
-          \prop_get:NVNTF \g_@@_tilenames_prop \l_@@_tmpa_tl \l_@@_tmpb_tl
-          {
-            \prop_get:NVN \g_@@_tiles_prop \l_@@_tmpb_tl \l_@@_tmpc_tl
-            \msg_error:nnxxx { tilings }{ tile no edge } { \tl_use:N \l_@@_tmpa_tl \c_space_tl (type~ \tl_use:N \l_@@_tmpb_tl) } {\@@_keys_get:n {alignment~ edge} } { \tl_item:Nn \l_@@_tmpc_tl {1} }
-            
-          }
-          {
-            \msg_error:nnx { tilings }{ no tile } { \tl_use:N \l_@@_tmpa_tl }
-          }
+          \dim_gset_eq:NN \g_@@_xa_dim \l_@@_xb_dim
+          \dim_gset_eq:NN \g_@@_ya_dim \l_@@_yb_dim
+          \dim_gset_eq:NN \g_@@_xb_dim \l_@@_xa_dim
+          \dim_gset_eq:NN \g_@@_yb_dim \l_@@_ya_dim
         }
+        \dim_gsub:Nn \g_@@_xb_dim {\g_@@_xa_dim}
+        \dim_gsub:Nn \g_@@_yb_dim {\g_@@_ya_dim}
+        \dim_gset:Nn \g_@@_xb_dim {\g_@@_xb_dim * \dim_ratio:nn {1pt}{1cm}}
+        \dim_gset:Nn \g_@@_yb_dim {\g_@@_yb_dim * \dim_ratio:nn {1pt}{1cm}}
         \group_end:
 %    \end{macrocode}
-% We store the initial points in \Verb+\pgf@xa+ and \Verb+\pgf@ya+ but we want \Verb+\pgf@xb+ and \Verb+\pgf@yb+ to be a vector along the edge.
-%
 % We shift to the start of the edge.
 %    \begin{macrocode}
         \pgftransformshift{\pgfpoint{\g_@@_xa_dim}{\g_@@_ya_dim}}
