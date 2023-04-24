@@ -382,6 +382,7 @@ align with=<tile> along <edge> using <number>
 \end{verbatim}
 %
 to specify which of the edges on the new tile to use.
+
 Lastly, it is possible to reflect a tile either in use or in definition in which case the edges might be backwards so the key can be modified with the word \Verb+back+ as in:
 %
 \begin{verbatim}
@@ -389,6 +390,15 @@ align with=<tile> back along <edge>
 \end{verbatim}
 %
 and similarly with \Verb+using ...+.
+
+A similar key can be used to place the tile so that an edge starts and ends at specified coordinates:
+%
+\begin{verbatim}
+align between=<coordinate> and <coordinate> using <edge>
+\end{verbatim}
+%
+Here, the \Verb+edge+ has to be specified in full since the start and end coordinates don't contain the information about which edge should stretch between them.
+To obtain the equivalent of \Verb+back along+ then simply swap the coordinates.
 
 \begin{example}
 \begin{tikzpicture}
