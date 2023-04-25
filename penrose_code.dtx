@@ -1263,7 +1263,16 @@ and the derived files            penrose.ins
         \prop_get:NnN \g_@@_tiles_prop {#2} \l_@@_tmpa_tl
         \tl_set:Nx \l_@@_tmpc_tl {\tl_head:N \l_@@_tmpa_tl}
         \@@_keys_get:Nn \l_@@_tmpa_tl {anchor}
-        \tl_if_empty:NF \l_@@_tmpa_tl
+        \tl_if_empty:NTF \l_@@_tmpa_tl
+        {
+%    \end{macrocode}
+% No positioning information given, but we might have been asked to flip the tile
+%    \begin{macrocode}
+          \bool_if:NT \l_@@_cw_bool
+          {
+            \pgftransformxscale {-1}
+          }
+        }
         {
           \regex_extract_once:NVNTF \c_@@_anchor_regex \l_@@_tmpa_tl \l_@@_tmpb_tl
           {
