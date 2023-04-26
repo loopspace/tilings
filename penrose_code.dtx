@@ -632,7 +632,6 @@ and the derived files            penrose.ins
   \@@_add_coordinate:Nnn #1 {#2}{#3}
 }
 %    \end{macrocode}
-% \end{macro}
 %
 % Wrapper around the add coordinate command to split at a colon.
 %    \begin{macrocode}
@@ -2874,6 +2873,101 @@ and the derived files            penrose.ins
 {
   \tl_gset_eq:cc {g_@@_side_#1_tl} {g_@@_side_backup_#1_tl}
 }
+%    \end{macrocode}
+%
+% \subsection{Lindenmayer System}
+%
+% These are the rules for generating the \(H_7\) and \(H_8\) tilings with the Lindenmayer System procedure.
+%
+%    \begin{macrocode}
+\prop_new:N \g_@@_hat_lms_rule_prop
+\prop_gput:Nnn \g_@@_hat_lms_rule_prop {7} {
+  [s7]
+  [sbbbb++f--8]
+  [sf++fffff++8]
+  [sbbb++fffffff+++8]
+  [sbb++bbbbbbb8]
+  [sbbbbbb++bbbbb-8]
+}
+\prop_gput:Nnn \g_@@_hat_lms_rule_prop {8} {
+  [s7]
+  [sbbbb++f--8]
+  [sf++fffff++8]
+  [sbbb++fffffff+++8]
+  [sbb++bbbbbbb8]
+  [sbbbbbb++bbbbb-8]
+  [sbbbbbbbbb++fff--8]
+}
+\prop_new:N \g_@@_hat_lms_action_prop
+\prop_gput:Nnn \g_@@_hat_lms_action_prop {+}
+{\pgftransformrotate{60}}
+\prop_gput:Nnn \g_@@_hat_lms_action_prop {-}
+{\pgftransformrotate{-60}}
+\prop_gput:Nnn \g_@@_hat_lms_action_prop {b}
+{\pgftransformxshift{-\l_@@_step_dim}}
+\prop_gput:Nnn \g_@@_hat_lms_action_prop {s} {
+  \fp_set:Nn \l_@@_tmpa_fp { % sqrt(5 - 3*(1 + sqrt(5))/2)
+    .45
+    * \l_@@_step_dim
+  }
+  \dim_set:Nn \l_@@_step_dim {\fp_to_dim:N \l_@@_tmpa_fp}
+}
+
+\dim_const:Nn \c_@@_cm_dim {1cm}
+\cs_new_protected_nopar:Npn \@@_draw_lms_hat:nnnn #1#2#3#4
+{
+  \group_begin:
+  \int_gincr:N \g_@@_tile_int
+  \fp_set:Nn \l_@@_tmpa_fp {\l_@@_step_dim/(1cm)}
+  \pgftransformscale{\fp_use:N \l_@@_tmpa_fp}
+  \tl_set:Nx \l_@@_tmpc_tl
+  {
+    {\int_use:N  \g_@@_tile_int}
+    {\int_use:N \g_@@_tiles_int}
+  }
+  \pgftransformshift{\pgfpoint{#3 * \c_@@_cm_dim}{#4 * \c_@@_cm_dim}}
+  \pgftransformrotate{#2}
+  \bool_if:NT \l_@@_cw_bool
+  {
+    \pgftransformxscale{-1}
+  }
+  \UseTile[
+    every~ tile/.try,
+    every~ aperiodical~ hat/.try,
+    #1,
+    tile~ \int_use:N \g_@@_tile_int/.try,
+    tile/.try/.expand~ once=\l_@@_tmpc_tl
+  ]{aperiodical~hat}
+  \group_end:
+}
+
+\prop_gput:Nnn \g_@@_hat_lms_action_prop {7}
+{
+  \bool_set_true:N \l_@@_cw_bool
+  \@@_draw_lms_hat:nnnn {every~ reverse~ tile/.try}{-60}{0}{0}
+  \bool_set_false:N \l_@@_cw_bool
+  \@@_draw_lms_hat:nnnn {}{-120}{1.5}{-sqrt(3)/2}
+  \@@_draw_lms_hat:nnnn {}{-120}{-1.5}{-sqrt(3)/2}
+  \@@_draw_lms_hat:nnnn {}{120}{0}{sqrt(3)}
+  \@@_draw_lms_hat:nnnn {}{-180}{-2}{sqrt(3)}
+  \@@_draw_lms_hat:nnnn {}{-60}{-.5}{-3*sqrt(3)/2}
+  \@@_draw_lms_hat:nnnn {}{0}{1.5}{-3*sqrt(3)/2}
+}
+\prop_gput:Nnn \g_@@_hat_lms_action_prop {8}
+{
+  \bool_set_true:N \l_@@_cw_bool
+  \@@_draw_lms_hat:nnnn {every~ reverse~ tile/.try}{-60}{0}{0}
+  \bool_set_false:N \l_@@_cw_bool
+  \@@_draw_lms_hat:nnnn {}{-120}{1.5}{-sqrt(3)/2}
+  \@@_draw_lms_hat:nnnn {}{-120}{-1.5}{-sqrt(3)/2}
+  \@@_draw_lms_hat:nnnn {}{120}{0}{sqrt(3)}
+  \@@_draw_lms_hat:nnnn {}{-180}{-2}{sqrt(3)}
+  \@@_draw_lms_hat:nnnn {}{-60}{-.5}{-3*sqrt(3)/2}
+  \@@_draw_lms_hat:nnnn {}{0}{1.5}{-3*sqrt(3)/2}
+  \@@_draw_lms_hat:nnnn {}{-120}{-3}{0}
+}
+%    \end{macrocode}
+%    \begin{macrocode}
 \ExplSyntaxOff
 %    \end{macrocode}
 %
