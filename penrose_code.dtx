@@ -1643,6 +1643,27 @@ and the derived files            penrose.ins
 %    \end{macrocode}
 % \end{macro}
 %
+%
+% We need some parameters.
+%    \begin{macrocode}
+\dim_new:N \l_@@_step_dim
+\dim_set:Nn \l_@@_step_dim {1cm}
+%    \end{macrocode}
+%
+% These are the defaults, which will be used in all the rule sets.
+%    \begin{macrocode}
+\prop_new:N \g_@@_default_lms_action_prop
+\prop_gput:Nnn \g_@@_default_lms_action_prop {[} {\group_begin:}
+\prop_gput:Nnn \g_@@_default_lms_action_prop {]} {\group_end:}
+\prop_gput:Nnn \g_@@_default_lms_action_prop {f}
+{\pgftransformxshift{\l_@@_step_dim}}
+\prop_gput:Nnn \g_@@_default_lms_action_prop {b}
+{\pgftransformxshift{-\l_@@_step_dim}}
+%    \end{macrocode}
+%
+
+
+%
 % We keep track of the number of tiles.
 %    \begin{macrocode}
 \int_new:N \g_@@_tile_int
@@ -1656,11 +1677,13 @@ and the derived files            penrose.ins
 \cs_new_protected_nopar:Npn \@@_tiling_decomposition:nnnn #1#2#3#4
 {
   \group_begin:
-  \tikzset{#1}
+  \tikzset{
+    every~ #2~ decomposition/.try,
+    #1
+  }
   \@@_make_lms:Nnnx \l_@@_tmpa_tl {#2} {#3} {#4}
   \@@_count_lms:N \l_@@_tmpa_tl
   \int_gzero:N \g_@@_tile_int
-  \int_set:Nn \l_@@_pentagon_parity_int {2}
   \@@_invoke_lms:Nn \l_@@_tmpa_tl {#2}
   \group_end:
 }
@@ -2003,30 +2026,11 @@ and the derived files            penrose.ins
 %
 % These hold the various actions.
 %    \begin{macrocode}
-\prop_new:N \g_@@_default_lms_action_prop
 \prop_new:N \g_@@_rhombus_lms_action_prop
 \prop_new:N \g_@@_kite_lms_action_prop
 \prop_new:N \g_@@_rtriangle_lms_action_prop
 \prop_new:N \g_@@_ktriangle_lms_action_prop
 \prop_new:N \g_@@_pentagon_lms_action_prop
-%    \end{macrocode}
-%
-% We need some parameters.
-%    \begin{macrocode}
-\dim_new:N \l_@@_step_dim
-\dim_set:Nn \l_@@_step_dim {1cm}
-%    \end{macrocode}
-%
-% These are the defaults, which will be used in all the rule sets.
-%    \begin{macrocode}
-\prop_gput:Nnn \g_@@_default_lms_action_prop {[} {\group_begin:}
-\prop_gput:Nnn \g_@@_default_lms_action_prop {]} {\group_end:}
-\prop_gput:Nnn \g_@@_default_lms_action_prop {f}
-{\pgftransformxshift{\l_@@_step_dim}}
-\prop_gput:Nnn \g_@@_default_lms_action_prop {s} {
-  \fp_set:Nn \l_@@_tmpa_fp { 2 * sind(18) * \l_@@_step_dim }
-  \dim_set:Nn \l_@@_step_dim {\fp_to_dim:N \l_@@_tmpa_fp}
-}
 %    \end{macrocode}
 %
 % The rhombus rules need a variety of turns.
@@ -2041,6 +2045,10 @@ and the derived files            penrose.ins
 {\pgftransformrotate{252}}
 \prop_gput:Nnn \g_@@_rhombus_lms_action_prop {>}
 {\pgftransformrotate{180}}
+\prop_gput:Nnn \g_@@_rhombus_lms_action_prop {s} {
+  \fp_set:Nn \l_@@_tmpa_fp { 2 * sind(18) * \l_@@_step_dim }
+  \dim_set:Nn \l_@@_step_dim {\fp_to_dim:N \l_@@_tmpa_fp}
+}
 %    \end{macrocode}
 %
 % Up to now, the actions for the rhombus and its triangle replacement are the same.
@@ -2114,6 +2122,10 @@ and the derived files            penrose.ins
 \prop_gput:Nnn \g_@@_kite_lms_action_prop {_}
 {\pgftransformrotate{-108}}
 \prop_gput:Nnn \g_@@_kite_lms_action_prop {>} {\pgftransformrotate{180}}
+\prop_gput:Nnn \g_@@_kite_lms_action_prop {s} {
+  \fp_set:Nn \l_@@_tmpa_fp { 2 * sind(18) * \l_@@_step_dim }
+  \dim_set:Nn \l_@@_step_dim {\fp_to_dim:N \l_@@_tmpa_fp}
+}
 %    \end{macrocode}
 %
 %    \begin{macrocode}
@@ -2362,7 +2374,12 @@ and the derived files            penrose.ins
 \prop_gput:Nnn \g_@@_pentagon_lms_action_prop {1} {
   \int_set:Nn \l_@@_pentagon_parity_int
   {3 -  \l_@@_pentagon_parity_int}
+}
+\tikzset{
+  every~ pentagon~ decomposition/.code={%
+    \int_set:Nn \l_@@_pentagon_parity_int {2}
   }
+}
 \prop_gput:Nnn \g_@@_pentagon_lms_action_prop {+}
 {\pgftransformrotate{72}}
 \prop_gput:Nnn \g_@@_pentagon_lms_action_prop {*}
@@ -2691,7 +2708,7 @@ and the derived files            penrose.ins
 % \item Super Clusters
 %
 %    \begin{macrocode}
-\DefineTile{super cluster T}{A A b}
+\DefineTile{super cluster T}{A b A}
 {
 { -30 : 3 * (1 + sqrt(5))/2 / sqrt(3) }
 { 90 : 3 * (1 + sqrt(5))/2 / sqrt(3) }
@@ -2700,7 +2717,7 @@ and the derived files            penrose.ins
 % 1 + 3phi, 1 + 2phi
 \DefineTile{super cluster P}{A 1 D d b 1 D d}
 {
-{ 1, 0 }
+{ 0.75 - (1 + sqrt(5))/2, (-sqrt(5)/2 - 1) * sqrt(3)/2 }
 ++{ 3*(1 + sqrt(5))/2, 0 }
 ++{ 120 : 1 + sqrt(5) }
 ++{ 120 : 1 }
@@ -2711,7 +2728,7 @@ and the derived files            penrose.ins
 }
 \DefineTile{super cluster F}{1 D c C d b 1 D d}
 {
-{ 1, 0 }
+{ 0.75 - (1 + sqrt(5))/2, (-sqrt(5)/2 - 1) * sqrt(3)/2 }
 ++{ 1 + sqrt(5), 0 }
 ++{ 1, 0 }
 +{ -.75 + (2 + sqrt(5)) * sqrt(3)/4 * sqrt(3)/3, (2 + sqrt(5)) * sqrt(3)/4 + 3/4 * sqrt(3)/3 }
@@ -2877,44 +2894,78 @@ and the derived files            penrose.ins
 %
 % \subsection{Lindenmayer System}
 %
-% These are the rules for generating the \(H_7\) and \(H_8\) tilings with the Lindenmayer System procedure.
+% These are the rules for generating the super cluster tilings with the Lindenmayer System procedure.
 %
 %    \begin{macrocode}
-\prop_new:N \g_@@_hat_lms_rule_prop
-\prop_gput:Nnn \g_@@_hat_lms_rule_prop {7} {
-  [s7]
-  [sbbbb++f--8]
-  [sf++fffff++8]
-  [sbbb++fffffff+++8]
-  [sbb++bbbbbbb8]
-  [sbbbbbb++bbbbb-8]
+\prop_new:N \g_@@_supercluster_lms_rule_prop
+\prop_gput:Nnn \g_@@_supercluster_lms_rule_prop {T}
+{
+  [s ++H]
 }
-\prop_gput:Nnn \g_@@_hat_lms_rule_prop {8} {
-  [s7]
-  [sbbbb++f--8]
-  [sf++fffff++8]
-  [sbbb++fffffff+++8]
-  [sbb++bbbbbbb8]
-  [sbbbbbb++bbbbb-8]
-  [sbbbbbbbbb++fff--8]
+\prop_gput:Nnn \g_@@_supercluster_lms_rule_prop {H}
+{
+  [s +++T]
+  [s f +p +pf ++H]
+  [s ++ f +p +pf ++H]
+  [s ++++ f +p +pf H]
+  [s ++ppq fh +q +P]
+  [s ++ ++ppq fh +q +P]
+  [s ppq fh +q ++++P]
+  [s ++h +pppff +q F]
+  [s ++ ++h +pppff +q F]
+  [s h +pppff +q F]
 }
-\prop_new:N \g_@@_hat_lms_action_prop
-\prop_gput:Nnn \g_@@_hat_lms_action_prop {+}
-{\pgftransformrotate{60}}
-\prop_gput:Nnn \g_@@_hat_lms_action_prop {-}
-{\pgftransformrotate{-60}}
-\prop_gput:Nnn \g_@@_hat_lms_action_prop {b}
-{\pgftransformxshift{-\l_@@_step_dim}}
-\prop_gput:Nnn \g_@@_hat_lms_action_prop {s} {
-  \fp_set:Nn \l_@@_tmpa_fp { % sqrt(5 - 3*(1 + sqrt(5))/2)
-    .45
-    * \l_@@_step_dim
+\prop_gput:Nnn \g_@@_supercluster_lms_rule_prop {P}
+{
+  [s +P]
+  [s fpq -hq +++H]
+  [s +++ fpq -hq -H]
+  [s fpq -hq ++fpq -hq ++F]
+  [s +++ fpq -hq ++fpq -hq ++F]
+}
+\prop_gput:Nnn \g_@@_supercluster_lms_rule_prop {F}
+{
+  [s +P]
+  [s fpq -hq +++H]
+  [s +++ fpq -hq -H]
+  [s fpq -hq ++fpq -hq ++F]
+  [s fpq -hq fpq -hq ++F]
+  [s +++ fpq -hq ++fpq -hq ++F]
+}
+\fp_const:Nn \c_@@_phi_fp {(1 + sqrt(5))/2}
+\prop_new:N \g_@@_supercluster_lms_action_prop
+\prop_gput:Nnn \g_@@_supercluster_lms_action_prop {p}
+{
+  \pgftransformxshift{\fp_to_dim:n {\c_@@_phi_fp * \l_@@_step_dim}}
+}
+\prop_gput:Nnn \g_@@_supercluster_lms_action_prop {q}
+{
+  \pgftransformxshift{\fp_to_dim:n {.5 * \c_@@_phi_fp * \l_@@_step_dim}}
+}
+\prop_gput:Nnn \g_@@_supercluster_lms_action_prop {h}
+{
+  \pgftransformxshift{\fp_to_dim:n {.5 * \l_@@_step_dim}}
+}
+\prop_gput:Nnn \g_@@_supercluster_lms_action_prop {+}
+{
+  \pgftransformrotate{60}
+}
+\prop_gput:Nnn \g_@@_supercluster_lms_action_prop {-}
+{
+  \pgftransformrotate{-60}
+}
+\prop_gput:Nnn \g_@@_supercluster_lms_action_prop {s}
+{
+  \fp_set:Nn \l_@@_tmpa_fp {
+    \l_@@_step_dim
+    /
+    \c_@@_phi_fp
+    /
+    \c_@@_phi_fp
   }
   \dim_set:Nn \l_@@_step_dim {\fp_to_dim:N \l_@@_tmpa_fp}
 }
-
-\dim_const:Nn \c_@@_cm_dim {1cm}
-\cs_new_protected_nopar:Npn \@@_draw_lms_hat:nnnn #1#2#3#4
+\prop_gput:Nnn \g_@@_supercluster_lms_action_prop {H}
 {
   \group_begin:
   \int_gincr:N \g_@@_tile_int
@@ -2925,46 +2976,70 @@ and the derived files            penrose.ins
     {\int_use:N  \g_@@_tile_int}
     {\int_use:N \g_@@_tiles_int}
   }
-  \pgftransformshift{\pgfpoint{#3 * \c_@@_cm_dim}{#4 * \c_@@_cm_dim}}
-  \pgftransformrotate{#2}
-  \bool_if:NT \l_@@_cw_bool
+  \UseTile[
+    every~ tile/.try,
+    every~ super~ cluster~ H/.try,
+    tile~ \int_use:N \g_@@_tile_int/.try,
+    tile/.try/.expand~ once=\l_@@_tmpc_tl
+  ]{super~ cluster~ H}
+  \group_end:
+}
+\prop_gput:Nnn \g_@@_supercluster_lms_action_prop {T}
+{
+  \group_begin:
+  \int_gincr:N \g_@@_tile_int
+  \fp_set:Nn \l_@@_tmpa_fp {\l_@@_step_dim/(1cm)}
+  \pgftransformscale{\fp_use:N \l_@@_tmpa_fp}
+  \tl_set:Nx \l_@@_tmpc_tl
   {
-    \pgftransformxscale{-1}
+    {\int_use:N  \g_@@_tile_int}
+    {\int_use:N \g_@@_tiles_int}
   }
   \UseTile[
     every~ tile/.try,
-    every~ aperiodical~ hat/.try,
-    #1,
+    every~ super~ cluster~ T/.try,
     tile~ \int_use:N \g_@@_tile_int/.try,
     tile/.try/.expand~ once=\l_@@_tmpc_tl
-  ]{aperiodical~hat}
+  ]{super~ cluster~ T}
   \group_end:
 }
-
-\prop_gput:Nnn \g_@@_hat_lms_action_prop {7}
+\prop_gput:Nnn \g_@@_supercluster_lms_action_prop {P}
 {
-  \bool_set_true:N \l_@@_cw_bool
-  \@@_draw_lms_hat:nnnn {every~ reverse~ tile/.try}{-60}{0}{0}
-  \bool_set_false:N \l_@@_cw_bool
-  \@@_draw_lms_hat:nnnn {}{-120}{1.5}{-sqrt(3)/2}
-  \@@_draw_lms_hat:nnnn {}{-120}{-1.5}{-sqrt(3)/2}
-  \@@_draw_lms_hat:nnnn {}{120}{0}{sqrt(3)}
-  \@@_draw_lms_hat:nnnn {}{-180}{-2}{sqrt(3)}
-  \@@_draw_lms_hat:nnnn {}{-60}{-.5}{-3*sqrt(3)/2}
-  \@@_draw_lms_hat:nnnn {}{0}{1.5}{-3*sqrt(3)/2}
+  \group_begin:
+  \int_gincr:N \g_@@_tile_int
+  \fp_set:Nn \l_@@_tmpa_fp {\l_@@_step_dim/(1cm)}
+  \pgftransformscale{\fp_use:N \l_@@_tmpa_fp}
+  \tl_set:Nx \l_@@_tmpc_tl
+  {
+    {\int_use:N  \g_@@_tile_int}
+    {\int_use:N \g_@@_tiles_int}
+  }
+  \UseTile[
+    every~ tile/.try,
+    every~ super~ cluster~ P/.try,
+    tile~ \int_use:N \g_@@_tile_int/.try,
+    tile/.try/.expand~ once=\l_@@_tmpc_tl
+  ]{super~ cluster~ P}
+  \group_end:
 }
-\prop_gput:Nnn \g_@@_hat_lms_action_prop {8}
+\prop_gput:Nnn \g_@@_supercluster_lms_action_prop {F}
 {
-  \bool_set_true:N \l_@@_cw_bool
-  \@@_draw_lms_hat:nnnn {every~ reverse~ tile/.try}{-60}{0}{0}
-  \bool_set_false:N \l_@@_cw_bool
-  \@@_draw_lms_hat:nnnn {}{-120}{1.5}{-sqrt(3)/2}
-  \@@_draw_lms_hat:nnnn {}{-120}{-1.5}{-sqrt(3)/2}
-  \@@_draw_lms_hat:nnnn {}{120}{0}{sqrt(3)}
-  \@@_draw_lms_hat:nnnn {}{-180}{-2}{sqrt(3)}
-  \@@_draw_lms_hat:nnnn {}{-60}{-.5}{-3*sqrt(3)/2}
-  \@@_draw_lms_hat:nnnn {}{0}{1.5}{-3*sqrt(3)/2}
-  \@@_draw_lms_hat:nnnn {}{-120}{-3}{0}
+  \group_begin:
+  \int_gincr:N \g_@@_tile_int
+  \fp_set:Nn \l_@@_tmpa_fp {\l_@@_step_dim/(1cm)}
+  \pgftransformscale{\fp_use:N \l_@@_tmpa_fp}
+  \tl_set:Nx \l_@@_tmpc_tl
+  {
+    {\int_use:N  \g_@@_tile_int}
+    {\int_use:N \g_@@_tiles_int}
+  }
+  \UseTile[
+    every~ tile/.try,
+    every~ super~ cluster~ F/.try,
+    tile~ \int_use:N \g_@@_tile_int/.try,
+    tile/.try/.expand~ once=\l_@@_tmpc_tl
+  ]{super~ cluster~ F}
+  \group_end:
 }
 %    \end{macrocode}
 %    \begin{macrocode}
@@ -2988,7 +3063,7 @@ and the derived files            penrose.ins
 %
 % \begin{itemize}
 % \item \Verb+\SetPenrosePath+ is \Verb+\SetTilingPath+
-% \item \Verb+\BakePenrosePath+ and \Verb+\MakePenrosePath+ are \Verb+\BakeTilingPath+
+% \item \Verb+\BakePenroseTile+ and \Verb+\MakePenroseTile+ are \Verb+\BakeTile+
 % \item \Verb+\UsePenroseTile+ is \Verb+\UseTile+
 % \item \Verb+\PenroseDecomposition+ is \Verb+\TilingDecomposition+
 % \end{itemize}
