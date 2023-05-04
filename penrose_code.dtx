@@ -270,6 +270,8 @@ and the derived files            penrose.ins
 \tl_new:N \l_@@_tmpc_tl
 \tl_new:N \l_@@_tmpd_tl
 \tl_new:N \l_@@_tmp_tile_path_tl
+\tl_new:N \l_@@_action_lms_tl
+\tl_new:N \l_@@_parameters_lms_tl
 \int_new:N \l_@@_tmpa_int
 \int_new:N \l_@@_tmpb_int
 \fp_new:N \l_@@_xa_fp
@@ -301,6 +303,7 @@ and the derived files            penrose.ins
 \cs_generate_variant:Nn \regex_extract_once:NnNTF {NVNTF}
 \cs_generate_variant:Nn \tl_if_eq:nnT {nVT}
 \cs_generate_variant:Nn \tl_if_in:NnT {NVT}
+\cs_generate_variant:Nn \prop_item:Nn {cV}
 %    \end{macrocode}
 % \end{variable}
 %
@@ -1597,7 +1600,13 @@ and the derived files            penrose.ins
 %    \end{macrocode}
 % Otherwise, just copy the token.
 %    \begin{macrocode}
-        \tl_put_right:Nn \l_@@_tmpb_tl {##1}
+        \tl_if_single:nTF {##1}
+        {
+          \tl_put_right:Nn \l_@@_tmpb_tl {##1}
+        }
+        {
+          \tl_put_right:Nn \l_@@_tmpb_tl {{##1}}
+        }
       }
     }
   }
@@ -1615,10 +1624,10 @@ and the derived files            penrose.ins
 %    \end{macrocode}
 % \end{macro}
 %
-% \begin{macro}[internal]{\@@_invoke_lms:Nn}
+% \begin{macro}[internal]{\@@_invoke_lms:nn}
 % This carries out the actions specified by the resulting rules.
 %    \begin{macrocode}
-\cs_new_nopar:Npn \@@_invoke_lms:Nn #1#2
+\cs_new_nopar:Npn \@@_invoke_lms:nn #1#2
 {
   \group_begin:
 %    \end{macrocode}
@@ -1626,20 +1635,23 @@ and the derived files            penrose.ins
 % If not, look at the default.
 % Otherwise, just do nothing.
 %    \begin{macrocode}
-  \tl_map_inline:Nn #1 {
-    \prop_if_in:cnTF {g_@@_#2_lms_action_prop} {##1}
+  \tl_map_inline:nn {#1} {
+    \tl_set:Nx \l_@@_action_lms_tl {\tl_head:n {##1}}
+    \tl_set:Nx \l_@@_parameters_lms_tl {\tl_tail:n {##1}}
+    \prop_if_in:cVTF {g_@@_#2_lms_action_prop} \l_@@_action_lms_tl
     {
-      \prop_item:cn {g_@@_#2_lms_action_prop} {##1}
+      \prop_item:cV {g_@@_#2_lms_action_prop} \l_@@_action_lms_tl
     }
     {
-      \prop_if_in:cnT {g_@@_default_lms_action_prop} {##1}
+      \prop_if_in:cVT {g_@@_default_lms_action_prop} \l_@@_action_lms_tl
       {
-        \prop_item:cn {g_@@_default_lms_action_prop} {##1}
+        \prop_item:cV {g_@@_default_lms_action_prop} \l_@@_action_lms_tl
       }
     }
   }
   \group_end:
 }
+\cs_generate_variant:Nn \@@_invoke_lms:nn {Vn}
 %    \end{macrocode}
 % \end{macro}
 %
@@ -1661,8 +1673,10 @@ and the derived files            penrose.ins
 {\pgftransformxshift{-\l_@@_step_dim}}
 %    \end{macrocode}
 %
-
-
+% Holds a list of the tiles that actually draw for each tile set
+%    \begin{macrocode}
+\prop_new:N \g_@@_drawables_lms_prop
+%    \end{macrocode}
 %
 % We keep track of the number of tiles.
 %    \begin{macrocode}
@@ -1682,45 +1696,40 @@ and the derived files            penrose.ins
     #1
   }
   \@@_make_lms:Nnnx \l_@@_tmpa_tl {#2} {#3} {#4}
-  \@@_count_lms:N \l_@@_tmpa_tl
+  \@@_count_lms:Vn \l_@@_tmpa_tl {#2}
   \int_gzero:N \g_@@_tile_int
-  \@@_invoke_lms:Nn \l_@@_tmpa_tl {#2}
+  \@@_invoke_lms:Vn \l_@@_tmpa_tl {#2}
   \group_end:
 }
 
 \NewDocumentCommand \TilingDecomposition { O{} m m m }
 {
  \@@_tiling_decomposition:nnnn {#1}{#2}{#3}{#4}
+  \iow_term:n {ending~decomposition}
 }
 %    \end{macrocode}
 % \end{function}
 %
-% \begin{macro}[internal]{\@@_count_lms:N}
+% \begin{macro}[internal]{\@@_count_lms:nn}
 % This counts the number of tiles in the string.
 %    \begin{macrocode}
-\cs_new_nopar:Npn \@@_count_lms:N #1
+\cs_new_nopar:Npn \@@_count_lms:nn #1#2
 {
+  \group_begin:
   \int_gzero:N \g_@@_tiles_int
-  \tl_map_inline:Nn #1
+  \prop_get:NnNT \g_@@_drawables_lms_prop {#2} \l_@@_tmpa_tl
   {
-    \tl_if_eq:nnT {##1} {T}
+    \tl_map_inline:nn {#1}
     {
-      \int_gincr:N \g_@@_tiles_int
-    }
-    \tl_if_eq:nnT {##1} {t}
-    {
-      \int_gincr:N \g_@@_tiles_int
-    }
-    \tl_if_eq:nnT {##1} {G}
-    {
-      \int_gincr:N \g_@@_tiles_int
-    }
-    \tl_if_eq:nnT {##1} {g}
-    {
-      \int_gincr:N \g_@@_tiles_int
+      \tl_if_in:NnT \l_@@_tmpa_tl {##1}
+      {
+        \int_gincr:N \g_@@_tiles_int
+      }
     }
   }
+  \group_end:
 }
+\cs_generate_variant:Nn \@@_count_lms:nn {Vn}
 %    \end{macrocode}
 % \end{macro}
 %
@@ -2023,6 +2032,16 @@ and the derived files            penrose.ins
 \prop_gset_eq:NN \g_@@_ktriangle_lms_rule_prop
 \g_@@_kite_lms_rule_prop
 %    \end{macrocode}
+%
+% These are the lists of tokens that actually draw things
+%    \begin{macrocode}
+\prop_gput:Nnn \g_@@_drawables_lms_prop {rhombus} {TG}
+\prop_gput:Nnn \g_@@_drawables_lms_prop {kite} {Tg}
+\prop_gput:Nnn \g_@@_drawables_lms_prop {rtriangle} {TtGg}
+\prop_gput:Nnn \g_@@_drawables_lms_prop {ktriangle} {TtGg}
+\prop_gput:Nnn \g_@@_drawables_lms_prop {pentagon} {PQRGBD}
+%    \end{macrocode}
+%
 %
 % These hold the various actions.
 %    \begin{macrocode}
@@ -2708,7 +2727,7 @@ and the derived files            penrose.ins
 % \item Super Clusters
 %
 %    \begin{macrocode}
-\DefineTile{super cluster T}{A b A}
+\DefineTile{super cluster T}{A A b}
 {
 { -30 : 3 * (1 + sqrt(5))/2 / sqrt(3) }
 { 90 : 3 * (1 + sqrt(5))/2 / sqrt(3) }
@@ -2738,7 +2757,7 @@ and the derived files            penrose.ins
 ++{ -60 : 1 + sqrt(5) }
 ++{ -60 : 1}
 }
-\DefineTile{super cluster H}{d B D d B D d a D}
+\DefineTile{super cluster H}{d B D d a D d B D}
 {
 {.5, (.5 + (1 + sqrt(5))/2) * sqrt(3)}
 ++{-1,0}
@@ -2900,60 +2919,61 @@ and the derived files            penrose.ins
 \prop_new:N \g_@@_supercluster_lms_rule_prop
 \prop_gput:Nnn \g_@@_supercluster_lms_rule_prop {T}
 {
-  [s ++H]
+  [s H]
 }
 \prop_gput:Nnn \g_@@_supercluster_lms_rule_prop {H}
 {
-  [s +++T]
-  [s f +p +pf ++H]
-  [s ++ f +p +pf ++H]
-  [s ++++ f +p +pf H]
-  [s ++ppq fh +q +P]
-  [s ++ ++ppq fh +q +P]
-  [s ppq fh +q ++++P]
-  [s ++h +pppff +q F]
-  [s ++ ++h +pppff +q F]
-  [s h +pppff +q F]
+  [s {r{-60}} T]
+  [s {x{1}} {y{(1+2*\c_@@_phi_fp)}} H]
+  [s {x{-2-3*\c_@@_phi_fp}} {y{-\c_@@_phi_fp}} H]
+  [s {x{1+3*\c_@@_phi_fp}} {y{-1-\c_@@_phi_fp}} {r{-120}} H]
+  [s {x{-1.5-3.5*\c_@@_phi_fp}} {y{2.5*\c_@@_phi_fp+1.5}} {r{-120}} P]
+  [s {x{-1.5-2*\c_@@_phi_fp}} {y{-1.5-3*\c_@@_phi_fp}} {r{180}} P]
+  [s {x{3+5.5*\c_@@_phi_fp}} {y{.5*\c_@@_phi_fp}} {r{120}} P]
+  [s {x{-4.5-6.5*\c_@@_phi_fp}} {y{.5-.5*\c_@@_phi_fp}} {r{-120}} F]
+  [s {x{1.5+4*\c_@@_phi_fp}} {y{-2.5-3*\c_@@_phi_fp}} F]
+  [s {x{3+2.5*\c_@@_phi_fp}} {y{2+3.5*\c_@@_phi_fp}} {r{120}} F]
 }
 \prop_gput:Nnn \g_@@_supercluster_lms_rule_prop {P}
 {
-  [s +P]
-  [s fpq -hq +++H]
-  [s +++ fpq -hq -H]
-  [s fpq -hq ++fpq -hq ++F]
-  [s +++ fpq -hq ++fpq -hq ++F]
+  [s {r{60}} P]
+  [s {x{2.5+3.5*\c_@@_phi_fp}} {y{-.5-.5*\c_@@_phi_fp}} {r{-120}} H]
+  [s {x{-2.5-3.5*\c_@@_phi_fp}} {y{.5+.5*\c_@@_phi_fp}} {r{180}} H]
+  [s {x{4.5+6*\c_@@_phi_fp}} {y{.5+\c_@@_phi_fp}} {r{120}} F]
+  [s {x{-4.5-6*\c_@@_phi_fp}} {y{-.5-\c_@@_phi_fp}} {r{-60}} F]
 }
 \prop_gput:Nnn \g_@@_supercluster_lms_rule_prop {F}
 {
-  [s +P]
-  [s fpq -hq +++H]
-  [s +++ fpq -hq -H]
-  [s fpq -hq ++fpq -hq ++F]
-  [s fpq -hq fpq -hq ++F]
-  [s +++ fpq -hq ++fpq -hq ++F]
+  [s {r{60}} P]
+  [s {x{2.5+3.5*\c_@@_phi_fp}} {y{-.5-.5*\c_@@_phi_fp}} {r{-120}} H]
+  [s {x{-2.5-3.5*\c_@@_phi_fp}} {y{.5+.5*\c_@@_phi_fp}} {r{180}} H]
+  [s {x{4.5+6*\c_@@_phi_fp}} {y{.5+\c_@@_phi_fp}} {r{120}} F]
+  [s {x{-4.5-6*\c_@@_phi_fp}} {y{-.5-\c_@@_phi_fp}} {r{-60}} F]
+  [s {x{3+4.5*\c_@@_phi_fp}} {y{-2-2.5*\c_@@_phi_fp}} F]
 }
+%    \end{macrocode}
+%
+%    \begin{macrocode}
+\prop_gput:Nnn \g_@@_drawables_lms_prop {supercluster} {HTPF}
+%    \end{macrocode}
+%
+%    \begin{macrocode}
 \fp_const:Nn \c_@@_phi_fp {(1 + sqrt(5))/2}
 \prop_new:N \g_@@_supercluster_lms_action_prop
-\prop_gput:Nnn \g_@@_supercluster_lms_action_prop {p}
+
+\prop_gput:Nnn \g_@@_supercluster_lms_action_prop {r}
 {
-  \pgftransformxshift{\fp_to_dim:n {\c_@@_phi_fp * \l_@@_step_dim}}
+  \pgftransformrotate{\l_@@_parameters_lms_tl}
 }
-\prop_gput:Nnn \g_@@_supercluster_lms_action_prop {q}
+\prop_gput:Nnn \g_@@_supercluster_lms_action_prop {x}
 {
-  \pgftransformxshift{\fp_to_dim:n {.5 * \c_@@_phi_fp * \l_@@_step_dim}}
+  \pgftransformxshift{\fp_to_dim:n {.5 * (\l_@@_parameters_lms_tl) * \l_@@_step_dim}}
 }
-\prop_gput:Nnn \g_@@_supercluster_lms_action_prop {h}
+\prop_gput:Nnn \g_@@_supercluster_lms_action_prop {y}
 {
-  \pgftransformxshift{\fp_to_dim:n {.5 * \l_@@_step_dim}}
+  \pgftransformyshift{\fp_to_dim:n {.5 * sqrt(3) * (\l_@@_parameters_lms_tl) * \l_@@_step_dim}}
 }
-\prop_gput:Nnn \g_@@_supercluster_lms_action_prop {+}
-{
-  \pgftransformrotate{60}
-}
-\prop_gput:Nnn \g_@@_supercluster_lms_action_prop {-}
-{
-  \pgftransformrotate{-60}
-}
+
 \prop_gput:Nnn \g_@@_supercluster_lms_action_prop {s}
 {
   \fp_set:Nn \l_@@_tmpa_fp {
