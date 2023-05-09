@@ -304,6 +304,7 @@ and the derived files            penrose.ins
 \cs_generate_variant:Nn \tl_if_eq:nnT {nVT}
 \cs_generate_variant:Nn \tl_if_in:NnT {NVT}
 \cs_generate_variant:Nn \prop_item:Nn {cV}
+\cs_generate_variant:Nn \tl_if_head_is_group_p:n {V}
 %    \end{macrocode}
 % \end{variable}
 %
@@ -1391,6 +1392,11 @@ and the derived files            penrose.ins
 %    \begin{macrocode}
       \@@_coordinates_at_vertices:n {#2}
 %    \end{macrocode}
+% And one at the origin of the pic
+%    \begin{macrocode}
+      \coordinate[alias=-center] (-centre) at (0,0);
+%    \end{macrocode}
+% 
 % The first action is to clip against the tile path.
 %    \begin{macrocode}      
       \UseTile[
@@ -1591,10 +1597,13 @@ and the derived files            penrose.ins
 %    \end{macrocode}
 % If a rule exists, copy that.
 %    \begin{macrocode}
-      \prop_if_in:cnTF {g_@@_#2_lms_rule_prop} {##1}
+      \tl_set:Nx \l_@@_action_lms_tl {\tl_head:n {##1}}
+      \tl_set:Nx \l_@@_parameters_lms_tl {\tl_tail:n {##1}}
+      \prop_if_in:cVTF {g_@@_#2_lms_rule_prop} \l_@@_action_lms_tl
       {
-        \tl_put_right:Nx \l_@@_tmpb_tl
-        {\prop_item:cn {g_@@_#2_lms_rule_prop} {##1} }
+        \prop_get:cVN {g_@@_#2_lms_rule_prop} \l_@@_action_lms_tl \l_@@_tmpc_tl
+        \tl_put_right:Nx \l_@@_tmpb_tl {\tl_use:N \l_@@_tmpc_tl}
+%        {\prop_item:cn {g_@@_#2_lms_rule_prop} {##1} }
       }
       {
 %    \end{macrocode}
@@ -1705,7 +1714,6 @@ and the derived files            penrose.ins
 \NewDocumentCommand \TilingDecomposition { O{} m m m }
 {
  \@@_tiling_decomposition:nnnn {#1}{#2}{#3}{#4}
-  \iow_term:n {ending~decomposition}
 }
 %    \end{macrocode}
 % \end{function}
@@ -1719,9 +1727,19 @@ and the derived files            penrose.ins
   \int_gzero:N \g_@@_tiles_int
   \prop_get:NnNT \g_@@_drawables_lms_prop {#2} \l_@@_tmpa_tl
   {
-    \tl_map_inline:nn {#1}
+    \tl_map_variable:nNn {#1} \l_@@_tmpb_tl
     {
-      \tl_if_in:NnT \l_@@_tmpa_tl {##1}
+      \tl_set:Nx \l_@@_tmpb_tl {\tl_head:N \l_@@_tmpb_tl}
+      \bool_do_while:nn
+      {
+        !\tl_if_empty_p:N \l_@@_tmpb_tl
+        &&
+        \tl_if_head_is_group_p:V \l_@@_tmpb_tl
+      }
+      {
+        \tl_set:Nx \l_@@_tmpb_tl {\tl_head:N \l_@@_tmpb_tl}
+      }
+      \tl_if_in:NVT \l_@@_tmpa_tl \l_@@_tmpb_tl
       {
         \int_gincr:N \g_@@_tiles_int
       }
@@ -2688,40 +2706,40 @@ and the derived files            penrose.ins
 {  1.5 , -sqrt(3)/2 }
 {  0   ,  sqrt(3) }  
 }
-\DefineTile{meta cluster P}{A 1 D d b 1 D d}
+\DefineTile{meta cluster P}{1 D d A 1 D d b}
 {
-{ -1.5 , -sqrt(3)/2 }
-{  1.5 , -sqrt(3)/2 }
-{  1 , 0 }
-{ .5 , sqrt(3)/2 }
-{ -.5 , sqrt(3)/2 }
-{ -3.5, sqrt(3)/2 }
-{ -3, 0 }
-{ -2.5, -sqrt(3)/2 }
-}
-\DefineTile{meta cluster F}{1 D c C d b 1 D d}
-{
-{ -1.5 , -sqrt(3)/2 }
-{ -.5 , -sqrt(3)/2 }
-{  .5 , -sqrt(3)/2 }
-{  1 , 0 }
-{ .5 , sqrt(3)/2 }
-{ -.5 , sqrt(3)/2 }
-{ -3.5, sqrt(3)/2 }
-{ -3, 0 }
-{ -2.5, -sqrt(3)/2 }
-}
-\DefineTile{meta cluster H}{a D d B D d B D d}
-{
-{ -.5 , 3*sqrt(3)/2 }
+{ -2.5, sqrt(3)/2 }
 { -2, 0 }
-{ -2.5, -sqrt(3)/2 }
+{ -1.5, -sqrt(3)/2 }
+{ -0.5 , -sqrt(3)/2 }
+{  2.5 , -sqrt(3)/2 }
+{  2 , 0 }
+{ 1.5 , sqrt(3)/2 }
+{ .5 , sqrt(3)/2 }
+}
+\DefineTile{meta cluster F}{1 D d 1 D c C d b}
+{
+{ -2.5, sqrt(3)/2 }
+{ -2, 0 }
+{ -1.5, -sqrt(3)/2 }
+{ -0.5 , -sqrt(3)/2 }
+{ .5 , -sqrt(3)/2 }
+{ 1.5 , -sqrt(3)/2 }
+{  2 , 0 }
+{ 1.5 , sqrt(3)/2 }
+{ .5 , sqrt(3)/2 }
+}
+\DefineTile{meta cluster H}{B D d B D d a D d}
+{
 { -2, -sqrt(3) }
 { 1, -sqrt(3) }
 { 2, -sqrt(3) }
 { 2.5, -sqrt(3)/2 }
 { 1, sqrt(3)}
 { .5 , 3*sqrt(3)/2 }
+{ -.5 , 3*sqrt(3)/2 }
+{ -2, 0 }
+{ -2.5, -sqrt(3)/2 }
 }
 %    \end{macrocode}
 % \item Super Clusters
@@ -2734,32 +2752,34 @@ and the derived files            penrose.ins
 { 210 : 3 * (1 + sqrt(5))/2 / sqrt(3) }
 }
 % 1 + 3phi, 1 + 2phi
-\DefineTile{super cluster P}{A 1 D d b 1 D d}
+\DefineTile{super cluster P}{1 D d A 1 D d b}
 {
-{ 0.75 - (1 + sqrt(5))/2, (-sqrt(5)/2 - 1) * sqrt(3)/2 }
+{ - 1.75 - sqrt(5), (sqrt(5)/2 + 1) * sqrt(3)/2 }
+++{ -60 : 1 + sqrt(5) }
+++{ -60 : 1}
+++{ 1, 0}
 ++{ 3*(1 + sqrt(5))/2, 0 }
 ++{ 120 : 1 + sqrt(5) }
 ++{ 120 : 1 }
 ++{ -1, 0 }
-++{ -3*(1 + sqrt(5))/2, 0 }
+}
+\DefineTile{super cluster F}{1 D d 1 D c C d b}
+{
+{ - 1.75 - sqrt(5), (sqrt(5)/2 + 1) * sqrt(3)/2 }
 ++{ -60 : 1 + sqrt(5) }
 ++{ -60 : 1}
-}
-\DefineTile{super cluster F}{1 D c C d b 1 D d}
-{
-{ 0.75 - (1 + sqrt(5))/2, (-sqrt(5)/2 - 1) * sqrt(3)/2 }
+++{ 1, 0}
 ++{ 1 + sqrt(5), 0 }
 ++{ 1, 0 }
 +{ -.75 + (2 + sqrt(5)) * sqrt(3)/4 * sqrt(3)/3, (2 + sqrt(5)) * sqrt(3)/4 + 3/4 * sqrt(3)/3 }
 ++{ -1.5, (2 + sqrt(5)) * sqrt(3)/2 }
 ++{ -1, 0 }
-++{ -3*(1 + sqrt(5))/2, 0 }
-++{ -60 : 1 + sqrt(5) }
-++{ -60 : 1}
 }
-\DefineTile{super cluster H}{d B D d a D d B D}
+\DefineTile{super cluster H}{B D d B D d a D d}
 {
-{.5, (.5 + (1 + sqrt(5))/2) * sqrt(3)}
+{1.75 + 3*sqrt(5)/4, -(1 + sqrt(5))*sqrt(3)/4}
+++{120 : 3*(1+sqrt(5))/2 }
+++{120 : 1 }
 ++{-1,0}
 ++{240 : 3*(1+sqrt(5))/2}
 ++{240 : 1}
@@ -2767,32 +2787,31 @@ and the derived files            penrose.ins
 ++{ 3*(1+sqrt(5))/2, 0 }
 ++{1, 0}
 ++{60 : 1}
-++{120 : 3*(1+sqrt(5))/2 }
 }
 %    \end{macrocode}
 % \item Subclusters
 %
 %    \begin{macrocode}
-\DefineTile{subcluster H}{b b A}
+\DefineTile{subcluster H}{B B a}
 {
   { 0, 0 }
   { 3, 0 }
   { 60 : 3 }
 }
-\DefineTile{subcluster T}{a a B}
+\DefineTile{subcluster T}{A A b}
 {
   { 0, 0 }
   { 3, 0 }
   { 60 : 3 }
 }
-\DefineTile{subcluster P}{ 1 a 1 B }
+\DefineTile{subcluster P}{ 1 A 1 b }
 {
   { 0, 0 }
   { 1, 0 }
   { 4, 0 }
   { 3, 0 }
 }
-\DefineTile{subcluster F}{ 1 1 F f B }
+\DefineTile{subcluster F}{ 1 1 f F b }
 {
   { 0, 0 }
   { 1, 0 }
@@ -2841,53 +2860,53 @@ and the derived files            penrose.ins
   }
 }
 
-\tl_gset:cn {g_@@_side_polykite_a_tl}
-{%
-  \pgfsyssoftpath@movetotoken {0pt}{-0.3333332942822268pt}%
-  \pgfsyssoftpath@linetotoken {0.0833331478405773pt}{-0.1889954840909892pt}%
-  \pgfsyssoftpath@linetotoken {0.3333332942822268pt}{-0.3333332942822268pt}%
-  \pgfsyssoftpath@linetotoken {0.5833333235705567pt}{-0.1889954840909892pt}%
-  \pgfsyssoftpath@linetotoken {0.6666667057177732pt}{-0.3333332942822268pt}%
-  \pgfsyssoftpath@linetotoken {1pt}{-0.3333332942822268pt}%
-}
 \tl_gset:cn {g_@@_side_polykite_A_tl}
-{%
-  \pgfsyssoftpath@movetotoken {0pt}{0.33333pt}%
-  \pgfsyssoftpath@linetotoken {0.33333pt}{0.33333pt}%
-  \pgfsyssoftpath@linetotoken {0.41667pt}{0.189pt}%
-  \pgfsyssoftpath@linetotoken {0.66667pt}{0.33333pt}%
-  \pgfsyssoftpath@linetotoken {0.91667pt}{0.189pt}%
-  \pgfsyssoftpath@linetotoken {1pt}{0.33333pt}%
+{
+  \pgfsyssoftpath@movetotoken {0pt}{-0.3333332942822268pt}
+  \pgfsyssoftpath@linetotoken {0.0833331478405773pt}{-0.1889954840909892pt}
+  \pgfsyssoftpath@linetotoken {0.3333332942822268pt}{-0.3333332942822268pt}
+  \pgfsyssoftpath@linetotoken {0.5833333235705567pt}{-0.1889954840909892pt}
+  \pgfsyssoftpath@linetotoken {0.6666667057177732pt}{-0.3333332942822268pt}
+  \pgfsyssoftpath@linetotoken {1pt}{-0.3333332942822268pt}
 }
-\tl_gset:cn {g_@@_side_polykite_b_tl}
-{%
-  \pgfsyssoftpath@movetotoken {0pt}{0pt}%
-  \pgfsyssoftpath@linetotoken {0.3333332942822268pt}{0pt}%
-  \pgfsyssoftpath@linetotoken {0.4166665592761237pt}{0.1443378101912376pt}%
-  \pgfsyssoftpath@linetotoken {0.6666667057177732pt}{0pt}%
-  \pgfsyssoftpath@linetotoken {0.9166666178527835pt}{0.1443378101912376pt}%
-  \pgfsyssoftpath@linetotoken {1pt}{0pt}%
+\tl_gset:cn {g_@@_side_polykite_a_tl}
+{
+  \pgfsyssoftpath@movetotoken {0pt}{0.33333pt}
+  \pgfsyssoftpath@linetotoken {0.33333pt}{0.33333pt}
+  \pgfsyssoftpath@linetotoken {0.41667pt}{0.189pt}
+  \pgfsyssoftpath@linetotoken {0.66667pt}{0.33333pt}
+  \pgfsyssoftpath@linetotoken {0.91667pt}{0.189pt}
+  \pgfsyssoftpath@linetotoken {1pt}{0.33333pt}
 }
 \tl_gset:cn {g_@@_side_polykite_B_tl}
-{%
-  \pgfsyssoftpath@movetotoken {0pt}{0pt}%
-  \pgfsyssoftpath@linetotoken {0.08333pt}{-0.14433pt}%
-  \pgfsyssoftpath@linetotoken {0.33333pt}{0pt}%
-  \pgfsyssoftpath@linetotoken {0.58333pt}{-0.14433pt}%
-  \pgfsyssoftpath@linetotoken {0.66667pt}{0pt}%
-  \pgfsyssoftpath@linetotoken {1pt}{0pt}%
+{
+  \pgfsyssoftpath@movetotoken {0pt}{0pt}
+  \pgfsyssoftpath@linetotoken {0.3333332942822268pt}{0pt}
+  \pgfsyssoftpath@linetotoken {0.4166665592761237pt}{0.1443378101912376pt}
+  \pgfsyssoftpath@linetotoken {0.6666667057177732pt}{0pt}
+  \pgfsyssoftpath@linetotoken {0.9166666178527835pt}{0.1443378101912376pt}
+  \pgfsyssoftpath@linetotoken {1pt}{0pt}
 }
-\tl_gset:cn {g_@@_side_polykite_f_tl}
-{%
-  \pgfsyssoftpath@movetotoken {0pt}{-2.00000070292pt}%
-  \pgfsyssoftpath@linetotoken {0.74999982427pt}{-1.566987221617321pt}%
-  \pgfsyssoftpath@linetotoken {1pt}{-2.00000070292pt}%
+\tl_gset:cn {g_@@_side_polykite_b_tl}
+{
+  \pgfsyssoftpath@movetotoken {0pt}{0pt}
+  \pgfsyssoftpath@linetotoken {0.08333pt}{-0.14433pt}
+  \pgfsyssoftpath@linetotoken {0.33333pt}{0pt}
+  \pgfsyssoftpath@linetotoken {0.58333pt}{-0.14433pt}
+  \pgfsyssoftpath@linetotoken {0.66667pt}{0pt}
+  \pgfsyssoftpath@linetotoken {1pt}{0pt}
 }
 \tl_gset:cn {g_@@_side_polykite_F_tl}
-{%
-  \pgfsyssoftpath@movetotoken {0pt}{2pt}%
-  \pgfsyssoftpath@linetotoken {0.25pt}{1.56699pt}%
-  \pgfsyssoftpath@linetotoken {1pt}{2pt}%
+{
+  \pgfsyssoftpath@movetotoken {0pt}{-2.00000070292pt}
+  \pgfsyssoftpath@linetotoken {0.74999982427pt}{-1.566987221617321pt}
+  \pgfsyssoftpath@linetotoken {1pt}{-2.00000070292pt}
+}
+\tl_gset:cn {g_@@_side_polykite_f_tl}
+{
+  \pgfsyssoftpath@movetotoken {0pt}{2pt}
+  \pgfsyssoftpath@linetotoken {0.25pt}{1.56699pt}
+  \pgfsyssoftpath@linetotoken {1pt}{2pt}
 }
 
 \clist_map_inline:nn {a,A,b,B,f,F}
@@ -2897,14 +2916,12 @@ and the derived files            penrose.ins
   \tl_gclear_new:c {g_@@_side_#1_tl}
   \tl_gset_eq:cc {g_@@_side_#1_tl}{g_@@_side_polykite_#1_tl}
 }
-\ExplSyntaxOff
 
-\BakeTile{subcluster H}
-\BakeTile{subcluster T}
-\BakeTile{subcluster P}
-\BakeTile{subcluster F}
+\BakeTile{subcluster~ H}
+\BakeTile{subcluster~ T}
+\BakeTile{subcluster~ P}
+\BakeTile{subcluster~ F}
 
-\ExplSyntaxOn
 \clist_map_inline:nn {a,A,b,B,f,F}
 {
   \tl_gset_eq:cc {g_@@_side_#1_tl} {g_@@_side_backup_#1_tl}
@@ -2915,6 +2932,33 @@ and the derived files            penrose.ins
 %
 % These are the rules for generating the super cluster tilings with the Lindenmayer System procedure.
 %
+% \begin{macro}[internal]{\@@_place_cluster_tile:nn}
+% Useful auxiliary for placing a cluster tile from a particular set
+%    \begin{macrocode}
+\cs_new_protected_nopar:Npn \@@_place_cluster_tile:nn #1#2
+{
+  \group_begin:
+  \int_gincr:N \g_@@_tile_int
+  \fp_set:Nn \l_@@_tmpa_fp {\l_@@_step_dim/(1cm)}
+  \pgftransformscale{\fp_use:N \l_@@_tmpa_fp}
+  \tl_set:Nx \l_@@_tmpc_tl
+  {
+    {\int_use:N  \g_@@_tile_int}
+    {\int_use:N \g_@@_tiles_int}
+  }
+  \UseTile[
+    every~ tile/.try,
+    every~ #1~#2/.try,
+    tile~ \int_use:N \g_@@_tile_int/.try,
+    tile/.try/.expand~ once=\l_@@_tmpc_tl
+  ]{#1~ #2}
+  \group_end:
+}
+\cs_generate_variant:Nn \@@_place_cluster_tile:nn {Vn}
+%    \end{macrocode}
+% \end{macro}
+%
+%
 %    \begin{macrocode}
 \prop_new:N \g_@@_supercluster_lms_rule_prop
 \prop_gput:Nnn \g_@@_supercluster_lms_rule_prop {T}
@@ -2924,32 +2968,32 @@ and the derived files            penrose.ins
 \prop_gput:Nnn \g_@@_supercluster_lms_rule_prop {H}
 {
   [s {r{-60}} T]
-  [s {x{1}} {y{(1+2*\c_@@_phi_fp)}} H]
-  [s {x{-2-3*\c_@@_phi_fp}} {y{-\c_@@_phi_fp}} H]
-  [s {x{1+3*\c_@@_phi_fp}} {y{-1-\c_@@_phi_fp}} {r{-120}} H]
-  [s {x{-1.5-3.5*\c_@@_phi_fp}} {y{2.5*\c_@@_phi_fp+1.5}} {r{-120}} P]
-  [s {x{-1.5-2*\c_@@_phi_fp}} {y{-1.5-3*\c_@@_phi_fp}} {r{180}} P]
-  [s {x{3+5.5*\c_@@_phi_fp}} {y{.5*\c_@@_phi_fp}} {r{120}} P]
-  [s {x{-4.5-6.5*\c_@@_phi_fp}} {y{.5-.5*\c_@@_phi_fp}} {r{-120}} F]
-  [s {x{1.5+4*\c_@@_phi_fp}} {y{-2.5-3*\c_@@_phi_fp}} F]
-  [s {x{3+2.5*\c_@@_phi_fp}} {y{2+3.5*\c_@@_phi_fp}} {r{120}} F]
+  [s {x{\fp_to_decimal:n{1}}} {y{\fp_to_decimal:n{(1+2*\c_@@_phi_fp)}}} H]
+  [s {x{\fp_to_decimal:n{-2-3*\c_@@_phi_fp}}} {y{\fp_to_decimal:n{-\c_@@_phi_fp}}} H]
+  [s {x{\fp_to_decimal:n{1+3*\c_@@_phi_fp}}} {y{\fp_to_decimal:n{-1-\c_@@_phi_fp}}} {r{-120}} H]
+  [s {x{\fp_to_decimal:n{-1.5-3.5*\c_@@_phi_fp}}} {y{\fp_to_decimal:n{2.5*\c_@@_phi_fp+1.5}}} {r{-120}} P]
+  [s {x{\fp_to_decimal:n{-1.5-2*\c_@@_phi_fp}}} {y{\fp_to_decimal:n{-1.5-3*\c_@@_phi_fp}}} {r{180}} P]
+  [s {x{\fp_to_decimal:n{3+5.5*\c_@@_phi_fp}}} {y{\fp_to_decimal:n{.5*\c_@@_phi_fp}}} {r{120}} P]
+  [s {x{\fp_to_decimal:n{-4.5-6.5*\c_@@_phi_fp}}} {y{\fp_to_decimal:n{.5-.5*\c_@@_phi_fp}}} {r{-120}} F]
+  [s {x{\fp_to_decimal:n{1.5+4*\c_@@_phi_fp}}} {y{\fp_to_decimal:n{-2.5-3*\c_@@_phi_fp}}} F]
+  [s {x{\fp_to_decimal:n{3+2.5*\c_@@_phi_fp}}} {y{\fp_to_decimal:n{2+3.5*\c_@@_phi_fp}}} {r{120}} F]
 }
 \prop_gput:Nnn \g_@@_supercluster_lms_rule_prop {P}
 {
   [s {r{60}} P]
-  [s {x{2.5+3.5*\c_@@_phi_fp}} {y{-.5-.5*\c_@@_phi_fp}} {r{-120}} H]
-  [s {x{-2.5-3.5*\c_@@_phi_fp}} {y{.5+.5*\c_@@_phi_fp}} {r{180}} H]
-  [s {x{4.5+6*\c_@@_phi_fp}} {y{.5+\c_@@_phi_fp}} {r{120}} F]
-  [s {x{-4.5-6*\c_@@_phi_fp}} {y{-.5-\c_@@_phi_fp}} {r{-60}} F]
+  [s {x{\fp_to_decimal:n{2.5+3.5*\c_@@_phi_fp}}} {y{\fp_to_decimal:n{-.5-.5*\c_@@_phi_fp}}} {r{-120}} H]
+  [s {x{\fp_to_decimal:n{-2.5-3.5*\c_@@_phi_fp}}} {y{\fp_to_decimal:n{.5+.5*\c_@@_phi_fp}}} {r{180}} H]
+  [s {x{\fp_to_decimal:n{4.5+6*\c_@@_phi_fp}}} {y{\fp_to_decimal:n{.5+\c_@@_phi_fp}}} {r{120}} F]
+  [s {x{\fp_to_decimal:n{-4.5-6*\c_@@_phi_fp}}} {y{\fp_to_decimal:n{-.5-\c_@@_phi_fp}}} {r{-60}} F]
 }
 \prop_gput:Nnn \g_@@_supercluster_lms_rule_prop {F}
 {
   [s {r{60}} P]
-  [s {x{2.5+3.5*\c_@@_phi_fp}} {y{-.5-.5*\c_@@_phi_fp}} {r{-120}} H]
-  [s {x{-2.5-3.5*\c_@@_phi_fp}} {y{.5+.5*\c_@@_phi_fp}} {r{180}} H]
-  [s {x{4.5+6*\c_@@_phi_fp}} {y{.5+\c_@@_phi_fp}} {r{120}} F]
-  [s {x{-4.5-6*\c_@@_phi_fp}} {y{-.5-\c_@@_phi_fp}} {r{-60}} F]
-  [s {x{3+4.5*\c_@@_phi_fp}} {y{-2-2.5*\c_@@_phi_fp}} F]
+  [s {x{\fp_to_decimal:n{2.5+3.5*\c_@@_phi_fp}}} {y{\fp_to_decimal:n{-.5-.5*\c_@@_phi_fp}}} {r{-120}} H]
+  [s {x{\fp_to_decimal:n{-2.5-3.5*\c_@@_phi_fp}}} {y{\fp_to_decimal:n{.5+.5*\c_@@_phi_fp}}} {r{180}} H]
+  [s {x{\fp_to_decimal:n{4.5+6*\c_@@_phi_fp}}} {y{\fp_to_decimal:n{.5+\c_@@_phi_fp}}} {r{120}} F]
+  [s {x{\fp_to_decimal:n{-4.5-6*\c_@@_phi_fp}}} {y{\fp_to_decimal:n{-.5-\c_@@_phi_fp}}} {r{-60}} F]
+  [s {x{\fp_to_decimal:n{3+4.5*\c_@@_phi_fp}}} {y{\fp_to_decimal:n{-2-2.5*\c_@@_phi_fp}}} F]
 }
 %    \end{macrocode}
 %
@@ -2987,82 +3031,450 @@ and the derived files            penrose.ins
 }
 \prop_gput:Nnn \g_@@_supercluster_lms_action_prop {H}
 {
-  \group_begin:
-  \int_gincr:N \g_@@_tile_int
-  \fp_set:Nn \l_@@_tmpa_fp {\l_@@_step_dim/(1cm)}
-  \pgftransformscale{\fp_use:N \l_@@_tmpa_fp}
-  \tl_set:Nx \l_@@_tmpc_tl
-  {
-    {\int_use:N  \g_@@_tile_int}
-    {\int_use:N \g_@@_tiles_int}
-  }
-  \UseTile[
-    every~ tile/.try,
-    every~ super~ cluster~ H/.try,
-    tile~ \int_use:N \g_@@_tile_int/.try,
-    tile/.try/.expand~ once=\l_@@_tmpc_tl
-  ]{super~ cluster~ H}
-  \group_end:
+  \@@_place_cluster_tile:nn {super~ cluster}{H}
 }
 \prop_gput:Nnn \g_@@_supercluster_lms_action_prop {T}
 {
-  \group_begin:
-  \int_gincr:N \g_@@_tile_int
-  \fp_set:Nn \l_@@_tmpa_fp {\l_@@_step_dim/(1cm)}
-  \pgftransformscale{\fp_use:N \l_@@_tmpa_fp}
-  \tl_set:Nx \l_@@_tmpc_tl
-  {
-    {\int_use:N  \g_@@_tile_int}
-    {\int_use:N \g_@@_tiles_int}
-  }
-  \UseTile[
-    every~ tile/.try,
-    every~ super~ cluster~ T/.try,
-    tile~ \int_use:N \g_@@_tile_int/.try,
-    tile/.try/.expand~ once=\l_@@_tmpc_tl
-  ]{super~ cluster~ T}
-  \group_end:
+  \@@_place_cluster_tile:nn {super~ cluster}{T}
 }
 \prop_gput:Nnn \g_@@_supercluster_lms_action_prop {P}
 {
-  \group_begin:
-  \int_gincr:N \g_@@_tile_int
-  \fp_set:Nn \l_@@_tmpa_fp {\l_@@_step_dim/(1cm)}
-  \pgftransformscale{\fp_use:N \l_@@_tmpa_fp}
-  \tl_set:Nx \l_@@_tmpc_tl
-  {
-    {\int_use:N  \g_@@_tile_int}
-    {\int_use:N \g_@@_tiles_int}
-  }
-  \UseTile[
-    every~ tile/.try,
-    every~ super~ cluster~ P/.try,
-    tile~ \int_use:N \g_@@_tile_int/.try,
-    tile/.try/.expand~ once=\l_@@_tmpc_tl
-  ]{super~ cluster~ P}
-  \group_end:
+  \@@_place_cluster_tile:nn {super~ cluster}{P}
 }
 \prop_gput:Nnn \g_@@_supercluster_lms_action_prop {F}
+{
+  \@@_place_cluster_tile:nn {super~ cluster}{F}
+}
+%    \end{macrocode}
+%
+%
+% Parameters:
+% \begin{enumerate}
+% \item Cluster type (super cluster, meta cluster, subcluster)
+% \item This tile type (H, T, P, F)
+% \item This tile's name
+% \item Alignment tile's name
+% \item Edge to align along
+% \item Edge to align with
+% \end{enumerate}
+%    \begin{macrocode}
+\cs_new_protected_nopar:Npn \@@_place_cluster_tile_as_pic:nnnnnn #1#2#3#4#5#6
 {
   \group_begin:
   \int_gincr:N \g_@@_tile_int
   \fp_set:Nn \l_@@_tmpa_fp {\l_@@_step_dim/(1cm)}
-  \pgftransformscale{\fp_use:N \l_@@_tmpa_fp}
   \tl_set:Nx \l_@@_tmpc_tl
   {
     {\int_use:N  \g_@@_tile_int}
     {\int_use:N \g_@@_tiles_int}
   }
-  \UseTile[
-    every~ tile/.try,
-    every~ super~ cluster~ F/.try,
+  \tl_clear:N \l_@@_tmpa_tl
+  \tl_put_right:Nn \l_@@_tmpa_tl
+  {
+    \pic[
+      every~ tile/.try,
+      every~ #1~#2/.try,
+    }
+    \tl_put_right:Nx \l_@@_tmpa_tl
+    {
     tile~ \int_use:N \g_@@_tile_int/.try,
-    tile/.try/.expand~ once=\l_@@_tmpc_tl
-  ]{super~ cluster~ F}
+    tile/.try=\l_@@_tmpc_tl,
+    scale=\fp_use:N \l_@@_tmpa_fp,
+    }
+    \tl_put_right:Nn \l_@@_tmpa_tl
+    {
+      name=#3,
+    }
+    \tl_if_empty:nTF {#4}
+    {
+      \tl_put_right:Nn \l_@@_tmpa_tl
+      {
+        first~ tile/.try,
+      }
+    }
+    {
+      \tl_put_right:Nn \l_@@_tmpa_tl
+      {
+        align~ with=#4~along~#5
+      }
+      \tl_if_single:nF {#6}
+      {
+        \tl_put_right:Nx \l_@@_tmpa_tl
+        {
+          \c_space_tl using~\tl_tail:n {#6}
+        }
+      }
+      \tl_put_right:Nn \l_@@_tmpa_tl {,}
+    }
+    \tl_put_right:Nn \l_@@_tmpa_tl
+    {
+      #1~ #2
+    ];
+  }
+  \tl_use:N \l_@@_tmpa_tl
   \group_end:
 }
+\cs_generate_variant:Nn \@@_place_cluster_tile_as_pic:nnnnnn {
+  Vnnnnn, VnVnnn, VnVVnn
+}
+\tikzset{
+  cluster~type/.initial=super~cluster,
+  first~file/.style={transform~shape}
+}
+\prop_new:N \g_@@_cluster_lms_rule_prop
 %    \end{macrocode}
+%
+% The first set of rules govern when the tile being replaced is a root tile, in which case one of the new tiles becomes the new root and all others are placed with respect to them.
+%
+% It's convenient for code readability to have aliases for the labels for the parent and adjoining tiles, which are stored in the \Verb!\l_@@_parameters_lms_tl! token list.
 %    \begin{macrocode}
+\cs_new_nopar:Npn \@@_tile_label:
+{
+  \tl_item:Nn \l_@@_parameters_lms_tl {1}
+}
+\cs_new_nopar:Npn \@@_adjoint_label:
+{
+  \tl_item:Nn \l_@@_parameters_lms_tl {2}
+}
+
+\prop_gput:Nnn \g_@@_cluster_lms_rule_prop {T}
+{
+  [s {H{\@@_tile_label:0}{}}]
+}
+\prop_gput:Nnn \g_@@_cluster_lms_rule_prop {H}
+{
+  [s {r{-60}} {T{\@@_tile_label:0}{}}]
+  [{ {HTa{A1}} {\@@_tile_label:1} {\@@_tile_label:0} }]
+  [{ {HTa{A2}} {\@@_tile_label:2} {\@@_tile_label:0} }]
+  [{ {HT{B1}b} {\@@_tile_label:3} {\@@_tile_label:0} }]
+  [{ {PHb{B2}} {\@@_tile_label:4} {\@@_tile_label:1} }]
+  [{ {PHb{B2}} {\@@_tile_label:5} {\@@_tile_label:2} }]
+  [{ {PHAa} {\@@_tile_label:6} {\@@_tile_label:3} }]
+  [{ {FHb{B1}} {\@@_tile_label:7} {\@@_tile_label:1} }]
+  [{ {FHb{B1}} {\@@_tile_label:8} {\@@_tile_label:2} }]
+  [{ {FHb{B2}} {\@@_tile_label:9} {\@@_tile_label:3} }]
+}
+\prop_gput:Nnn \g_@@_cluster_lms_rule_prop {P}
+{
+  [s {r{60}} {P{\@@_tile_label:0}{}}]
+  [{ {HPaA} {\@@_tile_label:1} {\@@_tile_label:0} }]
+  [{ {HP{B2}b} {\@@_tile_label:2} {\@@_tile_label:0} }]
+  [{ {FHb{B2}} {\@@_tile_label:3} {\@@_tile_label:1} }]
+  [{ {FHb{B1}} {\@@_tile_label:4} {\@@_tile_label:2} }]
+}
+\prop_gput:Nnn \g_@@_cluster_lms_rule_prop {F}
+{
+  [s {r{60}} {P{\@@_tile_label:0}{}}]
+  [{ {HPaA} {\@@_tile_label:1} {\@@_tile_label:0} }]
+  [{ {HP{B2}b} {\@@_tile_label:2} {\@@_tile_label:0} }]
+  [{ {FHb{B2}} {\@@_tile_label:3} {\@@_tile_label:1} }]
+  [{ {FHb{B1}} {\@@_tile_label:4} {\@@_tile_label:2} }]
+  [{ {FHb{B1}} {\@@_tile_label:5} {\@@_tile_label:1} }]
+}
+%    \end{macrocode}
+%
+% The rest of the rules are for when the tile being replaced was itself positioned by aligning it with another tile.
+% For these tiles, one of its edge tiles will be its root and positioned alongside one of the edge tiles of the replacement of the original tile's alignment tile.
+% Then all the other tiles are positioned out from that root.
+% The labelling has to be the same regardless of the order of drawing the tiles.
+%
+%    \begin{macrocode}
+\prop_gput:Nnn \g_@@_cluster_lms_rule_prop {TH{A1}a} {}
+\prop_gput:Nnn \g_@@_cluster_lms_rule_prop {TH{A2}a} {}
+\prop_gput:Nnn \g_@@_cluster_lms_rule_prop {THb{B1}} {}
+\prop_gput:Nnn \g_@@_cluster_lms_rule_prop {THb{B2}} {}
+\prop_gput:Nnn \g_@@_cluster_lms_rule_prop {HTa{A1}} {}
+\prop_gput:Nnn \g_@@_cluster_lms_rule_prop {HTa{A2}} {}
+\prop_gput:Nnn \g_@@_cluster_lms_rule_prop {HT{B1}b} {}
+\prop_gput:Nnn \g_@@_cluster_lms_rule_prop {HT{B2}b} {}
+\prop_gput:Nnn \g_@@_cluster_lms_rule_prop {HPaA} {}
+\prop_gput:Nnn \g_@@_cluster_lms_rule_prop {HP{B1}b} {}
+\prop_gput:Nnn \g_@@_cluster_lms_rule_prop {HP{B2}b} {}
+\prop_gput:Nnn \g_@@_cluster_lms_rule_prop {HF{B1}b} {}
+\prop_gput:Nnn \g_@@_cluster_lms_rule_prop {HF{B2}b} {}
+\prop_gput:Nnn \g_@@_cluster_lms_rule_prop {PHAa} {}
+\prop_gput:Nnn \g_@@_cluster_lms_rule_prop {PHb{B1}} {}
+\prop_gput:Nnn \g_@@_cluster_lms_rule_prop {PHb{B2}} {}
+\prop_gput:Nnn \g_@@_cluster_lms_rule_prop {PF{11}{11}} {}
+\prop_gput:Nnn \g_@@_cluster_lms_rule_prop {PF{12}{11}} {}
+\prop_gput:Nnn \g_@@_cluster_lms_rule_prop {PF{11}{12}} {}
+\prop_gput:Nnn \g_@@_cluster_lms_rule_prop {PF{12}{12}} {}
+\prop_gput:Nnn \g_@@_cluster_lms_rule_prop {FHb{B1}} {}
+\prop_gput:Nnn \g_@@_cluster_lms_rule_prop {FHb{B2}} {}
+\prop_gput:Nnn \g_@@_cluster_lms_rule_prop {FP{11}{11}} {}
+\prop_gput:Nnn \g_@@_cluster_lms_rule_prop {FP{12}{11}} {}
+\prop_gput:Nnn \g_@@_cluster_lms_rule_prop {FP{11}{12}} {}
+\prop_gput:Nnn \g_@@_cluster_lms_rule_prop {FP{12}{12}} {}
+\prop_gput:Nnn \g_@@_cluster_lms_rule_prop {FFfF} {}
+\prop_gput:Nnn \g_@@_cluster_lms_rule_prop {FFFf} {}
+\prop_gput:Nnn \g_@@_cluster_lms_rule_prop {FF{11}{11}} {}
+\prop_gput:Nnn \g_@@_cluster_lms_rule_prop {FF{12}{11}} {}
+\prop_gput:Nnn \g_@@_cluster_lms_rule_prop {FF{11}{12}} {}
+\prop_gput:Nnn \g_@@_cluster_lms_rule_prop {FF{12}{12}} {}
+
+
+\cs_new_nopar:cpn {@@_T{A1}_creator:nnnnn} #1#2#3#4#5
+{
+  \prop_gput:Nnn \g_@@_cluster_lms_rule_prop {T#1{A1}#2}
+  {
+    [{ {H#3{B1}#4} {\@@_tile_label:0} {\@@_adjoint_label:#5} }]
+  }
+}
+\cs_new_nopar:cpn {@@_T{A2}_creator:nnnnn} #1#2#3#4#5
+{
+  \prop_gput:Nnn \g_@@_cluster_lms_rule_prop {T#1{A2}#2}
+  {
+    [{ {H#3{B2}#4} {\@@_tile_label:0} {\@@_adjoint_label:#5} }]
+  }
+}
+\cs_new_nopar:cpn {@@_Tb_creator:nnnnn} #1#2#3#4#5
+{
+  \prop_gput:Nnn \g_@@_cluster_lms_rule_prop {T#1b#2}
+  {
+    [{ {H#3a#4} {\@@_tile_label:0} {\@@_adjoint_label:#5} }]
+  }
+}
+
+\cs_new_nopar:cpn {@@_H{B1}_creator:nnnnn} #1#2#3#4#5
+{
+  \prop_gput:Nnn \g_@@_cluster_lms_rule_prop {H#1{B1}#2}
+  {
+    [{ {P#3A#4} {\@@_tile_label:4} {\@@_adjoint_label:#5} }]
+
+    [{ {HP{B2}b} {\@@_tile_label:1} {\@@_tile_label:4} }]
+    [{ {TH{A1}a} {\@@_tile_label:0} {\@@_tile_label:1} }]
+
+    [{ {HTa{A2}} {\@@_tile_label:2} {\@@_tile_label:0} }]
+    [{ {PHb{B2}} {\@@_tile_label:5} {\@@_tile_label:2} }]
+
+    [{ {HT{B1}b} {\@@_tile_label:3} {\@@_tile_label:0} }]
+    [{ {PHAa} {\@@_tile_label:6} {\@@_tile_label:3} }]
+
+    [{ {FHb{B1}} {\@@_tile_label:7} {\@@_tile_label:1} }]
+    [{ {FHb{B1}} {\@@_tile_label:8} {\@@_tile_label:2} }]
+    [{ {FHb{B2}} {\@@_tile_label:9} {\@@_tile_label:3} }]
+  }
+}
+
+\cs_new_nopar:cpn {@@_H{B2}_creator:nnnnn} #1#2#3#4#5
+{
+  \prop_gput:Nnn \g_@@_cluster_lms_rule_prop {H#1{B2}#2}
+  {
+    [{ {P#3A#4} {\@@_tile_label:5} {\@@_adjoint_label:#5} }]
+
+    [{ {HP{B2}b} {\@@_tile_label:2} {\@@_tile_label:5} }]
+    [{ {TH{A2}a} {\@@_tile_label:0} {\@@_tile_label:2} }]
+
+    [{ {HTa{A1}} {\@@_tile_label:1} {\@@_tile_label:0} }]
+    [{ {PHb{B2}} {\@@_tile_label:4} {\@@_tile_label:1} }]
+
+    [{ {HT{B1}b} {\@@_tile_label:3} {\@@_tile_label:0} }]
+    [{ {PHAa} {\@@_tile_label:6} {\@@_tile_label:3} }]
+
+    [{ {FHb{B1}} {\@@_tile_label:7} {\@@_tile_label:1} }]
+    [{ {FHb{B1}} {\@@_tile_label:8} {\@@_tile_label:2} }]
+    [{ {FHb{B2}} {\@@_tile_label:9} {\@@_tile_label:3} }]
+  }
+}
+
+\cs_new_nopar:cpn {@@_Ha_creator:nnnnn} #1#2#3#4#5
+{
+  \prop_gput:Nnn \g_@@_cluster_lms_rule_prop {H#1a#2}
+  {
+    [{ {P#3b#4} {\@@_tile_label:6} {\@@_adjoint_label:#5} }]
+
+    [{ {HPaA} {\@@_tile_label:3} {\@@_tile_label:6} }]
+    [{ {THb{B1}} {\@@_tile_label:0} {\@@_tile_label:3} }]
+
+    [{ {HTa{A1}} {\@@_tile_label:1} {\@@_tile_label:0} }]
+    [{ {PHb{B2}} {\@@_tile_label:4} {\@@_tile_label:1} }]
+
+    [{ {HTa{A2}} {\@@_tile_label:2} {\@@_tile_label:0} }]
+    [{ {PHb{B2}} {\@@_tile_label:5} {\@@_tile_label:2} }]
+
+    [{ {FHb{B1}} {\@@_tile_label:7} {\@@_tile_label:1} }]
+    [{ {FHb{B1}} {\@@_tile_label:8} {\@@_tile_label:2} }]
+    [{ {FHb{B2}} {\@@_tile_label:9} {\@@_tile_label:3} }]
+  }
+}
+
+\cs_new_nopar:cpn {@@_PA_creator:nnnnn} #1#2#3#4#5
+{
+  \prop_gput:Nnn \g_@@_cluster_lms_rule_prop {P#1A#2}
+  {
+    [{ {H#3{B1}#4} {\@@_tile_label:1} {\@@_adjoint_label:#5} }]
+    [{ {PHAa} {\@@_tile_label:0} {\@@_tile_label:1} }]
+    [{ {HP{B2}b} {\@@_tile_label:2} {\@@_tile_label:0} }]
+
+    [{ {FHb{B2}} {\@@_tile_label:3} {\@@_tile_label:1} }]
+    [{ {FHb{B1}} {\@@_tile_label:4} {\@@_tile_label:2} }]
+  }
+}
+
+\cs_new_nopar:cpn {@@_Pb_creator:nnnnn} #1#2#3#4#5
+{
+  \prop_gput:Nnn \g_@@_cluster_lms_rule_prop {P#1b#2}
+  {
+    [{ {H#3a#4} {\@@_tile_label:2} {\@@_adjoint_label:#5} }]
+    [{ {PHb{B2}} {\@@_tile_label:0}{\@@_tile_label:2} }]
+    [{ {HPaA} {\@@_tile_label:1} {\@@_tile_label:0} }]
+
+    [{ {FHb{B2}} {\@@_tile_label:3} {\@@_tile_label:1} }]
+    [{ {FHb{B1}} {\@@_tile_label:4} {\@@_tile_label:2} }]
+  }
+}
+
+\cs_new_nopar:cpn {@@_Fb_creator:nnnnn} #1#2#3#4#5
+{
+  \prop_gput:Nnn \g_@@_cluster_lms_rule_prop {F#1b#2}
+  {
+    [{ {H#3a#4} {\@@_tile_label:2} {\@@_adjoint_label:#5} }]
+    [{ {PHb{B2}} {\@@_tile_label:0}{\@@_tile_label:2} }]
+    [{ {HPaA} {\@@_tile_label:1} {\@@_tile_label:0} }]
+
+    [{ {FHb{B2}} {\@@_tile_label:3} {\@@_tile_label:1} }]
+    [{ {FHb{B1}} {\@@_tile_label:4} {\@@_tile_label:2} }]
+    [{ {FHb{B1}} {\@@_tile_label:5} {\@@_tile_label:1} }]
+  }
+}
+
+\clist_map_inline:nn
+{
+  TH{{A1}}a HP{{{B1}}}b06,
+  TH{{A2}}a HP{{{B2}}}b06,
+  THb{{B1}} HPaA04,
+  THb{{B2}} HPaA05,
+  PHAa HP{{{B1}}}b16,
+  PHb{{B1}} HPaA24,
+  PHb{{B2}} HPaA25,
+  FHb{{B1}} HPaA24,
+  FHb{{B2}} HPaA25,
+}
+{
+  \tl_clear:N \l_@@_tmpa_tl
+  \tl_put_right:Nn \l_@@_tmpa_tl { \use:c }
+  \tl_put_right:Nx \l_@@_tmpa_tl
+  {
+    {@@_ \tl_item:nn {#1}{2}\tl_item:nn {#1}{4} _creator:nnnnn}
+    {\tl_item:nn {#1}{1}}{\tl_item:nn{#1}{3}}
+    \tl_item:nn {#1}{5}\tl_item:nn{#1}{7}
+    \tl_item:nn {#1}{9}
+  }
+  \tl_use:N \l_@@_tmpa_tl
+  \tl_clear:N \l_@@_tmpa_tl
+  \tl_put_right:Nn \l_@@_tmpa_tl { \use:c }
+  \tl_put_right:Nx \l_@@_tmpa_tl
+  {
+    {@@_ \tl_item:nn {#1}{1}\tl_item:nn {#1}{3} _creator:nnnnn}
+    {\tl_item:nn {#1}{2}}{\tl_item:nn{#1}{4}}
+    \tl_item:nn {#1}{6}\tl_item:nn{#1}{8}
+    \tl_item:nn {#1}{10}
+  }
+  \tl_use:N \l_@@_tmpa_tl
+}
+
+%    \end{macrocode}
+%
+%    \begin{macrocode}
+\prop_new:N \g_@@_cluster_lms_action_prop
+%    \end{macrocode}
+%
+%    \begin{macrocode}
+\prop_gput:Nnn \g_@@_drawables_lms_prop {cluster} {HTPF}
+%    \end{macrocode}
+%
+%    \begin{macrocode}
+\prop_gput:Nnn \g_@@_cluster_lms_action_prop {r}
+{
+  \pgftransformrotate{\l_@@_parameters_lms_tl}
+}
+\prop_gput:Nnn \g_@@_cluster_lms_action_prop {x}
+{
+  \pgftransformxshift{\fp_to_dim:n {.5 * (\l_@@_parameters_lms_tl) * \l_@@_step_dim}}
+}
+\prop_gput:Nnn \g_@@_cluster_lms_action_prop {y}
+{
+  \pgftransformyshift{\fp_to_dim:n {.5 * sqrt(3) * (\l_@@_parameters_lms_tl) * \l_@@_step_dim}}
+}
+
+\prop_gput:Nnn \g_@@_cluster_lms_action_prop {s}
+{
+  \fp_set:Nn \l_@@_tmpa_fp {
+    \l_@@_step_dim
+    /
+    \c_@@_phi_fp
+    /
+    \c_@@_phi_fp
+  }
+  \dim_set:Nn \l_@@_step_dim {\fp_to_dim:N \l_@@_tmpa_fp}
+}
+%    \end{macrocode}
+%
+% The first set of actions are for when this tile is the root so doesn't have a parent
+%    \begin{macrocode}
+\clist_map_inline:nn {H,T,P,F}
+{
+  
+  \prop_gput:Nnn \g_@@_cluster_lms_action_prop {#1}
+  {
+    \@@_tikz_keys_get:Nn \l_@@_tmpa_tl {cluster~type}
+    \tl_set:Nx \l_@@_tmpb_tl {\tl_item:Nn \l_@@_parameters_lms_tl {1}}
+    \@@_place_cluster_tile_as_pic:VnVnnn \l_@@_tmpa_tl {#1} \l_@@_tmpb_tl {}{}{}
+  }
+}
+%    \end{macrocode}
+%
+% The second set is for when there is an adjoining edge
+%    \begin{macrocode}
+\cs_new_protected_nopar:Npn \@@_place_cluster_tile_as_pic_aux:nnnn #1#2#3#4
+{
+  \@@_tikz_keys_get:Nn \l_@@_tmpa_tl {cluster~type}
+  \tl_set:Nx \l_@@_tmpb_tl {\@@_tile_label:}
+  \tl_set:Nx \l_@@_tmpc_tl {\@@_adjoint_label:}
+  \@@_place_cluster_tile_as_pic:VnVVnn \l_@@_tmpa_tl {#1} \l_@@_tmpb_tl \l_@@_tmpc_tl {#4}{#3}
+}
+
+\clist_map_inline:nn {
+  TH{A1}a,
+  TH{A2}a,
+  THb{B1},
+  THb{B2},
+  HTa{A1},
+  HTa{A2},
+  HT{B1}b,
+  HT{B2}b,
+  HPaA,
+  HP{B1}b,
+  HP{B2}b,
+  HF{B1}b,
+  HF{B2}b,
+  PHAa,
+  PHb{B1},
+  PHb{B2},
+  PF{11}{11},
+  PF{12}{11},
+  PF{11}{12},
+  PF{12}{12},
+  FHb{B1},
+  FHb{B2},
+  FP{11}{11},
+  FP{12}{11},
+  FP{11}{12},
+  FP{12}{12},
+  FFfF,
+  FFFf,
+  FF{11}{11},
+  FF{12}{11},
+  FF{11}{12},
+  FF{12}{12}
+}
+{
+  \prop_gput:Nnn \g_@@_cluster_lms_action_prop {#1}
+  {
+    \@@_place_cluster_tile_as_pic_aux:nnnn #1
+  }
+}
+
 \ExplSyntaxOff
 %    \end{macrocode}
 %
