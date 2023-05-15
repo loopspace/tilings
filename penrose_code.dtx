@@ -155,6 +155,7 @@ and the derived files            penrose.ins
 % \changes{1.2}{2019/02/23}{Added general tile creation code}
 % \changes{1.4}{2021/01/22}{Adapted to latest version of spath3}
 % \changes{1.6}{2023/03/22}{Included aperiodical hat}
+% \changes{1.8}{2023/05/11}{LMS systems for aperiodical tiles}
 %
 % \DoNotIndex
 %   {
@@ -208,7 +209,11 @@ and the derived files            penrose.ins
 % We use the \Verb+spath3+ library for manipulating the paths that will make up the tiles.
 %
 %    \begin{macrocode}
-\ProvidesExplFile {tikzlibrarytilings.code.tex} {2023/03/22} {1.6} {TikZ pics for tilings such as Penrose tiles}
+\ProvidesExplFile
+      {tikzlibrarytilings.code.tex}
+      {2023/05/11}
+      {1.8}
+      {TikZ pics for tilings such as Penrose tiles}
 \RequirePackage{tikz}
 \usetikzlibrary{spath3}
 %    \end{macrocode}
@@ -311,11 +316,16 @@ and the derived files            penrose.ins
 % \subsection{Helpful Error Messages}
 %
 %    \begin{macrocode}
-\msg_new:nnn { tilings }{ not baked }{ Tile~ #1~ has~ not~ been~ baked. }
-\msg_new:nnn { tilings }{ no tile }{ Tile~ #1~ has~ not~ been~ defined. }
-\msg_new:nnn { tilings }{ no side }{ Tile~ side~ #1~ has~ not~ been~ defined,~ using~ default. }
-\msg_new:nnn { tilings }{ tile no edge }{ Tile~ #1~ doesn't~ have~ an~ edge~ labelled~ #2;~ available~ edges~ are~ #3.}
-\msg_new:nnn { tilings }{ no edge }{ Either~ tile~ #1~ doesn't~ exist~ or~ it~ doesn't~ have~ an~ edge~ labelled~ #2.}
+\msg_new:nnn { tilings }{ not baked }
+{ Tile~ #1~ has~ not~ been~ baked. }
+\msg_new:nnn { tilings }{ no tile }
+{ Tile~ #1~ has~ not~ been~ defined. }
+\msg_new:nnn { tilings }{ no side }
+{ Tile~ side~ #1~ has~ not~ been~ defined,~ using~ default. }
+\msg_new:nnn { tilings }{ tile no edge }
+{ Tile~ #1~ doesn't~ have~ an~ edge~ labelled~ #2;~ available~ edges~ are~ #3.}
+\msg_new:nnn { tilings }{ no edge }
+{ Either~ tile~ #1~ doesn't~ exist~ or~ it~ doesn't~ have~ an~ edge~ labelled~ #2.}
 %    \end{macrocode}
 %
 % \subsection{Creating the Tiles}
@@ -447,7 +457,8 @@ and the derived files            penrose.ins
   {
     \prg_return_true:
   }{
-    \tl_if_exist:cTF {pgf@sh@ns@not yet positionedPGFINTERNAL\use:c{tikz@pp@name}{#1}}
+    \tl_if_exist:cTF
+    {pgf@sh@ns@not yet positionedPGFINTERNAL\use:c{tikz@pp@name}{#1}}
     {
       \pgf_return_true:
     }
@@ -761,7 +772,8 @@ and the derived files            penrose.ins
       }
     }
     {
-      \msg_error:nnxxx {tilings} {tile no edge} {#2} {#3} {\tl_use:N  \l_@@_tmpc_tl }
+      \msg_error:nnxxx {tilings} {tile no edge} {#2} {#3}
+      {\tl_use:N  \l_@@_tmpc_tl }
       \tl_gclear:N \g_@@_output_tl
     }
   }
@@ -870,7 +882,8 @@ and the derived files            penrose.ins
       }
     }
     {
-      \msg_error:nnxxx {tilings} {tile no edge} {#2} {#3} {\tl_use:N  \l_@@_tmpc_tl }
+      \msg_error:nnxxx {tilings} {tile no edge} {#2} {#3}
+      {\tl_use:N  \l_@@_tmpc_tl }
       \tl_gclear:N \g_@@_output_tl
     }
   }
@@ -1089,14 +1102,18 @@ and the derived files            penrose.ins
       \prop_get:NVNTF \g_@@_tilenames_prop \l_@@_tmpa_tl \l_@@_tmpb_tl
       {
         \prop_get:NVN \g_@@_tiles_prop \l_@@_tmpb_tl \l_@@_tmpc_tl
-        \msg_error:nnxxx { tilings }{ tile no edge } { \tl_use:N \l_@@_tmpa_tl \c_space_tl (type~ \tl_use:N \l_@@_tmpb_tl) } {\@@_keys_get:n {alignment~ edge} } { \tl_item:Nn \l_@@_tmpc_tl {1} }
-        
+        \msg_error:nnxxx { tilings }{ tile no edge }
+        { \tl_use:N \l_@@_tmpa_tl \c_space_tl (type~ \tl_use:N \l_@@_tmpb_tl) }
+        {\@@_keys_get:n {alignment~ edge} }
+        { \tl_item:Nn \l_@@_tmpc_tl {1} }
       }
       {
-        \msg_error:nnx { tilings }{ no tile } {\@@_keys_get:n {alignment~ location}}
+        \msg_error:nnx { tilings }{ no tile }
+        {\@@_keys_get:n {alignment~ location} }
       }
     }
   },
+  tiling/.is~ family,
   tiling/alignment~ set~ location/.code~ args={#1~ back}{
     \tikzset{
       tiling/alignment~ location=#1,
@@ -1710,10 +1727,23 @@ and the derived files            penrose.ins
   \@@_invoke_lms:Vn \l_@@_tmpa_tl {#2}
   \group_end:
 }
+\cs_new_protected_nopar:Npn \@@_tiling_decomposition:nnn #1#2#3
+{
+  \@@_tiling_decomposition:nnnn {}{#1}{#2}{#3}
+}
+\cs_generate_variant:Nn \@@_tiling_decomposition:nnn {VVV}
 
 \NewDocumentCommand \TilingDecomposition { O{} m m m }
 {
  \@@_tiling_decomposition:nnnn {#1}{#2}{#3}{#4}
+}
+
+\tikzset{
+  pics/decomposition/.style~ n~ args={3}{
+    code={
+      \@@_tiling_decomposition:nnn {#1}{#2}{#3}
+    }
+  }
 }
 %    \end{macrocode}
 % \end{function}
@@ -1776,7 +1806,7 @@ and the derived files            penrose.ins
 %    \begin{macrocode}
 \RequirePackage{tikz}
 \usetikzlibrary{tilings}
-\ProvidesFile {tikzlibrarytilings.penrose.code.tex} [2023/03/22 v1.6 TikZ pics for Penrose tiles]
+\ProvidesFile {tikzlibrarytilings.penrose.code.tex} [2023/05/11 v1.8 TikZ pics for Penrose tiles]
 %    \end{macrocode}
 %
 %
@@ -2647,7 +2677,7 @@ and the derived files            penrose.ins
 %    \begin{macrocode}
 \RequirePackage{tikz}
 \usetikzlibrary{tilings}
-\ProvidesFile {tikzlibrarytilings.polykite.code.tex} [2023/03/22 v1.6 TikZ pics for Aperiodical Polykite tiles]
+\ProvidesFile {tikzlibrarytilings.polykite.code.tex} [2023/05/11 v1.8 TikZ pics for Aperiodical Polykite tiles]
 %    \end{macrocode}
 %
 % \begin{function}{\DefinePolykiteTile}
@@ -3118,8 +3148,8 @@ and the derived files            penrose.ins
   Vnnnnn, VnVnnn, VnVVnn
 }
 \tikzset{
-  cluster~type/.initial=super~cluster,
-  first~file/.style={transform~shape}
+  cluster~ type/.initial=super~ cluster,
+  first~ file/.style={transform~ shape}
 }
 \prop_new:N \g_@@_cluster_lms_rule_prop
 %    \end{macrocode}
@@ -3136,11 +3166,18 @@ and the derived files            penrose.ins
 {
   \tl_item:Nn \l_@@_parameters_lms_tl {2}
 }
-
+%    \end{macrocode}
+%
+% A single \(T\) tile is replaced by a single \(H\) tile
+%    \begin{macrocode}
 \prop_gput:Nnn \g_@@_cluster_lms_rule_prop {T}
 {
   [s {H{\@@_tile_label:0}{}}]
 }
+%    \end{macrocode}
+%
+% An \(H\) tile is replaced by \(10\) tiles, consisting of a \(T\) tile and \(3\) each of \(H\), \(P\), and \(F\).
+%    \begin{macrocode}
 \prop_gput:Nnn \g_@@_cluster_lms_rule_prop {H}
 {
   [s {r{-60}} {T{\@@_tile_label:0}{}}]
@@ -3154,6 +3191,10 @@ and the derived files            penrose.ins
   [{ {FHb{B1}} {\@@_tile_label:8} {\@@_tile_label:2} }]
   [{ {FHb{B2}} {\@@_tile_label:9} {\@@_tile_label:3} }]
 }
+%    \end{macrocode}
+%
+% Lastly, the \(P\) and \(F\) tile substitutions.
+%    \begin{macrocode}
 \prop_gput:Nnn \g_@@_cluster_lms_rule_prop {P}
 {
   [s {r{60}} {P{\@@_tile_label:0}{}}]
@@ -3178,6 +3219,8 @@ and the derived files            penrose.ins
 % Then all the other tiles are positioned out from that root.
 % The labelling has to be the same regardless of the order of drawing the tiles.
 %
+% Not every edge pairing is necessary to generate a pattern as the edges that can be created are all between \(A^\pm\) edges and between \(B^\pm\) edges.
+% However, to avoid errors in case they are part of the seed then for now we create blank substitution rules that will effectively remove any such rogue elements.
 %    \begin{macrocode}
 \prop_gput:Nnn \g_@@_cluster_lms_rule_prop {TH{A1}a} {}
 \prop_gput:Nnn \g_@@_cluster_lms_rule_prop {TH{A2}a} {}
@@ -3211,8 +3254,13 @@ and the derived files            penrose.ins
 \prop_gput:Nnn \g_@@_cluster_lms_rule_prop {FF{12}{11}} {}
 \prop_gput:Nnn \g_@@_cluster_lms_rule_prop {FF{11}{12}} {}
 \prop_gput:Nnn \g_@@_cluster_lms_rule_prop {FF{12}{12}} {}
-
-
+%    \end{macrocode}
+%
+% To help create the rules then we start with some helper macros.
+% Each of these creates the substitution rule for a tile given certain information about where the parent tile is positioned.
+% Most of the substitution information consists of placing the tiles next to each other, so only the first tile needs to know about a tile from a different set.
+% This makes it relatively easy to set up some templates for the substitution rules.
+%    \begin{macrocode}
 \cs_new_nopar:cpn {@@_T{A1}_creator:nnnnn} #1#2#3#4#5
 {
   \prop_gput:Nnn \g_@@_cluster_lms_rule_prop {T#1{A1}#2}
@@ -3337,7 +3385,10 @@ and the derived files            penrose.ins
     [{ {FHb{B1}} {\@@_tile_label:5} {\@@_tile_label:1} }]
   }
 }
-
+%    \end{macrocode}
+% 
+% Now that the creators are set up it is time to invoke them.
+%    \begin{macrocode}
 \clist_map_inline:nn
 {
   TH{{A1}}a HP{{{B1}}}b06,
@@ -3487,7 +3538,7 @@ and the derived files            penrose.ins
 % \fi
 %
 %    \begin{macrocode}
-\ProvidesFile {tikzlibrarypenrose.code.tex} [2023/03/22 v1.6 TikZ pics for Penrose tiles]
+\ProvidesFile {tikzlibrarypenrose.code.tex} [2023/05/11 v1.8 TikZ pics for Penrose tiles]
 \usetikzlibrary{tilings.penrose}
 %    \end{macrocode}
 %
