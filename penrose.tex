@@ -8,10 +8,11 @@
 \usepackage[svgnames]{xcolor}
 \usepackage{tikz}
 \usetikzlibrary{
+  external,
   tilings.polykite,
   tilings.penrose
 }
-\ExplSyntaxOff
+
 \usepackage[numbered]{hypdoc}
 \definecolor{lstbgcolor}{rgb}{0.9,0.9,0.9} 
  
@@ -82,6 +83,9 @@
 }
 \makeatother
 
+  \tikzexternalize
+  \tikzsetexternalprefix{penrose-doc-}
+  
 \providecommand*{\url}{\texttt}
 \GetFileInfo{tikzlibrarytilings.code.tex}
 
@@ -133,12 +137,8 @@ Specifically, your preamble should contain:
 The original version of this package concerned itself only with Penrose tiles so was named \Verb+penrose+.
 Since then it has been extended and is more general and so has been renamed \Verb+tilings+.
 Some commands have been renamed, but there is a wrapper library which aims to provide backwards compatibility with the original naming scheme.
-This is now the \Verb+penrose+ TikZ library, meaning that old documents that use the \Verb+penrose+ TikZ library should still work.
-New documents shouldn't be written using:
-
-\begin{verbatim}
-\usetikzlibrary{penrose}
-\end{verbatim}
+This is now the \Verb+penrose+ TikZ library, meaning that old documents that use the \Verb+penrose+ TikZ library should still work (please report any that don't on the \href{https://github.com/loopspace/penrose}{issue tracker}).
+New documents shouldn't be written using it.
 
 
 \section{Defining the Tiles}
@@ -162,8 +162,8 @@ For example,
 }
 \end{verbatim}
 
-The \Verb!<sides>! is a list of sides for matching rules and positioning.
-The first side in the list corresponds to the edge between the first two vertices, through to the last side which corresponds to the edge between the last and first vertices.
+The \Verb!<sides>! is a list of letters representing sides for matching rules and positioning.
+The first letter in the list corresponds to the edge between the first two vertices, through to the last side which corresponds to the edge between the last and first vertices.
 
 Each letter used matches against its opposite case (so it is possible to create a side that matches against itself by using a symbol that \TeX\ regards as having the same upper as lower case; not all symbols work, I've used numbers and \Verb+!+ successfully).
 These are also used in path replacing, both a letter and its opposite case are replaced by the corresponding path (but in opposite directions) when the tile is ``baked''.
@@ -215,7 +215,7 @@ The tile must be baked via the command \Verb!\BakeTile! before it can be used.
 The sublibrary \Verb+tilings.penrose+ defines a slew of tiles based on Penrose tilings.
 
 \tikzset{
-  every tile/.style={draw,ultra thick},
+  every tile pic/.style={draw,ultra thick},
   every circle arc/.style={draw,thin},
   every long arc/.style={draw,thin},
 }
@@ -293,10 +293,10 @@ It also defines a wrapper around the \Verb+\DefineTile+ command for creating one
 \item Meta Cluster F \tikz[baseline=-.5ex] \pic[scale=.5,draw,meta cluster F];
 \item Meta Cluster T \tikz[baseline=-.5ex] \pic[scale=.5,draw,meta cluster T];
 \item Meta Cluster P \tikz[baseline=-.5ex] \pic[scale=.5,draw,meta cluster P];
-\item Super Cluster H \tikz[baseline=-.5ex] \pic[scale=.5,draw,super cluster H];
-\item Super Cluster F \tikz[baseline=-.5ex] \pic[scale=.5,draw,super cluster F];
-\item Super Cluster T \tikz[baseline=-.5ex] \pic[scale=.5,draw,super cluster T];
-\item Super Cluster P \tikz[baseline=-.5ex] \pic[scale=.5,draw,super cluster P];
+\item Super Cluster H \tikz[baseline=-.5ex] \pic[scale=.3,draw,super cluster H];
+\item Super Cluster F \tikz[baseline=-.5ex] \pic[scale=.3,draw,super cluster F];
+\item Super Cluster T \tikz[baseline=-.5ex] \pic[scale=.3,draw,super cluster T];
+\item Super Cluster P \tikz[baseline=-.5ex] \pic[scale=.3,draw,super cluster P];
 \item Subcluster H \tikz[baseline=-.5ex] \pic[scale=.5,draw,subcluster H];
 \item Subcluster F \tikz[baseline=-.5ex] \pic[scale=.5,draw,subcluster F];
 \item Subcluster T \tikz[baseline=-.5ex] \pic[scale=.5,draw,subcluster T];
@@ -314,12 +314,19 @@ They match the diagrams given in the \href{https://arxiv.org/abs/2303.10798}{pap
 
 \tikzset{
   every super cluster scope/.style={
-    scale=.5
+    scale=.3
   },
   every super cluster T scope/.style={every super cluster scope},
   every super cluster P scope/.style={every super cluster scope},
   every super cluster F scope/.style={every super cluster scope},
   every super cluster H scope/.style={every super cluster scope},
+  every meta cluster scope/.style={
+    scale=.7
+  },
+  every meta cluster T scope/.style={every meta cluster scope},
+  every meta cluster P scope/.style={every meta cluster scope},
+  every meta cluster F scope/.style={every meta cluster scope},
+  every meta cluster H scope/.style={every meta cluster scope},
 }
 
 \foreach \tile/\edges in {
@@ -333,10 +340,10 @@ They match the diagrams given in the \href{https://arxiv.org/abs/2303.10798}{pap
   super cluster P/{A, 11, D1, d1, b, 12, D2, d2},
   super cluster F/{11, D1, c, C, d1, b, 12, D2, d2},
   super cluster H/{a, D1, d1, B1, D2, d2, B2, D3, d3},
-  subcluster T/{a1,a2,B},
-  subcluster H/{b1,b2,A},
-  subcluster P/{11, a, 12, B},
-  subcluster F/{11, 12, F, f, B}%
+  subcluster T/{A1,A2,b},
+  subcluster H/{B1,B2,a},
+  subcluster P/{11, A, 12, b},
+  subcluster F/{11, 12, F, f, b}%
 }{
 \begin{tikzpicture}
 \pic[draw,\tile,name=tile];
@@ -350,19 +357,21 @@ They match the diagrams given in the \href{https://arxiv.org/abs/2303.10798}{pap
 \end{multicols}
 
 
-\section{Positioning the Tiles}
+\section{Using the Tiles}
+
+\subsection{Positioning}
 
 The main way to use the tiles is via the \Verb+pic+ syntax that was introduced in TikZ3.0.
 These are mini-drawings that are node-like in style, but a little more geared towards repeatable \emph{drawings} than boxes containing text.
 
 There are two ways in TikZ to specify the \Verb+pic+ type: either as the ``contents'' of the pic or as the argument to the \Verb+pic type+ key.
-Each of the tiles comes with a shorthand key which specifies the \Verb+pic type+ and also invokes the key \Verb+every tile+.
-That is, the key \Verb+dart+ calls the \Verb+every tile+ key and specifies the \Verb+pic type+ as \Verb+dart+.
+Each of the tiles comes with a shorthand key which specifies the \Verb+pic type+ and also invokes the key \Verb+every tile pic+.
+That is, the key \Verb+dart+ calls the \Verb+every tile pic+ key and specifies the \Verb+pic type+ as \Verb+dart+.
 
 The tiles can be placed using standard TikZ methods.
 One important thing to note is that by default, \Verb+pic+s are like \Verb+nodes+ in that they only respond to ambient translations, and not to rotations and scaling.
 To make them notice this, use the key \Verb+transform shape+ or specify the transformation to the \Verb+pic+ directly.
-If the shortcut keys are used to specify the tiles, this can be put in the \Verb+every tile+ style.
+If the shortcut keys are used to specify the tiles, this can be put in the \Verb+every tile pic+ style.
 
 TikZ \Verb+pic+s can be named, using the \Verb+name=<name>+ key or using the \Verb+(name)+ syntax (see the TikZ documentation for more details).
 When a tile has been named then it can be used for positioning other tiles.
@@ -457,6 +466,8 @@ With judicious use of loops, quite complicated pictures can be rendered using si
 \end{tikzpicture}
 \end{example}
 
+\subsection{Styling}
+
 The tiles can be styled, either directly or using various keys.
 When a tile is placed then there are various actions that happen with associated keys.
 The actions and keys are:
@@ -479,7 +490,7 @@ The keys for this action are:
 \item \Verb+this tile clip+
 \end{enumerate}
 
-\item A set of keys are used to allow arbitrary code to be executes before the tile path is rendered.
+\item A set of keys are used to allow arbitrary code to be executed before the tile path is rendered.
 These are:
 
 \begin{enumerate}
@@ -498,7 +509,7 @@ The keys for this action are:
 \item \Verb+pic actions+
 \end{enumerate}
 
-\item A set of keys are used to allow arbitrary code to be executes before the tile path is rendered.
+\item A set of keys are used to allow arbitrary code to be executed after the tile path is rendered.
 These are:
 
 \begin{enumerate}
@@ -520,16 +531,23 @@ In practical terms, this means that if drawn then the line width is half that wh
 
 \subsection{Placing Tiles Automatically}
 
-There is a way to specify a Penrose tiling using \emph{Lindenmayer systems}.
-In brief, this takes a golden triangle or gnomon (or one of the reverse ones) and repeatedly decomposes it into smaller triangles and gnomon.
-Once a desired level has been reached, the resulting triangles and gnomon are glued together in pairs to create either darts and kites or rhombuses (of both types).
-This library contains an implementation of this for each of the Penrose tilings.
-(The intention is to implement this for the super clusters for the aperiodical polykite tilings as well).
+There is a way to specify certain tilings using \emph{Lindenmayer systems}.
+In brief, this takes a seed pattern and successively applies \emph{substitution rules} which are meant to simulate replacing a tile by smaller versions of it (and others from the same set).
+This is implemented for the Penrose tiles and the various clusters related to the aperiodical polykite tile.
 
-The user command is:
+The Penrose rules are \emph{positional} in that when replacing a Penrose tile by smaller versions of it the new tiles can be placed solely based on information about the position and orientation of the original tile.
+This is true also for the \emph{super cluster} tiles of the aperiodical polykite, but not for the meta cluster or subclusters.
+
+The meta and subclusters work on a different system.
+The structure that is built up is that of a \emph{tree} with a root tile.
+That root tile is positioned, and then the other tiles are placed next to previously placed tiles.
+This is a slower process and can mean that the overall shape is different to what might be expected, but from the user's perspective it is the same.
+
+The user command is one of:
 %
 \begin{verbatim}
 \TilingDecomposition{<type>}{<level>}{<seed>}
+\pic{decomposition={<type>}{<level>}{<seed>}};
 \end{verbatim}
 %
 where \Verb+<type>+ is one of:
@@ -540,6 +558,9 @@ where \Verb+<type>+ is one of:
 \item \Verb+pentagon+ for the pentagon tiling.
 \item \Verb+ktriangle+ for the triangular decomposition used to form the kite and dart tiling but with the individual triangles
 \item \Verb+rtriangle+ for the triangular decomposition used to form the rhombus tiling but with the individual triangles.
+\item \Verb+supercluster+ for the super cluster substitution system that works on a positional basis.
+\item \Verb+cluster+ for the cluster substitution system that uses the neighbour information.
+The choice of super, meta, or subcluster is determined by the value of the key \Verb!cluster type!.
 \end{itemize}
 
 The \Verb+<seed>+ is a ``word'' that will be used to initiate the Lindenmayer system.
@@ -547,6 +568,7 @@ The key letters in the alphabet for the kite/darts and rhombuses are \Verb+T+, \
 These actually correspond to the two triangles and two gnomons.
 For the pentagons, the key letters are \Verb+P+, \Verb+Q+, \Verb+R+, \Verb+G+, \Verb+B+, \Verb+D+.
 These correspond to the three pentagons, the pentagram, the boat, and the diamond.
+For the clusters, the key letters are \Verb+H+, \Verb+T+, \Verb+P+, and \Verb+F+.
 Other permitted letters are \Verb+[+, \Verb+]+, \Verb+s+, \Verb+f+, \Verb!+!, \Verb+*+, \Verb+-+, \Verb+_+, \Verb+>+.
 These refer to various transformations (for details, see the implementation).
 
@@ -562,8 +584,18 @@ The code is not particularly optimised for speed, and once \Verb+<level>+ gets t
 \end{tikzpicture}
 \end{example}
 
-The same styling keys as for the \Verb+pic+ tiles apply, together with some additional ones.
-These allow styling the tiles by their number: a count is kept of the number of tiles and each tile knows its own number.
+The two types of substitution rules -- positional and neighbourly -- are rendered slightly differently.
+The positional tiles are drawn directly but the neighbour ones are drawn via the \Verb!\pic! mechanism.
+This is to exploit the existing code for aligning against existing tiles.
+This means that the \Verb!\pic! styling options are available for the latter type of decomposition but not for the former.
+For the former, only the following keys are used:
+
+\begin{verbatim}
+every tile
+every <tile type>
+\end{verbatim}
+
+There are, however, some additional styles which allow styling the tiles by their number: a count is kept of the number of tiles and each tile knows its own number.
 Specifically, two keys are tried:
 %
 \begin{enumerate}
@@ -592,11 +624,12 @@ Lastly, \Verb+step+ is used to control the size of the resulting picture.
 \end{tikzpicture}
 \end{example}
 
+
 \section{Deforming Paths}
 \label{sec:pathdeform}
 
-This package provides the ability to deform the various tiles.
-The various tiles are built from labelled paths together with their reverses.
+This package provides the ability to deform the edges of the tiles.
+The tiles are built from labelled paths together with their reverses.
 By changing these paths, one can get a wide variety of different tiles with the same fundamental matching rules.
 Indeed, by using asymmetric paths, the matching rules can be enforced without the need for additional decoration.
 
@@ -615,8 +648,8 @@ This has global effect, as does the definition of the edge paths.
 Paths, both sides and tiles, can be cloned via:
 %
 \begin{verbatim}
-\tikzset{clone tiling side path={target}{source}
-\tikzset{clone tile path={target}{source}
+\tikzset{clone tiling side path={target}{source}}
+\tikzset{clone tile path={target}{source}}
 \end{verbatim}
 %
 and restored with the same command (but names switched).
@@ -643,12 +676,73 @@ and restored with the same command (but names switched).
 \end{tikzpicture}
 \end{example}
 
-With deformed tiles, there is no guarantee that the inner arcs on the Penrose tiles will match up perfectly.
+With deformed tiles there is no guarantee that the inner arcs on the Penrose tiles will match up perfectly.
 
+Note that the subcluster tiles from the polykite subpackage are actually already deformed tiles.
+
+\begin{example}
+\begin{tikzpicture}[
+  every subcluster F/.style={draw, ultra thick},
+  every subcluster P/.style={draw, thick},
+  every subcluster H/.style={draw, fill, fill opacity=.5}
+]
+\pic[subcluster F, name=F1, this tile/.style={line width=1mm}];
+\pic[subcluster F, align with=F1 along 12 using 1, name=F2, this tile/.style={line width=1mm}];
+\pic[subcluster F, align with=F1 along 11 using 2, name=F3, this tile/.style={line width=1mm}];
+\pic[subcluster F, align with=F1 along F,name=F1-2];
+\pic[subcluster F, align with=F1 along f,name=F1-3];
+\pic[subcluster F, align with=F2 along F,name=F2-2];
+\pic[subcluster F, align with=F2 along f,name=F2-3];
+\pic[subcluster F, align with=F3 along F,name=F3-2];
+\pic[subcluster F, align with=F3 along f,name=F3-3];
+\pic[subcluster H, align with=F1 along b using 2, fill=red];
+\pic[subcluster H, align with=F2 along b using 2, fill=green];
+\pic[subcluster H, align with=F3 along b using 2, fill=blue];
+\pic[subcluster H, align with=F1-2 along b using 1, fill=yellow];
+\pic[subcluster H, align with=F2-2 along b using 1, fill=cyan];
+\pic[subcluster H, align with=F3-2 along b using 1, fill=magenta];
+\end{tikzpicture}
+\end{example}
+
+\begin{example}
+\begin{tikzpicture}[
+  every tile pic/.style={},
+%  every subcluster F/.style={draw, ultra thick},
+%  every subcluster P/.style={draw, thick},
+  every subcluster H/.style={draw, fill, fill opacity=.5}
+]
+\path[save tiling path=a] (0,0) -- (1,0);
+\path[save tiling path=b] (0,0) -- (1,0);
+\path[save tiling path=f] (0,0) -- (1,0);
+\BakeTile{subcluster H}
+\BakeTile{subcluster T}
+\BakeTile{subcluster P}
+\BakeTile{subcluster F}
+
+\pic[subcluster F, name=F1, this tile/.style={line width=1mm}];
+\pic[subcluster F, align with=F1 along 12 using 1, name=F2, this tile/.style={line width=1mm}];
+\pic[subcluster F, align with=F1 along 11 using 2, name=F3, this tile/.style={line width=1mm}];
+\pic[subcluster F, align with=F1 along F,name=F1-2];
+\pic[subcluster F, align with=F1 along f,name=F1-3];
+\pic[subcluster F, align with=F2 along F,name=F2-2];
+\pic[subcluster F, align with=F2 along f,name=F2-3];
+\pic[subcluster F, align with=F3 along F,name=F3-2];
+\pic[subcluster F, align with=F3 along f,name=F3-3];
+\pic[subcluster H, align with=F1 along b using 2, fill=red];
+\pic[subcluster H, align with=F2 along b using 2, fill=green];
+\pic[subcluster H, align with=F3 along b using 2, fill=blue];
+\pic[subcluster H, align with=F1-2 along b using 1, fill=yellow];
+\pic[subcluster H, align with=F2-2 along b using 1, fill=cyan];
+\pic[subcluster H, align with=F3-2 along b using 1, fill=magenta];
+\end{tikzpicture}
+\end{example}
 
 \section{More Examples}
 
 Let's set some aesthetically pleasing shapes.
+Note that I'm using the TikZ \Verb!external! library in creating this document so to deform the paths in the examples I need to add the deformation code to every picture (otherwise the externalisation skips it).
+I've saved it into a key \Verb!deform tiles! to avoid overwhelming the example code.
+In a document without externalisation then adding the following code will achieve the same effect.
 
 \begin{justexample}
 \begin{tikzpicture}
@@ -666,26 +760,28 @@ Let's set some aesthetically pleasing shapes.
 \end{tikzpicture}
 \end{justexample}
 
-\begin{tikzpicture}
-\path[save tiling path=a] (0,0) to[out=-30,in=100] (1,0);
-\path[save tiling path=b] (0,0) to[out=0,in=140] (1,0);
-\path[save tiling path=c] (0,0) to[out=-40,in=140] (1,0);
-\BakeTile{thin rhombus}
-\BakeTile{thick rhombus}
-\BakeTile{golden triangle}
-\BakeTile{reverse golden triangle}
-\BakeTile{golden gnomon}
-\BakeTile{reverse golden gnomon}
-\BakeTile{kite}
-\BakeTile{dart}
-\end{tikzpicture}
-
+\tikzset{
+  deform tiles/.code={%
+    \path[save tiling path=a] (0,0) to[out=-30,in=100] (1,0);
+    \path[save tiling path=b] (0,0) to[out=0,in=140] (1,0);
+    \path[save tiling path=c] (0,0) to[out=-40,in=140] (1,0);
+    \BakeTile{thin rhombus}
+    \BakeTile{thick rhombus}
+    \BakeTile{golden triangle}
+    \BakeTile{reverse golden triangle}
+    \BakeTile{golden gnomon}
+    \BakeTile{reverse golden gnomon}
+    \BakeTile{kite}
+    \BakeTile{dart}
+  }
+}
 
 Styling the first tile.
 Note that as the pattern is formed by repeating two different initial seeds \(5\) times, there are \(10\) ``first tiles'' in each overall pattern.
 
 \begin{example}
 \begin{tikzpicture}[
+  deform tiles/.try,
   every tile/.style={draw},
   tile 1/.style={fill=yellow},
 ]
@@ -701,6 +797,8 @@ Note that as the pattern is formed by repeating two different initial seeds \(5\
 }
 \end{tikzpicture}
 \end{example}
+
+
 
 A more detailed decomposition, with more and more tinting applied to each tile.
 Roughly half of the counted tiles are rendered, and the ordering in which they are rendered is not at first an obvious one (though it is in general from ``outside in'').
@@ -726,6 +824,7 @@ It is defined as:
 
 \begin{example}
 \begin{tikzpicture}[
+  deform tiles/.try,
   every tile/.style={draw},
   every kite/.style={fill=reverseGoldenTriangle},
   every dart/.style={fill=goldenTriangle},
@@ -746,6 +845,7 @@ An example with ``manual placement''.
 
 \begin{example}
 \begin{tikzpicture}[
+  deform tiles/.try,
   every tile/.style={
     draw=black,
     ultra thick,
@@ -788,7 +888,9 @@ The decomposition rules for the Lindenmayer system can be illustrated by drawing
 \begin{example}
 \foreach \ax in {T,t,G,g} {
 
-\begin{tikzpicture}
+\begin{tikzpicture}[
+  deform tiles/.try,
+]
 \foreach \tp/\pos in {rhombus/0cm,rtriangle/2cm,kite/4cm,ktriangle/6cm}
 {
 \begin{scope}[xshift=\pos]
@@ -805,8 +907,9 @@ The tiles can make interesting forms by themselves.
 
 \begin{example}
 \begin{tikzpicture}[
+  deform tiles/.try,
   scale=2,
-  every tile/.style={
+  every tile pic/.style={
     transform shape,
   },
   every golden triangle/.style={
@@ -857,6 +960,7 @@ The tiles can make interesting forms by themselves.
 
 \begin{example}
 \begin{tikzpicture}[
+  deform tiles/.try,
   every rhombus/.style={
     draw=black,
     ultra thick,
@@ -905,6 +1009,7 @@ Lastly, here's an example that generates full page patterns.
 \begin{justexample}
 \foreach \tp/\lvl in {rhombus/5,rhombus/6,kite/5,kite/6}
 {
+\tikzset{external/export next=false}
 \begin{tikzpicture}[
   every tile/.style={draw},
   remember picture,
@@ -923,6 +1028,7 @@ Lastly, here's an example that generates full page patterns.
 \newpage
 }
 \end{justexample}
+\end{document}
 
 \begin{tikzpicture}
 \path[save tiling path=a] (0,0) -- (1,0);
