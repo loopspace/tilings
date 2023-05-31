@@ -276,19 +276,29 @@ For the \Verb+pentagon 5+, for example, the edges are all the same and the numbe
 
 \subsection{Predefined Tiles: Polykite}
 
-The sublibrary \Verb+tilings.polykite+ defines a slew of tiles based on the aperiodical polykite tilings as described in \href{https://arxiv.org/abs/2303.10798}{An Aperiodic Monotile}.
+The sublibrary \Verb+tilings.polykite+ defines a slew of tiles based on the aperiodical polykite tilings as described in \href{https://arxiv.org/abs/2303.10798}{An Aperiodic Monotile} and \href{https://arxiv.org/abs/2305.17743}{A Chiral Aperiodic Monotile}.
 It also defines a wrapper around the \Verb+\DefineTile+ command for creating one of the family of polykite tiles described in that article:
 
 \begin{verbatim}
 \DefinePolykiteTile{<name>}{<a>}{<b>}
+\DefinePolykiteTile*{<name>}{<a>}{<b>}
 \DefinePolykiteTile{aperiodical hat}{sqrt(3)/2}{1/2}
 \end{verbatim}
 
-(Note that the aperiodical hat tile is already defined.)
+The polykite tiles have two types of edge corresponding to the two lengths.
+The starred option swaps the labels on these edges so that, for example, the hat and turtle tiles can be used in the same diagram.
+Predefined polykite tiles are the \texttt{aperiodical hat},  \texttt{aperiodical turtle},  \texttt{spectral hat}, and  \texttt{spectral turtle}.
+The aperiodical versions can be swapped in for each other as they have the same edge labelling but the spectral versions have the opposite.
+(In actual fact, the aperiodical and spectral hats are the same.)
+
+The equilateral polykite tile also exists as a \texttt{spectre} with alternating edge matching, as in the second paper \href{https://arxiv.org/abs/2305.17743}{A Chiral Aperiodic Monotile}.
 
 \begin{itemize}
 \item Aperiodical Hat \tikz[baseline=-.5ex] \pic[draw,aperiodical hat];
 \item Aperiodical Turtle \tikz[baseline=-.5ex] \pic[draw,aperiodical turtle];
+\item Spectral Hat \tikz[baseline=-.5ex] \pic[draw,spectral hat];
+\item Spectral Turtle \tikz[baseline=-.5ex] \pic[draw,spectral turtle];
+\item Spectre \tikz[baseline=-.5ex] \pic[draw,spectre];
 \item Meta Cluster H \tikz[baseline=-.5ex] \pic[scale=.5,draw,meta cluster H];
 \item Meta Cluster F \tikz[baseline=-.5ex] \pic[scale=.5,draw,meta cluster F];
 \item Meta Cluster T \tikz[baseline=-.5ex] \pic[scale=.5,draw,meta cluster T];
@@ -332,6 +342,9 @@ They match the diagrams given in the \href{https://arxiv.org/abs/2303.10798}{pap
 \foreach \tile/\edges in {
   aperiodical hat/{11,21,22,23,24,12,13,25,26,14,15,27,28,16},
   aperiodical turtle/{11,21,22,23,24,12,13,25,26,14,15,27,28,16},
+  spectral hat/{11,21,22,23,24,12,13,25,26,14,15,27,28,16},
+  spectral turtle/{11,21,22,23,24,12,13,25,26,14,15,17,18,16},
+  spectre/{a1,a2,a3,a4,a5,a6,a7,A1,A2,A3,A4,A5,A6,A7},
   meta cluster T/{A1,A2,b},
   meta cluster P/{A, 11, D1, d1, b, 12, D2, d2},
   meta cluster F/{11, D1, c, C, d1, b, 12, D2, d2},
@@ -365,8 +378,8 @@ The main way to use the tiles is via the \Verb+pic+ syntax that was introduced i
 These are mini-drawings that are node-like in style, but a little more geared towards repeatable \emph{drawings} than boxes containing text.
 
 There are two ways in TikZ to specify the \Verb+pic+ type: either as the ``contents'' of the pic or as the argument to the \Verb+pic type+ key.
-Each of the tiles comes with a shorthand key which specifies the \Verb+pic type+ and also invokes the key \Verb+every tile pic+.
-That is, the key \Verb+dart+ calls the \Verb+every tile pic+ key and specifies the \Verb+pic type+ as \Verb+dart+.
+Each of the tiles comes with a shorthand key which specifies the \Verb+pic type+ and also invokes the keys \Verb+every tile pic+ and \Verb+every <tile type> pic+.
+That is, the key \Verb+dart+ calls the \Verb+every tile pic+ and \Verb+every dart pic+ keys and specifies the \Verb+pic type+ as \Verb+dart+.
 
 The tiles can be placed using standard TikZ methods.
 One important thing to note is that by default, \Verb+pic+s are like \Verb+nodes+ in that they only respond to ambient translations, and not to rotations and scaling.
@@ -624,6 +637,40 @@ Lastly, \Verb+step+ is used to control the size of the resulting picture.
 \end{tikzpicture}
 \end{example}
 
+Here's the super, meta, and subcluster combinatorial decompositions.
+These decompositions also define a style \Verb!first tile! which is applied to the initial tile (that isn't placed next to an existing tile).
+
+\begin{example}
+\begin{tikzpicture}[
+  every tile/.style={draw},
+  first tile/.style={
+    transform shape
+  },
+]
+
+\TilingDecomposition[scale=.25,cluster type=super cluster]{cluster}{1}{H}
+\TilingDecomposition[xshift=3cm,scale=.5,cluster type=meta cluster]{cluster}{1}{H}
+\TilingDecomposition[xshift=5cm,cluster type=subcluster]{cluster}{1}{H}
+\end{tikzpicture}
+\end{example}
+
+Here is a subcluster decomposition showing just the \(F_0\) and \(P_0\) tiles.
+
+\begin{example}
+\begin{tikzpicture}[
+  every tile/.style={},
+  every tile pic/.style={},
+  every subcluster F/.style={draw=magenta, ultra thin},
+  every subcluster P/.style={draw=magenta, ultra thin},
+]
+\pic[
+  first tile/.style={transform shape},
+  cluster type=subcluster,
+  scale=3
+] {decomposition={cluster}{3}{H}};
+\end{tikzpicture}
+\end{example}
+
 
 \section{Deforming Paths}
 \label{sec:pathdeform}
@@ -734,6 +781,29 @@ Note that the subcluster tiles from the polykite subpackage are actually already
 \pic[subcluster H, align with=F1-2 along b using 1, fill=yellow];
 \pic[subcluster H, align with=F2-2 along b using 1, fill=cyan];
 \pic[subcluster H, align with=F3-2 along b using 1, fill=magenta];
+\end{tikzpicture}
+\end{example}
+
+The spectre tile, from \href{https://arxiv.org/abs/2305.17743}{A Chiral Aperiodic Monotile}, is a natural for deformation as that can be used to force aperiodicity.
+
+\begin{example}
+\begin{tikzpicture}[
+  every spectre/.style={
+    draw,
+    thick,
+  },
+  every tile pic/.style={scale=.5,rotate=105},
+]
+\pic[spectre];
+\path[save tiling path=a] (0,0) to[out=30,in=150] (1,0);
+\BakeTile{spectre}
+\pic[spectre,at={(3,0)}];
+\path[save tiling path=a] (0,0) to[out=30,in=210] (1,0);
+\BakeTile{spectre}
+\pic[spectre,at={(6,0)}];
+\path[save tiling path=a] (0,0) .. controls +(30:1) and +(210:.75) .. (1,0);
+\BakeTile{spectre}
+\pic[spectre,at={(9,0)}];
 \end{tikzpicture}
 \end{example}
 
@@ -1065,6 +1135,7 @@ Lastly, here's an example that generates full page patterns.
 \end{tikzpicture}
 \newpage
 }
+
 
 
 %% \foreach \lvl in {5,6}

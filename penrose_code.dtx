@@ -1453,6 +1453,7 @@ and the derived files            penrose.ins
 %    \begin{macrocode}
     #2/.style={
       every~ tile~ pic/.try,
+      every~ #2~ pic/.try,
       pic~ type=#2,
     }
   }
@@ -2683,38 +2684,73 @@ and the derived files            penrose.ins
 % \begin{function}{\DefinePolykiteTile}
 % Define one of the family of polykite tiles.
 % Needs a name and length parameters.
+% A star option switches the side labels to enable the hat-turtle pairing of a tile with its ``opposite''.
 %    \begin{macrocode}
-\DeclareDocumentCommand \DefinePolykiteTile {m m m}
+\DeclareDocumentCommand \DefinePolykiteTile {s m m m}
 {
-  \DefineTile {#1} {1 1 2 2 1 1 2 2 2 2 1 1 2 2}
+  \IfBooleanTF {#1}
   {
-    {0 : #3}
-    ++{90 : #2}
-    ++{150 : #2}
-    ++{240 : #3}
-    ++{180 : #3}
-    ++{-90 : #2}
-    ++{210 : #2}
-    ++{-60 : #3}
-    ++{0 : #3}
-    ++{0 : #3}
-    ++{60 : #3}
-    ++{-30 : #2}
-    ++{30 : #2}
-    ++{120 : #3}
+    \DefineTile {#2} {2 2 1 1 2 2 1 1 1 1 2 2 1 1}
+  }
+  {
+    \DefineTile {#2} {1 1 2 2 1 1 2 2 2 2 1 1 2 2}
+  }
+  {
+    {0 : #4}
+    ++{90 : #3}
+    ++{150 : #3}
+    ++{240 : #4}
+    ++{180 : #4}
+    ++{-90 : #3}
+    ++{210 : #3}
+    ++{-60 : #4}
+    ++{0 : #4}
+    ++{0 : #4}
+    ++{60 : #4}
+    ++{-30 : #3}
+    ++{30 : #3}
+    ++{120 : #4}
   }
 }
 %    \end{macrocode}
 % \end{function}
 %
+% Some predefined tiles.
+% The aperiodical hat and turtle can be swapped in for each other as they use the same edge definitions.
+% The spectral hat and turtle are designed to be used in the same diagram.
+% Technically, the spectral and aperiodical hats are the same, but I figured it better to have two names for the two uses.
+% The spectre uses the alternating edge scheme.
+%
 % \begin{itemize}
-% \item Aperiodical Hat.
+% \item Aperiodical and Spectral Hat.
 %    \begin{macrocode}
 \DefinePolykiteTile{aperiodical hat}{sqrt(3)/2}{1/2}
+\DefinePolykiteTile{spectral hat}{sqrt(3)/2}{1/2}
 %    \end{macrocode}
-% \item Aperiodical Turtle.
+% \item Aperiodical and Spectral Turtles.
 %    \begin{macrocode}
 \DefinePolykiteTile{aperiodical turtle}{1/2}{sqrt(3)/2}
+\DefinePolykiteTile*{spectral turtle}{1/2}{sqrt(3)/2}
+%    \end{macrocode}
+% \item Aperiodical Spectre.
+%    \begin{macrocode}
+\DefineTile {spectre} {a A a A a A a A a A a A a A}
+  {
+    {0 : 1}
+    ++{90 : 1}
+    ++{150 : 1}
+    ++{240 : 1}
+    ++{180 : 1}
+    ++{-90 : 1}
+    ++{210 : 1}
+    ++{-60 : 1}
+    ++{0 : 1}
+    ++{0 : 1}
+    ++{60 : 1}
+    ++{-30 : 1}
+    ++{30 : 1}
+    ++{120 : 1}
+  }
 %    \end{macrocode}
 %
 % \item Meta Clusters
@@ -2867,6 +2903,9 @@ and the derived files            penrose.ins
 %    \begin{macrocode}
 \BakeTile {aperiodical hat}
 \BakeTile {aperiodical turtle}
+\BakeTile {spectral hat}
+\BakeTile {spectral turtle}
+\BakeTile {spectre}
 \BakeTile {meta cluster T}
 \BakeTile {meta cluster P}
 \BakeTile {meta cluster F}
