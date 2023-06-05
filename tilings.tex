@@ -1,4 +1,4 @@
-%\immediate\write18{tex penrose_code.dtx}
+%\immediate\write18{tex tilings_code.dtx}
 \documentclass{ltxdoc}
 \usepackage[T1]{fontenc}
 \usepackage{trace}
@@ -84,7 +84,7 @@
 \makeatother
 
   \tikzexternalize
-  \tikzsetexternalprefix{penrose-doc-}
+  \tikzsetexternalprefix{tiling-doc-}
   
 \providecommand*{\url}{\texttt}
 \GetFileInfo{tikzlibrarytilings.code.tex}
@@ -101,7 +101,7 @@
   
 \section{Introduction}
 
-The \textsf{Tilings} package is a TikZ library for drawing tiles and tilings, such as Penrose tilings.
+The \textsf{Tilings} package is a TikZ library for drawing tiles and tilings, such as Penrose tilings (indeed, it was originally called the \textbf{Penrose} package).
 It currently supports natively the various Penrose tile sets -- kite/dart, rhombus, and pentagon -- and the aperiodical polykites, but has provision for defining new tiles.
 There are two main methods for their placement: one that automatically generates a tiling, and one that allows for ``by hand'' placement.
 Furthermore, the tiles themselves can be deformed and will still (hopefully!) fit together in the correct fashion.
@@ -221,20 +221,19 @@ The sublibrary \Verb+tilings.penrose+ defines a slew of tiles based on Penrose t
 }
 
 \begin{itemize}
-\item Kite \tikz[baseline=-.5ex] \pic[draw,kite];
-\item Dart \tikz[baseline=-.5ex] \pic[draw,dart];
-\item Thin Rhombus \tikz[baseline=-.5ex] \pic[draw,thin rhombus];
-\item Thick Rhombus \tikz[baseline=-.5ex] \pic[draw,thick rhombus];
-\item Pentagon \tikz[baseline=-.5ex] \pic[draw, pentagon 5];
-(Actually, there are three pentagons: \Verb+pentagon 5+, \Verb+pentagon 3+, and \Verb+pentagon 2+.
-The number signifies how many pentagons it goes next to.)
-\item Pentagram \tikz[baseline=-.5ex] \pic[draw, pentagram];
-\item Boat \tikz[baseline=-.5ex] \pic[draw, boat];
-\item Diamond \tikz[baseline=-.5ex] \pic[draw, diamond];
-\item Golden Triangle \tikz[baseline=-.5ex] \pic[draw,golden triangle];
-\item Reverse Golden Triangle \tikz[baseline=-.5ex] \pic[draw,reverse golden triangle];
-\item Golden Gnomon \tikz[baseline=-.5ex] \pic[draw,golden gnomon];
-\item Reverse Golden Gnomon \tikz[baseline=-.5ex] \pic[draw,reverse golden gnomon];
+\item kite \tikz[baseline=-.5ex] \pic[draw,kite];
+\item dart \tikz[baseline=-.5ex] \pic[draw,dart];
+\item thin rhombus \tikz[baseline=-.5ex] \pic[draw,thin rhombus];
+\item thick rhombus \tikz[baseline=-.5ex] \pic[draw,thick rhombus];
+\item pentagon \(2\), \(3\), and \(5\) \tikz[baseline=-.5ex] \pic[draw, pentagon 5];
+The number signifies how many pentagons it goes next to.
+\item pentagram \tikz[baseline=-.5ex] \pic[draw, pentagram];
+\item boat \tikz[baseline=-.5ex] \pic[draw, boat];
+\item diamond \tikz[baseline=-.5ex] \pic[draw, diamond];
+\item golden triangle \tikz[baseline=-.5ex] \pic[draw,golden triangle];
+\item reverse golden triangle \tikz[baseline=-.5ex] \pic[draw,reverse golden triangle];
+\item golden gnomon \tikz[baseline=-.5ex] \pic[draw,golden gnomon];
+\item reverse golden gnomon \tikz[baseline=-.5ex] \pic[draw,reverse golden gnomon];
 \end{itemize}
 
 The main tiles can have arcs drawn on them to illustrate the matching rules.
@@ -591,7 +590,7 @@ The code is not particularly optimised for speed, and once \Verb+<level>+ gets t
 \begin{example}
 \begin{tikzpicture}[
   every tile/.style={draw},
-  step=2cm,
+  tiling step=2cm,
 ]
 \TilingDecomposition{kite}{0}{T}
 \end{tikzpicture}
@@ -622,12 +621,12 @@ It is done by a quick count at the start of the process and counts those letters
 Not every letter in the resulting word actually does.
 Nevertheless, this can be used to style a tile based on what proportion of tiles have been rendered.
 
-Lastly, \Verb+step+ is used to control the size of the resulting picture.
+Lastly, \Verb+tiling step+ is used to control the size of the resulting picture.
 
 \begin{example}
 \begin{tikzpicture}[
   every tile/.style={draw},
-  step=4cm,
+  tiling step=4cm,
   tile/.code 2 args={
     \pgfmathsetmacro\tint{100*#1/#2}
     \pgfkeysalso{fill=black!\tint}
@@ -905,7 +904,7 @@ It is defined as:
 ]
 \foreach[evaluate=\k as \mk using {\k+Mod(\k,2)},evaluate=\k as \ax using {Mod(\k,2) == 0 ? "T" : "t"}] \k in {0,...,9} {
   \begin{scope}[rotate=\mk*36]
-  \TilingDecomposition[step=5cm]{kite}{4}{\ax}
+  \TilingDecomposition[tiling step=5cm]{kite}{4}{\ax}
   \end{scope}
 }
 \end{tikzpicture}

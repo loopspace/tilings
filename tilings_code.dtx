@@ -91,6 +91,7 @@ and the derived files            penrose.ins
 %</internal>
 %<*driver>
 \documentclass{l3doc}
+\usepackage[scale=.8]{geometry}
 \usepackage[T1]{fontenc}
 \usepackage{lmodern}
 \usepackage{tikz}
@@ -156,6 +157,7 @@ and the derived files            penrose.ins
 % \changes{1.4}{2021/01/22}{Adapted to latest version of spath3}
 % \changes{1.6}{2023/03/22}{Included aperiodical hat}
 % \changes{1.8}{2023/05/11}{LMS systems for aperiodical tiles}
+% \changes{2.0}{2023/06/01}{Major version change for CTAN}
 %
 % \DoNotIndex
 %   {
@@ -168,8 +170,8 @@ and the derived files            penrose.ins
 %
 %
 % \providecommand*{\url}{\texttt}
-% \GetFileInfo{tikzlibrarypenrose.code.tex}
-% \title{The \textsf{Penrose} package}
+% \GetFileInfo{tikzlibrarytilings.code.tex}
+% \title{The \textsf{Tilings} package: code}
 % \author{Andrew Stacey\texorpdfstring{\\ \url{loopspace@mathforge.org}}{}}
 % \date{\fileversion~from \filedate}
 %
@@ -182,10 +184,10 @@ and the derived files            penrose.ins
 % 
 % \section{Introduction}
 %
-% This is a TikZ library for drawing Penrose tiles (kite/dart, rhombus, and pentagon versions).
+% This is a TikZ library for drawing tiles, such as Penrose tiles (kite/dart, rhombus, and pentagon versions) and the aperiodical polykite tiles.
 % It provides two methods of drawing: one in which an automatic pattern is built, and one where the tiles can be placed ``by hand''.
 % The tiles can be shaped and (hopefully!) still fit together.
-% For full user documentation, see the \Verb+penrose.pdf+ file.
+% For full user documentation, see the \Verb+tilings.pdf+ file.
 %
 %
 % \end{documentation}
@@ -211,8 +213,8 @@ and the derived files            penrose.ins
 %    \begin{macrocode}
 \ProvidesExplFile
       {tikzlibrarytilings.code.tex}
-      {2023/05/11}
-      {1.8}
+      {2023/06/01}
+      {2.0}
       {TikZ pics for tilings such as Penrose tiles}
 \RequirePackage{tikz}
 \usetikzlibrary{spath3}
@@ -323,9 +325,11 @@ and the derived files            penrose.ins
 \msg_new:nnn { tilings }{ no side }
 { Tile~ side~ #1~ has~ not~ been~ defined,~ using~ default. }
 \msg_new:nnn { tilings }{ tile no edge }
-{ Tile~ #1~ doesn't~ have~ an~ edge~ labelled~ #2;~ available~ edges~ are~ #3.}
+{ Tile~ #1~ doesn't~ have~ an~ edge~ labelled~ #2;
+  ~ available~ edges~ are~ #3.}
 \msg_new:nnn { tilings }{ no edge }
-{ Either~ tile~ #1~ doesn't~ exist~ or~ it~ doesn't~ have~ an~ edge~ labelled~ #2.}
+{ Either~ tile~ #1~ doesn't~ exist
+  ~ or~ it~ doesn't~ have~ an~ edge~ labelled~ #2.}
 %    \end{macrocode}
 %
 % \subsection{Creating the Tiles}
@@ -515,8 +519,14 @@ and the derived files            penrose.ins
   \tl_set:Nn \l_@@_tmpa_tl {\pgfsyssoftpath@movetotoken}
   \tl_put_right:Nx \l_@@_tmpa_tl
   {
-    {\fp_to_dim:n {(\tl_item:Nn \l_@@_tmpb_tl {1}) * \c_@@_cm_fp}}
-    {\fp_to_dim:n {(\tl_item:Nn \l_@@_tmpb_tl {2}) * \c_@@_cm_fp}}
+    {
+      \fp_to_dim:n
+      {(\tl_item:Nn \l_@@_tmpb_tl {1}) * \c_@@_cm_fp}
+    }
+    {
+      \fp_to_dim:n
+      {(\tl_item:Nn \l_@@_tmpb_tl {2}) * \c_@@_cm_fp}
+    }
   }
   \tl_set_eq:NN \l_@@_tmp_tile_path_tl \l_@@_tmpa_tl
 %    \end{macrocode}
@@ -537,9 +547,12 @@ and the derived files            penrose.ins
     \tl_if_exist:cF {g_@@_side_ \tl_use:N \l_@@_tmpc_tl _tl}
     {
       \msg_error:nnx { tilings }{ no side } { \tl_use:N \l_@@_tmpc_tl }
-      \tl_gset_eq:cc {g_@@_side_ \tl_use:N \l_@@_tmpc_tl _tl} {g_@@_side_a_tl}
+      \tl_gset_eq:cc
+      {g_@@_side_ \tl_use:N \l_@@_tmpc_tl _tl}
+      {g_@@_side_a_tl}
     }
-    \tl_set_eq:Nc \l_@@_tmpd_tl {g_@@_side_ \tl_use:N \l_@@_tmpc_tl _tl}
+    \tl_set_eq:Nc \l_@@_tmpd_tl
+    {g_@@_side_ \tl_use:N \l_@@_tmpc_tl _tl}
 %    \end{macrocode}
 % Strip off the next coordinate, and convert it to a point.
 %    \begin{macrocode}
@@ -548,8 +561,10 @@ and the derived files            penrose.ins
 %    \end{macrocode}
 % Store the resulting coordinate.
 %    \begin{macrocode}
-    \fp_set:Nn \l_@@_tmpa_fp { \tl_item:Nn \l_@@_tmpb_tl {1} }
-    \fp_set:Nn \l_@@_tmpb_fp { \tl_item:Nn \l_@@_tmpb_tl {2} }
+    \fp_set:Nn \l_@@_tmpa_fp
+    { \tl_item:Nn \l_@@_tmpb_tl {1} }
+    \fp_set:Nn \l_@@_tmpb_fp
+    { \tl_item:Nn \l_@@_tmpb_tl {2} }
 %    \end{macrocode}
 % Now get the next coordinate.
 %    \begin{macrocode}
@@ -557,8 +572,10 @@ and the derived files            penrose.ins
 %    \end{macrocode}
 % We want the difference between the two coordinates.
 %    \begin{macrocode}
-    \fp_set:Nn \l_@@_tmpa_fp {\tl_item:Nn \l_@@_tmpb_tl {1} - \l_@@_tmpa_fp}
-    \fp_set:Nn \l_@@_tmpb_fp {\tl_item:Nn \l_@@_tmpb_tl {2} - \l_@@_tmpb_fp}
+    \fp_set:Nn \l_@@_tmpa_fp
+    {\tl_item:Nn \l_@@_tmpb_tl {1} - \l_@@_tmpa_fp}
+    \fp_set:Nn \l_@@_tmpb_fp
+    {\tl_item:Nn \l_@@_tmpb_tl {2} - \l_@@_tmpb_fp}
 %    \end{macrocode}
 % This is converted into a transformation matrix.
 %    \begin{macrocode}
@@ -566,8 +583,8 @@ and the derived files            penrose.ins
     \tl_set:Nx \l_@@_tmpb_tl
     {
       {\fp_to_dim:n { \l_@@_tmpa_fp * \c_@@_cm_fp }}
-      {\fp_to_dim:n { \l_@@_tmpb_fp * \c_@@_cm_fp }} % not swapped
-      {\fp_to_dim:n { \l_@@_tmpc_fp * \c_@@_cm_fp }} % not swapped
+      {\fp_to_dim:n { \l_@@_tmpb_fp * \c_@@_cm_fp }}% not swapped
+      {\fp_to_dim:n { \l_@@_tmpc_fp * \c_@@_cm_fp }}% not swapped
       {\fp_to_dim:n { \l_@@_tmpa_fp * \c_@@_cm_fp }}
       {0}
       {0}
@@ -732,14 +749,17 @@ and the derived files            penrose.ins
 %    \end{macrocode}
 % Get the coordinates of the second point and adjust relative to the first.
 %    \begin{macrocode}
-      \fp_set:Nn \l_@@_xb_fp {\tl_item:Nn \l_@@_tmpa_tl {1} - \l_@@_xa_fp}
-      \fp_set:Nn \l_@@_yb_fp {\tl_item:Nn \l_@@_tmpa_tl {2} - \l_@@_ya_fp}
+      \fp_set:Nn \l_@@_xb_fp
+      {\tl_item:Nn \l_@@_tmpa_tl {1} - \l_@@_xa_fp}
+      \fp_set:Nn \l_@@_yb_fp
+      {\tl_item:Nn \l_@@_tmpa_tl {2} - \l_@@_ya_fp}
 %    \end{macrocode}
 % And normalise the vector along it.
 %    \begin{macrocode}
 %  \fp_set:Nn \l_@@_xb_fp {\l_@@_xb_fp / \c_@@_cm_fp}
 %  \fp_set:Nn \l_@@_yb_fp {\l_@@_yb_fp / \c_@@_cm_fp}
-      \fp_set:Nn \l_@@_tmpa_fp {(\l_@@_xb_fp)^2 + (\l_@@_yb_fp)^2}
+      \fp_set:Nn \l_@@_tmpa_fp
+      {(\l_@@_xb_fp)^2 + (\l_@@_yb_fp)^2}
       \fp_set:Nn \l_@@_xb_fp { \l_@@_xb_fp / \l_@@_tmpa_fp}
       \fp_set:Nn \l_@@_yb_fp { \l_@@_yb_fp / \l_@@_tmpa_fp}
 %    \end{macrocode}
@@ -789,7 +809,8 @@ and the derived files            penrose.ins
 % \end{macro}
 %
 %    \begin{macrocode}
-\cs_generate_variant:Nn \@@_transform_side_to_axis:Nnn {Nnx,NnV,NVV}
+\cs_generate_variant:Nn
+\@@_transform_side_to_axis:Nnn {Nnx,NnV,NVV}
 %    \end{macrocode}
 %
 % \begin{macro}[internal]{\@@_translate_vertex_to_origin:Nnn}
@@ -899,7 +920,8 @@ and the derived files            penrose.ins
 % \end{macro}
 %
 %    \begin{macrocode}
-\cs_generate_variant:Nn \@@_translate_vertex_to_origin:Nnn {Nnx,NnV,NVV}
+\cs_generate_variant:Nn
+\@@_translate_vertex_to_origin:Nnn {Nnx,NnV,NVV}
 %    \end{macrocode}
 %
 % \begin{macro}[internal]{\TransformAlongSide}
@@ -962,14 +984,22 @@ and the derived files            penrose.ins
   \tl_map_inline:Nn \l_@@_tmpb_tl {
     \tl_set:Nx \l_@@_tmpd_tl {
       \exp_not:N \coordinate
-      (-edge~ ##1~ start)~ at (\tl_item:Nn \l_@@_tmpa_tl {1},\tl_item:Nn \l_@@_tmpa_tl {2});
+      (-edge~ ##1~ start)~
+      at (
+      \tl_item:Nn \l_@@_tmpa_tl {1},
+      \tl_item:Nn \l_@@_tmpa_tl {2}
+      );
     }
     \tl_use:N \l_@@_tmpd_tl
     \tl_set:Nx \l_@@_tmpa_tl {\tl_head:N \l_@@_tmpc_tl}
     \tl_set:Nx \l_@@_tmpc_tl {\tl_tail:N \l_@@_tmpc_tl}
     \tl_set:Nx \l_@@_tmpd_tl {
       \exp_not:N \coordinate
-      (-edge~ ##1~ end)~ at (\tl_item:Nn \l_@@_tmpa_tl {1},\tl_item:Nn \l_@@_tmpa_tl {2});
+      (-edge~ ##1~ end)~
+      at (
+      \tl_item:Nn \l_@@_tmpa_tl {1},
+      \tl_item:Nn \l_@@_tmpa_tl {2}
+      );
     }
     \tl_use:N \l_@@_tmpd_tl
   }
@@ -1018,12 +1048,14 @@ and the derived files            penrose.ins
       }
     }
     \tikz_scan_point:n {
-      (\@@_keys_get:n {alignment~ location} -edge~ \@@_keys_get:n {alignment~ edge}~ start)
+      (\@@_keys_get:n {alignment~ location}
+      -edge~ \@@_keys_get:n {alignment~ edge}~ start)
     }
     \dim_set_eq:Nc \l_@@_xa_dim {pgf@x}
     \dim_set_eq:Nc \l_@@_ya_dim {pgf@y}
     \tikz_scan_point:n {
-      (\@@_keys_get:n {alignment~ location} -edge~ \@@_keys_get:n {alignment~ edge}~ end)
+      (\@@_keys_get:n {alignment~ location}
+      -edge~ \@@_keys_get:n {alignment~ edge}~ end)
     }
     \dim_set_eq:Nc \l_@@_xb_dim {pgf@x}
     \dim_set_eq:Nc \l_@@_yb_dim {pgf@y}
@@ -1043,8 +1075,10 @@ and the derived files            penrose.ins
     }
     \dim_gsub:Nn \g_@@_xb_dim {\g_@@_xa_dim}
     \dim_gsub:Nn \g_@@_yb_dim {\g_@@_ya_dim}
-    \dim_gset:Nn \g_@@_xb_dim {\g_@@_xb_dim * \dim_ratio:nn {1pt}{1cm}}
-    \dim_gset:Nn \g_@@_yb_dim {\g_@@_yb_dim * \dim_ratio:nn {1pt}{1cm}}
+    \dim_gset:Nn \g_@@_xb_dim
+    {\g_@@_xb_dim * \dim_ratio:nn {1pt}{1cm}}
+    \dim_gset:Nn \g_@@_yb_dim
+    {\g_@@_yb_dim * \dim_ratio:nn {1pt}{1cm}}
     \group_end:
 %    \end{macrocode}
 % We store the initial points in \Verb+\pgf@xa+ and \Verb+\pgf@ya+ but we want \Verb+\pgf@xb+ and \Verb+\pgf@yb+ to be a vector along the edge.
@@ -1088,22 +1122,34 @@ and the derived files            penrose.ins
     }
     \tikz_node_if_defined:nTF
     {
-      \@@_keys_get:n {alignment~ location} -edge~ \@@_keys_get:n {alignment~ edge}~ start
+      \@@_keys_get:n {alignment~ location}
+      -edge~ \@@_keys_get:n {alignment~ edge}~ start
     }
     {
       \tikzset{
-        tiling/alignment~ start/.expanded={(\@@_keys_get:n {alignment~ location} -edge~ \@@_keys_get:n {alignment~ edge}~ start)},
-        tiling/alignment~ end/.expanded={(\@@_keys_get:n {alignment~ location} -edge~ \@@_keys_get:n {alignment~ edge}~ end)},
+        tiling/alignment~ start/.expanded={
+          (\@@_keys_get:n {alignment~ location}
+          -edge~ \@@_keys_get:n {alignment~ edge}~ start)
+        },
+        tiling/alignment~ end/.expanded={
+          (\@@_keys_get:n {alignment~ location}
+          -edge~ \@@_keys_get:n {alignment~ edge}~ end)
+        },
       }
     }
     {
       \@@_keys_get:Nn \l_@@_tmpa_tl {alignment~ location}
       \tl_set:Nx \l_@@_tmpa_tl {\tl_use:N \l_@@_tmpa_tl}
-      \prop_get:NVNTF \g_@@_tilenames_prop \l_@@_tmpa_tl \l_@@_tmpb_tl
+      \prop_get:NVNTF \g_@@_tilenames_prop
+      \l_@@_tmpa_tl \l_@@_tmpb_tl
       {
-        \prop_get:NVN \g_@@_tiles_prop \l_@@_tmpb_tl \l_@@_tmpc_tl
+        \prop_get:NVN \g_@@_tiles_prop
+        \l_@@_tmpb_tl \l_@@_tmpc_tl
         \msg_error:nnxxx { tilings }{ tile no edge }
-        { \tl_use:N \l_@@_tmpa_tl \c_space_tl (type~ \tl_use:N \l_@@_tmpb_tl) }
+        {
+          \tl_use:N \l_@@_tmpa_tl \c_space_tl
+          (type~ \tl_use:N \l_@@_tmpb_tl)
+        }
         {\@@_keys_get:n {alignment~ edge} }
         { \tl_item:Nn \l_@@_tmpc_tl {1} }
       }
@@ -1294,7 +1340,8 @@ and the derived files            penrose.ins
           }
         }
         {
-          \regex_extract_once:NVNTF \c_@@_anchor_regex \l_@@_tmpa_tl \l_@@_tmpb_tl
+          \regex_extract_once:NVNTF
+          \c_@@_anchor_regex \l_@@_tmpa_tl \l_@@_tmpb_tl
           {
             \regex_replace_once:NnN \c_@@_anchor_regex {} \l_@@_tmpa_tl
             \tl_if_eq:NnTF \l_@@_tmpb_tl {~end}
@@ -1311,7 +1358,8 @@ and the derived files            penrose.ins
           \tl_set:Nx \l_@@_tmpb_tl {{\tl_use:N \l_@@_tmpa_tl}}
           \tl_if_in:NVT \l_@@_tmpc_tl \l_@@_tmpb_tl
           {
-            \@@_translate_vertex_to_origin:NnV \l_@@_cw_bool {#2} \l_@@_tmpa_tl
+            \@@_translate_vertex_to_origin:NnV
+            \l_@@_cw_bool {#2} \l_@@_tmpa_tl
           }
         }
       }
@@ -1807,7 +1855,8 @@ and the derived files            penrose.ins
 %    \begin{macrocode}
 \RequirePackage{tikz}
 \usetikzlibrary{tilings}
-\ProvidesFile {tikzlibrarytilings.penrose.code.tex} [2023/05/11 v1.8 TikZ pics for Penrose tiles]
+\ProvidesFile {tikzlibrarytilings.penrose.code.tex}
+[2023/06/01 v2.0 TikZ pics for Penrose tiles]
 %    \end{macrocode}
 %
 %
@@ -2678,7 +2727,8 @@ and the derived files            penrose.ins
 %    \begin{macrocode}
 \RequirePackage{tikz}
 \usetikzlibrary{tilings}
-\ProvidesFile {tikzlibrarytilings.polykite.code.tex} [2023/05/11 v1.8 TikZ pics for Aperiodical Polykite tiles]
+\ProvidesFile {tikzlibrarytilings.polykite.code.tex}
+ [2023/06/01 v2.0 TikZ pics for Aperiodical Polykite tiles]
 %    \end{macrocode}
 %
 % \begin{function}{\DefinePolykiteTile}
@@ -2736,20 +2786,20 @@ and the derived files            penrose.ins
 %    \begin{macrocode}
 \DefineTile {spectre} {a A a A a A a A a A a A a A}
   {
-    {0 : 1}
-    ++{90 : 1}
-    ++{150 : 1}
-    ++{240 : 1}
-    ++{180 : 1}
-    ++{-90 : 1}
-    ++{210 : 1}
-    ++{-60 : 1}
-    ++{0 : 1}
-    ++{0 : 1}
-    ++{60 : 1}
-    ++{-30 : 1}
-    ++{30 : 1}
-    ++{120 : 1}
+    {0 : .75}
+    ++{90 : .75}
+    ++{150 : .75}
+    ++{240 : .75}
+    ++{180 : .75}
+    ++{-90 : .75}
+    ++{210 : .75}
+    ++{-60 : .75}
+    ++{0 : .75}
+    ++{0 : .75}
+    ++{60 : .75}
+    ++{-30 : .75}
+    ++{30 : .75}
+    ++{120 : .75}
   }
 %    \end{macrocode}
 %
@@ -2837,7 +2887,8 @@ and the derived files            penrose.ins
 ++{ 1, 0}
 ++{ 1 + sqrt(5), 0 }
 ++{ 1, 0 }
-+{ -.75 + (2 + sqrt(5)) * sqrt(3)/4 * sqrt(3)/3, (2 + sqrt(5)) * sqrt(3)/4 + 3/4 * sqrt(3)/3 }
++{ -.75 + (2 + sqrt(5)) * sqrt(3)/4 * sqrt(3)/3,
+  (2 + sqrt(5)) * sqrt(3)/4 + 3/4 * sqrt(3)/3 }
 ++{ -1.5, (2 + sqrt(5)) * sqrt(3)/2 }
 ++{ -1, 0 }
 }
@@ -3038,31 +3089,96 @@ and the derived files            penrose.ins
 {
   [s {r{-60}} T]
   [s {x{\fp_to_decimal:n{1}}} {y{\fp_to_decimal:n{(1+2*\c_@@_phi_fp)}}} H]
-  [s {x{\fp_to_decimal:n{-2-3*\c_@@_phi_fp}}} {y{\fp_to_decimal:n{-\c_@@_phi_fp}}} H]
-  [s {x{\fp_to_decimal:n{1+3*\c_@@_phi_fp}}} {y{\fp_to_decimal:n{-1-\c_@@_phi_fp}}} {r{-120}} H]
-  [s {x{\fp_to_decimal:n{-1.5-3.5*\c_@@_phi_fp}}} {y{\fp_to_decimal:n{2.5*\c_@@_phi_fp+1.5}}} {r{-120}} P]
-  [s {x{\fp_to_decimal:n{-1.5-2*\c_@@_phi_fp}}} {y{\fp_to_decimal:n{-1.5-3*\c_@@_phi_fp}}} {r{180}} P]
-  [s {x{\fp_to_decimal:n{3+5.5*\c_@@_phi_fp}}} {y{\fp_to_decimal:n{.5*\c_@@_phi_fp}}} {r{120}} P]
-  [s {x{\fp_to_decimal:n{-4.5-6.5*\c_@@_phi_fp}}} {y{\fp_to_decimal:n{.5-.5*\c_@@_phi_fp}}} {r{-120}} F]
-  [s {x{\fp_to_decimal:n{1.5+4*\c_@@_phi_fp}}} {y{\fp_to_decimal:n{-2.5-3*\c_@@_phi_fp}}} F]
-  [s {x{\fp_to_decimal:n{3+2.5*\c_@@_phi_fp}}} {y{\fp_to_decimal:n{2+3.5*\c_@@_phi_fp}}} {r{120}} F]
+  [s
+    {x{\fp_to_decimal:n{-2-3*\c_@@_phi_fp}}}
+    {y{\fp_to_decimal:n{-\c_@@_phi_fp}}}
+    H]
+  [s
+    {x{\fp_to_decimal:n{1+3*\c_@@_phi_fp}}}
+    {y{\fp_to_decimal:n{-1-\c_@@_phi_fp}}}
+    {r{-120}}
+    H]
+  [s
+    {x{\fp_to_decimal:n{-1.5-3.5*\c_@@_phi_fp}}}
+    {y{\fp_to_decimal:n{2.5*\c_@@_phi_fp+1.5}}}
+    {r{-120}}
+    P]
+  [s
+    {x{\fp_to_decimal:n{-1.5-2*\c_@@_phi_fp}}}
+    {y{\fp_to_decimal:n{-1.5-3*\c_@@_phi_fp}}}
+    {r{180}}
+    P]
+  [s
+    {x{\fp_to_decimal:n{3+5.5*\c_@@_phi_fp}}}
+    {y{\fp_to_decimal:n{.5*\c_@@_phi_fp}}}
+    {r{120}}
+    P]
+  [s
+    {x{\fp_to_decimal:n{-4.5-6.5*\c_@@_phi_fp}}}
+    {y{\fp_to_decimal:n{.5-.5*\c_@@_phi_fp}}}
+    {r{-120}}
+    F]
+  [s
+    {x{\fp_to_decimal:n{1.5+4*\c_@@_phi_fp}}}
+    {y{\fp_to_decimal:n{-2.5-3*\c_@@_phi_fp}}}
+    F]
+  [s
+    {x{\fp_to_decimal:n{3+2.5*\c_@@_phi_fp}}}
+    {y{\fp_to_decimal:n{2+3.5*\c_@@_phi_fp}}}
+    {r{120}}
+    F]
 }
 \prop_gput:Nnn \g_@@_supercluster_lms_rule_prop {P}
 {
   [s {r{60}} P]
-  [s {x{\fp_to_decimal:n{2.5+3.5*\c_@@_phi_fp}}} {y{\fp_to_decimal:n{-.5-.5*\c_@@_phi_fp}}} {r{-120}} H]
-  [s {x{\fp_to_decimal:n{-2.5-3.5*\c_@@_phi_fp}}} {y{\fp_to_decimal:n{.5+.5*\c_@@_phi_fp}}} {r{180}} H]
-  [s {x{\fp_to_decimal:n{4.5+6*\c_@@_phi_fp}}} {y{\fp_to_decimal:n{.5+\c_@@_phi_fp}}} {r{120}} F]
-  [s {x{\fp_to_decimal:n{-4.5-6*\c_@@_phi_fp}}} {y{\fp_to_decimal:n{-.5-\c_@@_phi_fp}}} {r{-60}} F]
+  [s
+    {x{\fp_to_decimal:n{2.5+3.5*\c_@@_phi_fp}}}
+    {y{\fp_to_decimal:n{-.5-.5*\c_@@_phi_fp}}}
+    {r{-120}}
+    H]
+  [s
+    {x{\fp_to_decimal:n{-2.5-3.5*\c_@@_phi_fp}}}
+    {y{\fp_to_decimal:n{.5+.5*\c_@@_phi_fp}}}
+    {r{180}}
+    H]
+  [s
+    {x{\fp_to_decimal:n{4.5+6*\c_@@_phi_fp}}}
+    {y{\fp_to_decimal:n{.5+\c_@@_phi_fp}}}
+    {r{120}}
+    F]
+  [s
+    {x{\fp_to_decimal:n{-4.5-6*\c_@@_phi_fp}}}
+    {y{\fp_to_decimal:n{-.5-\c_@@_phi_fp}}}
+    {r{-60}}
+    F]
 }
 \prop_gput:Nnn \g_@@_supercluster_lms_rule_prop {F}
 {
   [s {r{60}} P]
-  [s {x{\fp_to_decimal:n{2.5+3.5*\c_@@_phi_fp}}} {y{\fp_to_decimal:n{-.5-.5*\c_@@_phi_fp}}} {r{-120}} H]
-  [s {x{\fp_to_decimal:n{-2.5-3.5*\c_@@_phi_fp}}} {y{\fp_to_decimal:n{.5+.5*\c_@@_phi_fp}}} {r{180}} H]
-  [s {x{\fp_to_decimal:n{4.5+6*\c_@@_phi_fp}}} {y{\fp_to_decimal:n{.5+\c_@@_phi_fp}}} {r{120}} F]
-  [s {x{\fp_to_decimal:n{-4.5-6*\c_@@_phi_fp}}} {y{\fp_to_decimal:n{-.5-\c_@@_phi_fp}}} {r{-60}} F]
-  [s {x{\fp_to_decimal:n{3+4.5*\c_@@_phi_fp}}} {y{\fp_to_decimal:n{-2-2.5*\c_@@_phi_fp}}} F]
+  [s
+    {x{\fp_to_decimal:n{2.5+3.5*\c_@@_phi_fp}}}
+    {y{\fp_to_decimal:n{-.5-.5*\c_@@_phi_fp}}}
+    {r{-120}}
+    H]
+  [s
+    {x{\fp_to_decimal:n{-2.5-3.5*\c_@@_phi_fp}}}
+    {y{\fp_to_decimal:n{.5+.5*\c_@@_phi_fp}}}
+    {r{180}}
+    H]
+  [s
+    {x{\fp_to_decimal:n{4.5+6*\c_@@_phi_fp}}}
+    {y{\fp_to_decimal:n{.5+\c_@@_phi_fp}}}
+    {r{120}}
+    F]
+  [s
+    {x{\fp_to_decimal:n{-4.5-6*\c_@@_phi_fp}}}
+    {y{\fp_to_decimal:n{-.5-\c_@@_phi_fp}}}
+    {r{-60}}
+    F]
+  [s
+    {x{\fp_to_decimal:n{3+4.5*\c_@@_phi_fp}}}
+    {y{\fp_to_decimal:n{-2-2.5*\c_@@_phi_fp}}}
+    F]
 }
 %    \end{macrocode}
 %
@@ -3080,11 +3196,17 @@ and the derived files            penrose.ins
 }
 \prop_gput:Nnn \g_@@_supercluster_lms_action_prop {x}
 {
-  \pgftransformxshift{\fp_to_dim:n {.5 * (\l_@@_parameters_lms_tl) * \l_@@_step_dim}}
+  \pgftransformxshift{
+    \fp_to_dim:n
+    {.5 * (\l_@@_parameters_lms_tl) * \l_@@_step_dim}
+  }
 }
 \prop_gput:Nnn \g_@@_supercluster_lms_action_prop {y}
 {
-  \pgftransformyshift{\fp_to_dim:n {.5 * sqrt(3) * (\l_@@_parameters_lms_tl) * \l_@@_step_dim}}
+  \pgftransformyshift{
+    \fp_to_dim:n
+    {.5 * sqrt(3) * (\l_@@_parameters_lms_tl) * \l_@@_step_dim}
+  }
 }
 
 \prop_gput:Nnn \g_@@_supercluster_lms_action_prop {s}
@@ -3480,11 +3602,17 @@ and the derived files            penrose.ins
 }
 \prop_gput:Nnn \g_@@_cluster_lms_action_prop {x}
 {
-  \pgftransformxshift{\fp_to_dim:n {.5 * (\l_@@_parameters_lms_tl) * \l_@@_step_dim}}
+  \pgftransformxshift{
+    \fp_to_dim:n
+    {.5 * (\l_@@_parameters_lms_tl) * \l_@@_step_dim}
+  }
 }
 \prop_gput:Nnn \g_@@_cluster_lms_action_prop {y}
 {
-  \pgftransformyshift{\fp_to_dim:n {.5 * sqrt(3) * (\l_@@_parameters_lms_tl) * \l_@@_step_dim}}
+  \pgftransformyshift{
+    \fp_to_dim:n
+    {.5 * sqrt(3) * (\l_@@_parameters_lms_tl) * \l_@@_step_dim}
+  }
 }
 
 \prop_gput:Nnn \g_@@_cluster_lms_action_prop {s}
@@ -3509,7 +3637,8 @@ and the derived files            penrose.ins
   {
     \@@_tikz_keys_get:Nn \l_@@_tmpa_tl {cluster~type}
     \tl_set:Nx \l_@@_tmpb_tl {\tl_item:Nn \l_@@_parameters_lms_tl {1}}
-    \@@_place_cluster_tile_as_pic:VnVnnn \l_@@_tmpa_tl {#1} \l_@@_tmpb_tl {}{}{}
+    \@@_place_cluster_tile_as_pic:VnVnnn
+    \l_@@_tmpa_tl {#1} \l_@@_tmpb_tl {}{}{}
   }
 }
 %    \end{macrocode}
@@ -3521,7 +3650,8 @@ and the derived files            penrose.ins
   \@@_tikz_keys_get:Nn \l_@@_tmpa_tl {cluster~type}
   \tl_set:Nx \l_@@_tmpb_tl {\@@_tile_label:}
   \tl_set:Nx \l_@@_tmpc_tl {\@@_adjoint_label:}
-  \@@_place_cluster_tile_as_pic:VnVVnn \l_@@_tmpa_tl {#1} \l_@@_tmpb_tl \l_@@_tmpc_tl {#4}{#3}
+  \@@_place_cluster_tile_as_pic:VnVVnn
+  \l_@@_tmpa_tl {#1} \l_@@_tmpb_tl \l_@@_tmpc_tl {#4}{#3}
 }
 
 \clist_map_inline:nn {
@@ -3577,7 +3707,8 @@ and the derived files            penrose.ins
 % \fi
 %
 %    \begin{macrocode}
-\ProvidesFile {tikzlibrarypenrose.code.tex} [2023/05/11 v1.8 TikZ pics for Penrose tiles]
+\ProvidesFile {tikzlibrarypenrose.code.tex}
+ [2023/06/01 v2.0 TikZ pics for Penrose tiles]
 \usetikzlibrary{tilings.penrose}
 %    \end{macrocode}
 %
